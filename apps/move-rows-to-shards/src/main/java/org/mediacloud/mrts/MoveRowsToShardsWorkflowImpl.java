@@ -1843,17 +1843,54 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
+        // Run the tree of all promises
         Promise.allOf(
                 authUserRequestDailyCountsPromise,
                 mediaStatsPromise,
                 mediaCoverageGapsPromise,
-                storiesPromise,
-                downloadsErrorPromise,
-                downloadsSuccessContentPromise,
-                downloadsSuccessFeedPromise,
-                topicStoriesPromise,
-                topicLinksPromise,
-                topicPostsPromise,
+                storiesPromise.thenApply(
+                        Void -> Promise.allOf(
+                                storiesApSyndicatedPromise,
+                                storyUrlsPromise,
+                                feedsStoriesMapPromise,
+                                storiesTagsMapPromise,
+                                storySentencesPromise,
+                                solrImportStoriesPromise,
+                                solrImportedStoriesPromise,
+                                topicMergedStoriesMapPromise,
+                                storyStatisticsPromise,
+                                processedStoriesPromise,
+                                scrapedStoriesPromise,
+                                storyEnclosuresPromise
+                        )
+                ),
+                Promise.allOf(
+                        downloadsErrorPromise,
+                        downloadsSuccessContentPromise,
+                        downloadsSuccessFeedPromise
+                ).thenApply(
+                        Void -> downloadTextsPromise
+                ),
+                topicStoriesPromise.thenApply(
+                        Void -> Promise.allOf(
+                                snapTopicStoriesPromise,
+                                snapLiveStoriesPromise
+                        )
+                ),
+                topicLinksPromise.thenApply(
+                        Void -> Promise.allOf(
+                                topicFetchUrlsPromise,
+                                snapTopicLinksCrossMediaPromise
+                        )
+                ),
+                topicPostsPromise.thenApply(
+                        Void -> Promise.allOf(
+                                topicPostUrlsPromise.thenApply(
+                                        Void_ -> topicSeedUrlsPromise
+                                ),
+                                snapTimespanPostsPromise
+                        )
+                ),
                 snapStoriesPromise,
                 snapMediaPromise,
                 snapMediaTagsMapPromise,
@@ -1863,39 +1900,5 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 snapMediumLinkCountsPromise,
                 snapMediumLinksPromise
         ).get();
-        Promise.allOf(
-                storiesApSyndicatedPromise,
-                storyUrlsPromise,
-                feedsStoriesMapPromise,
-                storiesTagsMapPromise,
-                storySentencesPromise,
-                solrImportStoriesPromise,
-                solrImportedStoriesPromise,
-                topicMergedStoriesMapPromise,
-                storyStatisticsPromise,
-                processedStoriesPromise,
-                scrapedStoriesPromise,
-                storyEnclosuresPromise,
-                downloadTextsPromise,
-                snapTopicStoriesPromise,
-                snapLiveStoriesPromise,
-                topicLinksPromise,
-                topicPostsPromise,
-                snapStoriesPromise,
-                snapMediaPromise,
-                snapMediaTagsMapPromise,
-                snapStoriesTagsMapPromise,
-                snapStoryLinksPromise,
-                snapStoryLinkCountsPromise,
-                snapMediumLinkCountsPromise,
-                snapMediumLinksPromise
-        ).get();
-        Promise.allOf(
-                topicFetchUrlsPromise,
-                snapTopicLinksCrossMediaPromise,
-                topicPostUrlsPromise,
-                snapTimespanPostsPromise
-        ).get();
-        topicSeedUrlsPromise.get();
     }
 }
