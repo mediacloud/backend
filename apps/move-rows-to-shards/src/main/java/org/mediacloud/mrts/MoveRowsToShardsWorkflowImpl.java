@@ -83,8 +83,6 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
 
         List<Promise<Void>> promises = new ArrayList<>();
 
-        boolean queriesContainOnConflict = false;
-
         for (long startId = minId; startId <= maxId; startId += chunkSize) {
             long endId = startId + chunkSize - 1;
 
@@ -97,37 +95,13 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 // Make queries look nicer in Temporal's log
                 query = prettifySqlQuery(query);
 
-                if (query.contains("ON CONFLICT")) {
-                    queriesContainOnConflict = true;
-                }
-
                 sqlQueriesWithIds.add(query);
             }
 
             promises.add(Async.procedure(moveRows::runQueriesInTransaction, sqlQueriesWithIds));
         }
 
-        Promise<Void> copyAllChunksPromise = null;
-
-        // ON CONFLICT takes a share lock and doesn't release it for quite a bit so these queries need to be run
-        // serially instead of in parallel
-        if (queriesContainOnConflict) {
-            for (Promise<Void> promise : promises) {
-                if (copyAllChunksPromise == null) {
-                    copyAllChunksPromise = promise;
-                } else {
-                    copyAllChunksPromise = copyAllChunksPromise.thenApply((nil) -> promise.get());
-                }
-            }
-        } else {
-            copyAllChunksPromise = Promise.allOf(promises);
-        }
-
-        if (copyAllChunksPromise == null) {
-            throw new RuntimeException("No row moving queries");
-        }
-
-        return copyAllChunksPromise;
+        return Promise.allOf(promises);
     }
 
     @Override
