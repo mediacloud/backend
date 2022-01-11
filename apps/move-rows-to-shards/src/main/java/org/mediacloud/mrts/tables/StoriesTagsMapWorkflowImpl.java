@@ -19,7 +19,6 @@ public class StoriesTagsMapWorkflowImpl extends TableMoveWorkflow implements Sto
         if (storiesTagsMapMaxStoriesId != null) {
             List<Promise<Void>> chunkPromises = new ArrayList<>();
 
-            // FIXME off by one?
             for (long partitionIndex = 0; partitionIndex <= storiesTagsMapMaxStoriesId / STORIES_ID_PARTITION_CHUNK_SIZE; ++partitionIndex) {
                 chunkPromises.add(
                         Async.procedure(

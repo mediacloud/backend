@@ -19,7 +19,6 @@ public class StorySentencesWorkflowImpl extends TableMoveWorkflow implements Sto
         if (storySentencesMaxStoriesId != null) {
             List<Promise<Void>> chunkPromises = new ArrayList<>();
 
-            // FIXME off by one?
             for (long partitionIndex = 0; partitionIndex <= storySentencesMaxStoriesId / STORIES_ID_PARTITION_CHUNK_SIZE; ++partitionIndex) {
                 chunkPromises.add(
                         Async.procedure(

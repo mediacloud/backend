@@ -19,7 +19,6 @@ public class DownloadTextsWorkflowImpl extends TableMoveWorkflow implements Down
         if (downloadTextsMaxDownloadsId != null) {
             List<Promise<Void>> chunkPromises = new ArrayList<>();
 
-            // FIXME off by one?
             for (long partitionIndex = 0; partitionIndex <= downloadTextsMaxDownloadsId / DOWNLOADS_ID_PARTITION_CHUNK_SIZE; ++partitionIndex) {
                 chunkPromises.add(
                         Async.procedure(

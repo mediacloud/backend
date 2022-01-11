@@ -20,7 +20,6 @@ public class DownloadsSuccessContentWorkflowImpl extends TableMoveWorkflow imple
         if (downloadsSuccessContentMaxDownloadsId != null) {
             List<Promise<Void>> chunkPromises = new ArrayList<>();
 
-            // FIXME off by one?
             for (long partitionIndex = 0; partitionIndex <= downloadsSuccessContentMaxDownloadsId / DOWNLOADS_ID_PARTITION_CHUNK_SIZE; ++partitionIndex) {
                 chunkPromises.add(
                         Async.procedure(

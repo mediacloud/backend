@@ -20,7 +20,6 @@ public class FeedsStoriesMapWorkflowImpl extends TableMoveWorkflow implements Fe
         if (feedsStoriesMapMaxStoriesId != null) {
             List<Promise<Void>> chunkPromises = new ArrayList<>();
 
-            // FIXME off by one?
             for (long partitionIndex = 0; partitionIndex <= feedsStoriesMapMaxStoriesId / STORIES_ID_PARTITION_CHUNK_SIZE; ++partitionIndex) {
                 chunkPromises.add(
                         Async.procedure(
