@@ -10,6 +10,7 @@ import io.temporal.serviceclient.WorkflowServiceStubsOptions;
 import io.temporal.worker.Worker;
 import io.temporal.worker.WorkerFactory;
 import io.temporal.worker.WorkerOptions;
+import org.mediacloud.mrts.tables.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,7 @@ public class Main {
                 * 'start-workflow-fg' - start the workflow and wait for it to complete;
                 * 'start-workflow-bg' - start the workflow in the background and return immediately;
                 * 'test-http-start-workflow-fg-server' - run a test HTTP server on port 8080 that starts the workflow
-                   and waits for it to complete.
+                  and waits for it to complete.
                 """;
 
         if (args.length != 1) {
@@ -83,20 +84,75 @@ public class Main {
         if (action == Action.WORKFLOW_WORKER || action == Action.ACTIVITIES_WORKER) {
             WorkerFactory factory = WorkerFactory.newInstance(client);
 
-            // We'll start more workers if we need to parallelize things
-            WorkerOptions workerOptions = WorkerOptions.newBuilder()
-                    .setMaxConcurrentActivityExecutionSize(1)
-                    .setMaxConcurrentWorkflowTaskExecutionSize(1)
-                    .build();
-
-            Worker worker = factory.newWorker(Shared.TASK_QUEUE, workerOptions);
-
             if (action == Action.ACTIVITIES_WORKER) {
                 log.info("Starting activities worker...");
-                worker.registerActivitiesImplementations(new MinMaxTruncateActivitiesImpl(), new MoveRowsActivitiesImpl());
+
+                // We'll start more workers through Docker if we need to parallelize things
+                WorkerOptions workerOptions = WorkerOptions.newBuilder()
+                        .setMaxConcurrentActivityExecutionSize(1)
+                        .setMaxConcurrentWorkflowTaskExecutionSize(1)
+                        .build();
+                Worker worker = factory.newWorker(Shared.TASK_QUEUE, workerOptions);
+
+                worker.registerActivitiesImplementations(
+                        new MinMaxTruncateActivitiesImpl(),
+                        new MoveRowsActivitiesImpl()
+                );
             } else {
                 log.info("Starting workflow worker...");
-                worker.registerWorkflowImplementationTypes(MoveRowsToShardsWorkflowImpl.class);
+
+                Worker worker = factory.newWorker(Shared.TASK_QUEUE);
+                worker.registerWorkflowImplementationTypes(
+                        // Main workflow
+                        MoveRowsToShardsWorkflowImpl.class,
+
+                        // Child workflow
+                        AuthUserRequestDailyCountsWorkflowImpl.class,
+                        DownloadsErrorWorkflowImpl.class,
+                        DownloadsSuccessContentPartitionWorkflowImpl.class,
+                        DownloadsSuccessContentWorkflowImpl.class,
+                        DownloadsSuccessFeedPartitionWorkflowImpl.class,
+                        DownloadsSuccessFeedWorkflowImpl.class,
+                        DownloadsWorkflowImpl.class,
+                        DownloadTextsPartitionWorkflowImpl.class,
+                        DownloadTextsWorkflowImpl.class,
+                        FeedsStoriesMapPartitionWorkflowImpl.class,
+                        FeedsStoriesMapWorkflowImpl.class,
+                        MediaCoverageGapsWorkflowImpl.class,
+                        MediaStatsWorkflowImpl.class,
+                        ProcessedStoriesWorkflowImpl.class,
+                        ScrapedStoriesWorkflowImpl.class,
+                        SnapLiveStoriesWorkflowImpl.class,
+                        SnapMediaTagsMapWorkflowImpl.class,
+                        SnapMediaWorkflowImpl.class,
+                        SnapMediumLinkCountsWorkflowImpl.class,
+                        SnapMediumLinksWorkflowImpl.class,
+                        SnapStoriesTagsMapWorkflowImpl.class,
+                        SnapStoriesWorkflowImpl.class,
+                        SnapStoryLinkCountsWorkflowImpl.class,
+                        SnapStoryLinksWorkflowImpl.class,
+                        SnapTimespanPostsWorkflowImpl.class,
+                        SnapTopicLinksCrossMediaWorkflowImpl.class,
+                        SnapTopicStoriesWorkflowImpl.class,
+                        SolrImportedStoriesWorkflowImpl.class,
+                        SolrImportStoriesWorkflowImpl.class,
+                        StoriesApSyndicatedWorkflowImpl.class,
+                        StoriesTagsMapPartitionWorkflowImpl.class,
+                        StoriesTagsMapWorkflowImpl.class,
+                        StoriesWorkflowImpl.class,
+                        StoryEnclosuresWorkflowImpl.class,
+                        StorySentencesPartitionWorkflowImpl.class,
+                        StorySentencesWorkflowImpl.class,
+                        StoryStatisticsWorkflowImpl.class,
+                        StoryUrlsWorkflowImpl.class,
+                        TopicFetchUrlsWorkflowImpl.class,
+                        TopicLinksWorkflowImpl.class,
+                        TopicMergedStoriesMapWorkflowImpl.class,
+                        TopicPostsWorkflowImpl.class,
+                        TopicPostUrlsWorkflowImpl.class,
+                        TopicSeedUrlsWorkflowImpl.class,
+                        TopicStoriesWorkflowImpl.class
+                );
             }
 
             factory.start();

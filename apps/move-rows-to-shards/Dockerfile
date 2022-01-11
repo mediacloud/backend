@@ -37,8 +37,8 @@ USER mediacloud
 
 # Set a failing CMD because we'll be using the same image to run:
 #
-# * "workflow_worker.sh" - processes workflow;
-# * "activities_worker.sh" - processes workflow's activities.
+# * "workflow_worker.sh" - executes main workflow which calls internal workflow;
+# * "activities_worker.sh" - processes internal workflow's activities.
 #
 # so the user is expected to set "command" in docker-compose.yml to run a specific worker.
 #

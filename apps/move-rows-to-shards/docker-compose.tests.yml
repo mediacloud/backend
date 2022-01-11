@@ -22,7 +22,7 @@ services:
 
             # Not needed for running the test but useful for debugging, demos
             # and such
-            # - temporal-webapp
+            - temporal-webapp
 
     move-rows-to-shards-workflow:
         image: gcr.io/mcback/move-rows-to-shards:latest
