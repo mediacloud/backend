@@ -14,7 +14,6 @@ services:
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
         depends_on:
-            - postgresql-pgbouncer
             - temporal-server
             - move-rows-to-shards-workflow
             - move-rows-to-shards-activities
@@ -49,19 +48,6 @@ services:
             - 8080
         depends_on:
             - temporal-server
-
-    postgresql-pgbouncer:
-        image: gcr.io/mcback/postgresql-pgbouncer:latest
-        init: true
-        stop_signal: SIGKILL
-        expose:
-            - 6432
-        volumes:
-            - type: bind
-              source: ./../postgresql-pgbouncer/conf/
-              target: /etc/pgbouncer/
-        depends_on:
-            - postgresql-server
 
     postgresql-server:
         image: gcr.io/mcback/postgresql-server:latest

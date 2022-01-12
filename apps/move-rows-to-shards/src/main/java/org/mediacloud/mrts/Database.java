@@ -9,7 +9,7 @@ public class Database {
     private final Connection conn;
 
     public Database() throws SQLException {
-        this.conn = DriverManager.getConnection("jdbc:postgresql://postgresql-pgbouncer:6432/mediacloud", "mediacloud", "mediacloud");
+        this.conn = DriverManager.getConnection("jdbc:postgresql://postgresql-server:5432/mediacloud", "mediacloud", "mediacloud");
     }
 
     public void query(List<String> sqlQueries) throws SQLException {
