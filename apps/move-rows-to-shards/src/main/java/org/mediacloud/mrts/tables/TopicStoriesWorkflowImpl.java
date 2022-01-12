@@ -56,6 +56,14 @@ public class TopicStoriesWorkflowImpl extends TableMoveWorkflow implements Topic
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
+        Promise<Void> topicLinksPromise = Async.procedure(
+                Workflow.newChildWorkflowStub(
+                        TopicLinksWorkflow.class,
+                        ChildWorkflowOptions.newBuilder()
+                                .setWorkflowId("topic_links")
+                                .build()
+                )::moveTopicLinks
+        );
         Promise<Void> snapTopicStoriesPromise = Async.procedure(
                 Workflow.newChildWorkflowStub(
                         SnapTopicStoriesWorkflow.class,
@@ -75,6 +83,7 @@ public class TopicStoriesWorkflowImpl extends TableMoveWorkflow implements Topic
 
         // Move tables that depend on "topic_stories"
         Promise.allOf(
+                topicLinksPromise,
                 snapTopicStoriesPromise,
                 snapLiveStoriesPromise
         ).get();

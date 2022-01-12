@@ -60,14 +60,6 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                                 .build()
                 )::moveTopicStories
         );
-        Promise<Void> topicLinksPromise = Async.procedure(
-                Workflow.newChildWorkflowStub(
-                        TopicLinksWorkflow.class,
-                        ChildWorkflowOptions.newBuilder()
-                                .setWorkflowId("topic_links")
-                                .build()
-                )::moveTopicLinks
-        );
         Promise<Void> topicPostsPromise = Async.procedure(
                 Workflow.newChildWorkflowStub(
                         TopicPostsWorkflow.class,
@@ -148,7 +140,6 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 storiesPromise,
                 downloadsPromise,
                 topicStoriesPromise,
-                topicLinksPromise,
                 topicPostsPromise,
                 snapStoriesPromise,
                 snapMediaPromise,
