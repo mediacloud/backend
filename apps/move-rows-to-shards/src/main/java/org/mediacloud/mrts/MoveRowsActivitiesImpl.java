@@ -12,18 +12,10 @@ public class MoveRowsActivitiesImpl implements MoveRowsActivities {
 
     @Override
     public void runQueriesInTransaction(List<String> sqlQueries) {
-        Database db;
-        try {
-            db = new Database();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Unable to connect to database: " + e.getMessage());
-        }
-
         log.info("Executing SQL queries: " + sqlQueries);
 
         try {
-            db.query(sqlQueries);
+            Database.query(sqlQueries);
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException("Unable to execute SQL queries: " + e.getMessage());

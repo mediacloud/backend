@@ -6,35 +6,52 @@ import java.util.List;
 
 public class Database {
 
-    private final Connection conn;
-
-    public Database() throws SQLException {
-        this.conn = DriverManager.getConnection("jdbc:postgresql://postgresql-server:5432/mediacloud", "mediacloud", "mediacloud");
+    private static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection("jdbc:postgresql://postgresql-server:5432/mediacloud", "mediacloud", "mediacloud");
     }
 
-    public void query(List<String> sqlQueries) throws SQLException {
-        Statement stmt = this.conn.createStatement();
+    public static void query(List<String> sqlQueries) throws SQLException {
+        Connection conn = getConnection();
+        Statement stmt = conn.createStatement();
         for (String query : sqlQueries) {
             stmt.executeUpdate(query);
         }
+        stmt.close();
+        conn.close();
     }
 
-    public @Nullable
+    public static @Nullable
     Long queryLong(String sqlQuery) throws SQLException {
-        Statement stmt = this.conn.createStatement();
+        Connection conn = getConnection();
+        Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(sqlQuery);
 
+        Long result;
+
         if (rs.next()) {
-            return rs.getLong(1);
+            result = rs.getLong(1);
         } else {
-            return null;
+            result = null;
         }
+
+        rs.close();
+        stmt.close();
+        conn.close();
+
+        return result;
     }
 
-    public boolean tableIsEmpty(String table) throws SQLException {
-        Statement stmt = this.conn.createStatement();
+    public static boolean tableIsEmpty(String table) throws SQLException {
+        Connection conn = getConnection();
+        Statement stmt = conn.createStatement();
         //noinspection SqlNoDataSourceInspection
         ResultSet rs = stmt.executeQuery("SELECT * FROM " + table + " LIMIT 1");
-        return !rs.next();
+        boolean isEmpty = !rs.next();
+
+        rs.close();
+        stmt.close();
+        conn.close();
+
+        return isEmpty;
     }
 }

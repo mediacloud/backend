@@ -30,17 +30,9 @@ public class MinMaxTruncateActivitiesImpl implements MinMaxTruncateActivities {
 
         this.testTableIdColumn(table, idColumn);
 
-        Database db;
-        try {
-            db = new Database();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Unable to connect to database: " + e.getMessage());
-        }
-
         Long minValue;
         try {
-            minValue = db.queryLong("SELECT MIN(" + idColumn + ") FROM " + table);
+            minValue = Database.queryLong("SELECT MIN(" + idColumn + ") FROM " + table);
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException("Unable to select min. value: " + e.getMessage());
@@ -58,17 +50,9 @@ public class MinMaxTruncateActivitiesImpl implements MinMaxTruncateActivities {
 
         this.testTableIdColumn(table, idColumn);
 
-        Database db;
-        try {
-            db = new Database();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Unable to connect to database: " + e.getMessage());
-        }
-
         Long maxValue;
         try {
-            maxValue = db.queryLong("SELECT MAX(" + idColumn + ") FROM " + table);
+            maxValue = Database.queryLong("SELECT MAX(" + idColumn + ") FROM " + table);
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException("Unable to select max. value: " + e.getMessage());
@@ -88,17 +72,9 @@ public class MinMaxTruncateActivitiesImpl implements MinMaxTruncateActivities {
             throw new RuntimeException("Table name must start with 'unsharded_': " + table);
         }
 
-        Database db;
-        try {
-            db = new Database();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Unable to connect to database: " + e.getMessage());
-        }
-
         log.info("Testing if table '" + table + "' is empty...");
         try {
-            if (!db.tableIsEmpty(table)) {
+            if (!Database.tableIsEmpty(table)) {
                 throw new RuntimeException("Table '" + table + "' is still not empty");
             }
         } catch (SQLException e) {
@@ -109,11 +85,12 @@ public class MinMaxTruncateActivitiesImpl implements MinMaxTruncateActivities {
 
         log.info("Truncating table '" + table + "'...");
         try {
-            db.query(List.of("TRUNCATE " + table));
+            Database.query(List.of("TRUNCATE " + table));
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException("Unable to truncate table: " + e.getMessage());
         }
+
         log.info("Truncated table '" + table + "'");
     }
 }
