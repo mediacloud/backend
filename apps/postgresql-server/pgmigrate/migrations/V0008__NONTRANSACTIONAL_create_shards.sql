@@ -2986,7 +2986,7 @@ CREATE TABLE topic_posts
     content            TEXT      NOT NULL,
     publish_date       TIMESTAMP NOT NULL,
     author             TEXT      NOT NULL,
-    channel            TEXT      NOT NULL,
+    channel            TEXT      NULL,
     url                TEXT      NULL,
 
     PRIMARY KEY (topic_posts_id, topics_id)
