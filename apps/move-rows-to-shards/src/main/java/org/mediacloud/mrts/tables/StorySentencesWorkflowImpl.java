@@ -1,7 +1,12 @@
 package org.mediacloud.mrts.tables;
 
+import io.temporal.workflow.Async;
 import io.temporal.workflow.ChildWorkflowOptions;
+import io.temporal.workflow.Promise;
 import io.temporal.workflow.Workflow;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class StorySentencesWorkflowImpl extends TableMoveWorkflow implements StorySentencesWorkflow {
 
@@ -12,16 +17,23 @@ public class StorySentencesWorkflowImpl extends TableMoveWorkflow implements Sto
                 "stories_id"
         );
         if (storySentencesMaxStoriesId != null) {
-            // Move "story_sentences" partitions serially in order to truncate each partition after its move and thus
-            // not run out of disk space
+            List<Promise<Void>> chunkPromises = new ArrayList<>();
+
             for (long partitionIndex = 0; partitionIndex <= storySentencesMaxStoriesId / STORIES_ID_PARTITION_CHUNK_SIZE; ++partitionIndex) {
-                Workflow.newChildWorkflowStub(
-                        StorySentencesPartitionWorkflow.class,
-                        ChildWorkflowOptions.newBuilder()
-                                .setWorkflowId(String.format("story_sentences_%02d", partitionIndex))
-                                .build()
-                ).moveStorySentencesPartition((int) partitionIndex);
+                chunkPromises.add(
+                        Async.procedure(
+                                Workflow.newChildWorkflowStub(
+                                        StorySentencesPartitionWorkflow.class,
+                                        ChildWorkflowOptions.newBuilder()
+                                                .setWorkflowId(String.format("story_sentences_%02d", partitionIndex))
+                                                .build()
+                                )::moveStorySentencesPartition,
+                                (int) partitionIndex
+                        )
+                );
             }
+
+            Promise.allOf(chunkPromises).get();
         }
     }
 }
