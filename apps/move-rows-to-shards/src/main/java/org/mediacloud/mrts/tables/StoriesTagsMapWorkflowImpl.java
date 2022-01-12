@@ -12,7 +12,7 @@ public class StoriesTagsMapWorkflowImpl extends TableMoveWorkflow implements Sto
 
     @Override
     public void moveStoriesTagsMap() {
-        Long storiesTagsMapMaxStoriesId = this.minMaxTruncate.maxColumnValue(
+        Long storiesTagsMapMaxStoriesId = this.minMax.maxColumnValue(
                 "unsharded_public.stories_tags_map",
                 "stories_id"
         );

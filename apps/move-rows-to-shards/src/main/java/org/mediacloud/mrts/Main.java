@@ -95,7 +95,8 @@ public class Main {
                 Worker worker = factory.newWorker(Shared.TASK_QUEUE, workerOptions);
 
                 worker.registerActivitiesImplementations(
-                        new MinMaxTruncateActivitiesImpl(),
+                        new MinMaxActivitiesImpl(),
+                        new TruncateActivitiesImpl(),
                         new MoveRowsActivitiesImpl()
                 );
             } else {

@@ -5,10 +5,7 @@ import io.temporal.common.RetryOptions;
 import io.temporal.workflow.Async;
 import io.temporal.workflow.Promise;
 import io.temporal.workflow.Workflow;
-import org.mediacloud.mrts.MinMaxTruncateActivities;
-import org.mediacloud.mrts.MoveRowsActivities;
-import org.mediacloud.mrts.MoveRowsToShardsWorkflowImpl;
-import org.mediacloud.mrts.Shared;
+import org.mediacloud.mrts.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,13 +63,23 @@ public class TableMoveWorkflow {
             .setMaximumAttempts(1000)
             .build();
 
-    protected final MinMaxTruncateActivities minMaxTruncate = Workflow.newActivityStub(
-            MinMaxTruncateActivities.class,
+    protected final MinMaxActivities minMax = Workflow.newActivityStub(
+            MinMaxActivities.class,
             ActivityOptions.newBuilder()
                     .setTaskQueue(Shared.TASK_QUEUE)
-                    // If we need to rerun everything, min. / max. value or TRUNCATE might take a while to find because
-                    // we'll be skipping a bunch of dead tuples
+                    // If we need to rerun everything, min. / max. value might take a while to find because we'll be
+                    // skipping a bunch of dead tuples
                     .setStartToCloseTimeout(Duration.ofHours(2))
+                    .setRetryOptions(DEFAULT_RETRY_OPTIONS)
+                    .build()
+    );
+
+    protected final TruncateActivities truncate = Workflow.newActivityStub(
+            TruncateActivities.class,
+            ActivityOptions.newBuilder()
+                    .setTaskQueue(Shared.TASK_QUEUE)
+                    // Lots of dead tuples to go through
+                    .setStartToCloseTimeout(Duration.ofHours(8))
                     .setRetryOptions(DEFAULT_RETRY_OPTIONS)
                     .build()
     );
@@ -124,13 +131,13 @@ public class TableMoveWorkflow {
             throw new RuntimeException("SQL queries don't contain end ID marker '" + END_ID_MARKER + "': " + sqlQueries);
         }
 
-        Long minId = this.minMaxTruncate.minColumnValue(srcTable, srcIdColumn);
+        Long minId = this.minMax.minColumnValue(srcTable, srcIdColumn);
         if (minId == null) {
             log.warn("Table '" + srcTable + "' seems to be empty.");
             return;
         }
 
-        Long maxId = this.minMaxTruncate.maxColumnValue(srcTable, srcIdColumn);
+        Long maxId = this.minMax.maxColumnValue(srcTable, srcIdColumn);
         if (maxId == null) {
             log.warn("Table '" + srcTable + "' seems to be empty.");
             return;
@@ -181,6 +188,6 @@ public class TableMoveWorkflow {
         }
 
         // Lastly, truncate the table
-        this.minMaxTruncate.truncateIfEmpty(srcTable);
+        this.truncate.truncateIfEmpty(srcTable);
     }
 }

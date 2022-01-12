@@ -8,7 +8,7 @@ import java.util.List;
 
 public class MoveRowsActivitiesImpl implements MoveRowsActivities {
 
-    private static final Logger log = LoggerFactory.getLogger(MinMaxTruncateActivitiesImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(MinMaxActivitiesImpl.class);
 
     @Override
     public void runQueriesInTransaction(List<String> sqlQueries) {

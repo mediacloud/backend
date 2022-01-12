@@ -13,7 +13,7 @@ public class DownloadsSuccessFeedWorkflowImpl extends TableMoveWorkflow implemen
 
     @Override
     public void moveDownloadsSuccessFeed() {
-        Long downloadsSuccessFeedMaxDownloadsId = this.minMaxTruncate.maxColumnValue(
+        Long downloadsSuccessFeedMaxDownloadsId = this.minMax.maxColumnValue(
                 "unsharded_public.downloads_success_feed",
                 "downloads_id"
         );

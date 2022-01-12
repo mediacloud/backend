@@ -12,7 +12,7 @@ public class StorySentencesWorkflowImpl extends TableMoveWorkflow implements Sto
 
     @Override
     public void moveStorySentences() {
-        Long storySentencesMaxStoriesId = this.minMaxTruncate.maxColumnValue(
+        Long storySentencesMaxStoriesId = this.minMax.maxColumnValue(
                 "unsharded_public.story_sentences",
                 "stories_id"
         );

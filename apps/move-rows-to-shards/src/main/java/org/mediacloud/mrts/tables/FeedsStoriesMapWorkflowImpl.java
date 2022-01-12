@@ -13,7 +13,7 @@ public class FeedsStoriesMapWorkflowImpl extends TableMoveWorkflow implements Fe
 
     @Override
     public void moveFeedsStoriesMap() {
-        Long feedsStoriesMapMaxStoriesId = this.minMaxTruncate.maxColumnValue(
+        Long feedsStoriesMapMaxStoriesId = this.minMax.maxColumnValue(
                 "unsharded_public.feeds_stories_map",
                 "stories_id"
         );

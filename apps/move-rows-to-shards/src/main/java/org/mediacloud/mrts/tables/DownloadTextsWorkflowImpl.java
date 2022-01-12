@@ -12,7 +12,7 @@ public class DownloadTextsWorkflowImpl extends TableMoveWorkflow implements Down
 
     @Override
     public void moveDownloadTexts() {
-        Long downloadTextsMaxDownloadsId = this.minMaxTruncate.maxColumnValue(
+        Long downloadTextsMaxDownloadsId = this.minMax.maxColumnValue(
                 "unsharded_public.download_texts",
                 "downloads_id"
         );
