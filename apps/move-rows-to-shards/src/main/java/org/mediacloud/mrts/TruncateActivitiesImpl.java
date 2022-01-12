@@ -3,7 +3,6 @@ package org.mediacloud.mrts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
 import java.util.List;
 
 public class TruncateActivitiesImpl implements TruncateActivities {
@@ -20,23 +19,13 @@ public class TruncateActivitiesImpl implements TruncateActivities {
         }
 
         log.info("Testing if table '" + table + "' is empty...");
-        try {
-            if (!Database.tableIsEmpty(table)) {
-                throw new RuntimeException("Table '" + table + "' is still not empty");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Unable to test if table is empty: " + e.getMessage());
+        if (!Database.tableIsEmpty(table)) {
+            throw new RuntimeException("Table '" + table + "' is still not empty");
         }
         log.info("Table '" + table + "' is empty");
 
         log.info("Truncating table '" + table + "'...");
-        try {
-            Database.query(List.of("TRUNCATE " + table));
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Unable to truncate table: " + e.getMessage());
-        }
+        Database.query(List.of("TRUNCATE " + table));
 
         log.info("Truncated table '" + table + "'");
     }

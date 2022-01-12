@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.sql.SQLException;
 
 public class MinMaxActivitiesImpl implements MinMaxActivities {
 
@@ -29,13 +28,7 @@ public class MinMaxActivitiesImpl implements MinMaxActivities {
 
         this.testTableIdColumn(table, idColumn);
 
-        Long minValue;
-        try {
-            minValue = Database.queryLong("SELECT MIN(" + idColumn + ") FROM " + table);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Unable to select min. value: " + e.getMessage());
-        }
+        Long minValue = Database.queryLong("SELECT MIN(" + idColumn + ") FROM " + table);
 
         log.info("Min. value of " + table + " (" + idColumn + "): " + minValue);
 
@@ -49,13 +42,7 @@ public class MinMaxActivitiesImpl implements MinMaxActivities {
 
         this.testTableIdColumn(table, idColumn);
 
-        Long maxValue;
-        try {
-            maxValue = Database.queryLong("SELECT MAX(" + idColumn + ") FROM " + table);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Unable to select max. value: " + e.getMessage());
-        }
+        Long maxValue = Database.queryLong("SELECT MAX(" + idColumn + ") FROM " + table);
 
         log.info("Max. value of " + table + " (" + idColumn + "): " + maxValue);
 

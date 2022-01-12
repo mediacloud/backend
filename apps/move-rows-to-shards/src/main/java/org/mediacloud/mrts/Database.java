@@ -6,51 +6,102 @@ import java.util.List;
 
 public class Database {
 
-    private static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:postgresql://postgresql-server:5432/mediacloud", "mediacloud", "mediacloud");
+    private static Connection getConnection() {
+        Connection conn;
+        try {
+            conn = DriverManager.getConnection("jdbc:postgresql://postgresql-server:5432/mediacloud", "mediacloud", "mediacloud");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Unable to connect to database: " + e.getMessage());
+        }
+        return conn;
     }
 
-    public static void query(List<String> sqlQueries) throws SQLException {
+    public static void query(List<String> sqlQueries) {
         Connection conn = getConnection();
-        Statement stmt = conn.createStatement();
-        for (String query : sqlQueries) {
-            stmt.executeUpdate(query);
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
+            for (String query : sqlQueries) {
+                stmt.executeUpdate(query);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Unable to run queries " + sqlQueries + ": " + e.getMessage());
+        } finally {
+            try {
+                if (stmt != null) {
+                    stmt.close();
+                }
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
-        stmt.close();
-        conn.close();
     }
 
     public static @Nullable
-    Long queryLong(String sqlQuery) throws SQLException {
+    Long queryLong(String sqlQuery) {
         Connection conn = getConnection();
-        Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery(sqlQuery);
-
+        Statement stmt = null;
+        ResultSet rs = null;
         Long result;
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sqlQuery);
 
-        if (rs.next()) {
-            result = rs.getLong(1);
-        } else {
-            result = null;
+            if (rs.next()) {
+                result = rs.getLong(1);
+            } else {
+                result = null;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Unable to run query " + sqlQuery + ": " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (stmt != null) {
+                    stmt.close();
+                }
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
-
-        rs.close();
-        stmt.close();
-        conn.close();
 
         return result;
     }
 
-    public static boolean tableIsEmpty(String table) throws SQLException {
+    public static boolean tableIsEmpty(String table) {
         Connection conn = getConnection();
-        Statement stmt = conn.createStatement();
-        //noinspection SqlNoDataSourceInspection
-        ResultSet rs = stmt.executeQuery("SELECT * FROM " + table + " LIMIT 1");
-        boolean isEmpty = !rs.next();
+        Statement stmt = null;
+        ResultSet rs = null;
+        boolean isEmpty;
 
-        rs.close();
-        stmt.close();
-        conn.close();
+        try {
+            stmt = conn.createStatement();
+            //noinspection SqlNoDataSourceInspection
+            rs = stmt.executeQuery("SELECT * FROM " + table + " LIMIT 1");
+            isEmpty = !rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Unable to test if table is empty: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (stmt != null) {
+                    stmt.close();
+                }
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
 
         return isEmpty;
     }
