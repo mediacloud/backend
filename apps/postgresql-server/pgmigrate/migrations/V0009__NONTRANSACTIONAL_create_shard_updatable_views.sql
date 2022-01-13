@@ -3605,12 +3605,11 @@ WHERE backend_type = 'autovacuum worker'
 DO
 $$
     BEGIN
-        IF EXISTS (
-            SELECT 1
-            FROM pg_tables
-            WHERE tablename = 'topic_query_story_searches_imported_stories_map'
-        ) THEN
-
+        IF EXISTS(
+                SELECT 1
+                FROM pg_tables
+                WHERE tablename = 'topic_query_story_searches_imported_stories_map'
+            ) THEN
             ALTER TABLE unsharded_public.topic_query_story_searches_imported_stories_map
                 DROP CONSTRAINT IF EXISTS topic_query_story_searches_imported_stories_map_stories_id_fkey;
 
