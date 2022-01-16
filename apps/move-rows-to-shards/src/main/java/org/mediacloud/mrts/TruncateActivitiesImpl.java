@@ -30,6 +30,13 @@ public class TruncateActivitiesImpl implements TruncateActivities {
             log.info("Table '" + table + "' is empty");
         }
 
+        log.info("Killing autovacuum of '" + table + "'...");
+        Database.query(List.of(String.format("""
+                SELECT pg_cancel_backend(pid)
+                FROM pg_stat_activity
+                WHERE query ILIKE 'autovacuum:%%%s%%'
+                """, table)));
+
         log.info("Truncating table '" + table + "'...");
         Database.query(List.of("TRUNCATE " + table));
 
