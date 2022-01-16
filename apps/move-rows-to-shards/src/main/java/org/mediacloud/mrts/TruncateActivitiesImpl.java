@@ -18,11 +18,17 @@ public class TruncateActivitiesImpl implements TruncateActivities {
             throw new RuntimeException("Table name must start with 'unsharded_': " + table);
         }
 
-        log.info("Testing if table '" + table + "' is empty...");
-        if (!Database.tableIsEmpty(table)) {
-            throw new RuntimeException("Table '" + table + "' is still not empty");
+        // FIXME "story_sentences" partitions are huge, so in the interest of speeding up the migration let's just kind
+        // of assume that they're empty
+        if (table.contains("story_sentences")) {
+            log.info("It's one of the 'story_sentences' tables, assuming that it's empty");
+        } else {
+            log.info("Testing if table '" + table + "' is empty...");
+            if (!Database.tableIsEmpty(table)) {
+                throw new RuntimeException("Table '" + table + "' is still not empty");
+            }
+            log.info("Table '" + table + "' is empty");
         }
-        log.info("Table '" + table + "' is empty");
 
         log.info("Truncating table '" + table + "'...");
         Database.query(List.of("TRUNCATE " + table));
