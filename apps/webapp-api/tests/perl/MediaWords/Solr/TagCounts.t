@@ -37,28 +37,13 @@ sub run_solr_tests($)
 
     # Delete test tags added by create_test_story_stack_for_indexing()
     # (for whatever reason deleting from "tags" doesn't cascade into stories_tags_map)
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     $db->query(<<SQL,
         WITH tag_ids_to_delete AS (
             SELECT tags_id
             FROM tags
             WHERE tag LIKE ?
         )
-        DELETE FROM unsharded_public.stories_tags_map
-        WHERE tags_id IN (
-            SELECT tags_id
-            FROM tag_ids_to_delete
-        )
-SQL
-        'test_%'
-    );
-    $db->query(<<SQL,
-        WITH tag_ids_to_delete AS (
-            SELECT tags_id
-            FROM tags
-            WHERE tag LIKE ?
-        )
-        DELETE FROM sharded_public.stories_tags_map
+        DELETE FROM stories_tags_map
         WHERE tags_id IN (
             SELECT tags_id
             FROM tag_ids_to_delete
@@ -93,9 +78,8 @@ SQL
                 my $tag_story = shift( @{ $test_stories } );
                 push( @{ $test_stories }, $tag_story );
 
-                # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
                 $db->query( <<SQL,
-                    INSERT INTO public.stories_tags_map (stories_id, tags_id)
+                    INSERT INTO stories_tags_map (stories_id, tags_id)
                     VALUES (?, ?)
 SQL
                     $tag_story->{ stories_id }, $tag->{ tags_id }

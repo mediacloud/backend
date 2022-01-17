@@ -51,9 +51,8 @@ def try_update_topic_link_ref_stories_id(db: DatabaseHandler, topic_fetch_url: d
         return
 
     try:
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query("""
-            UPDATE unsharded_public.topic_links SET
+            UPDATE topic_links SET
                 ref_stories_id = %(ref_stories_id)s
             WHERE
                 topics_id = %(topics_id)s AND
@@ -61,27 +60,7 @@ def try_update_topic_link_ref_stories_id(db: DatabaseHandler, topic_fetch_url: d
                 NOT EXISTS (
                     -- Try to avoid repetitive error printed to the PostgreSQL log
                     SELECT 1
-                    FROM unsharded_public.topic_links
-                    WHERE
-                        topics_id = %(topics_id)s AND
-                        topic_links_id = %(topic_links_id)s AND
-                        ref_stories_id = %(ref_stories_id)s
-                )
-        """, {
-            'topics_id': topic_fetch_url['topics_id'],
-            'ref_stories_id': topic_fetch_url['stories_id'],
-            'topic_links_id': topic_fetch_url['topic_links_id'],
-        })
-        db.query("""
-            UPDATE sharded_public.topic_links SET
-                ref_stories_id = %(ref_stories_id)s
-            WHERE
-                topics_id = %(topics_id)s AND
-                topic_links_id = %(topic_links_id)s AND
-                NOT EXISTS (
-                    -- Try to avoid repetitive error printed to the PostgreSQL log
-                    SELECT 1
-                    FROM sharded_public.topic_links
+                    FROM topic_links
                     WHERE
                         topics_id = %(topics_id)s AND
                         topic_links_id = %(topic_links_id)s AND

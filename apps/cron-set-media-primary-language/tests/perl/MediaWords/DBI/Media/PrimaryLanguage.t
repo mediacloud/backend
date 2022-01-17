@@ -66,14 +66,13 @@ sub test_medium_language($$$)
 
     my $num_language_stories = int( $num_stories * $language_proportion );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
         WITH stories_to_update AS (
             SELECT stories_id
             FROM stories
             WHERE media_id = \$1
         )
-        UPDATE sharded_public.stories SET
+        UPDATE stories SET
             language = stories_id::TEXT
         WHERE stories_id IN (
             SELECT stories_id
@@ -83,7 +82,6 @@ SQL
         $media_id
     );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
         WITH stories_to_update AS (
             SELECT stories_id
@@ -91,7 +89,7 @@ SQL
             WHERE media_id = \$1
             LIMIT \$3
         )
-        UPDATE sharded_public.stories SET
+        UPDATE stories SET
             language = \$2
         WHERE stories_id IN (
             SELECT stories_id

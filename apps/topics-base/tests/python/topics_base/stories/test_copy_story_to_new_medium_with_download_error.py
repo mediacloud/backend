@@ -23,9 +23,7 @@ def test_copy_story_to_new_medium_with_download_error():
 
     add_content_to_test_story(db, old_story, old_feed)
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
-    db.query("UPDATE unsharded_public.downloads SET state = 'error' WHERE stories_id = %(a)s", {'a': old_story['stories_id']})
-    db.query("UPDATE sharded_public.downloads SET state = 'error' WHERE stories_id = %(a)s", {'a': old_story['stories_id']})
+    db.query("UPDATE downloads SET state = 'error' WHERE stories_id = %(a)s", {'a': old_story['stories_id']})
 
     add_to_topic_stories(db, old_story, topic)
 

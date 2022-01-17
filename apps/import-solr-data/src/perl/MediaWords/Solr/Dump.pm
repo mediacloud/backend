@@ -379,11 +379,8 @@ sub _save_import_log
     $db->begin;
     for my $stories_id ( @{ $stories_ids } )
     {
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: insert directly into the
-        # sharded table; when moving rows, we'll simply stories that already
-        # exist in the sharded table as they'll have a newer import_date
         $db->query( <<SQL,
-            INSERT INTO sharded_public.solr_imported_stories (stories_id, import_date)
+            INSERT INTO solr_imported_stories (stories_id, import_date)
             VALUES (?, ?)
             ON CONFLICT (stories_id) DO UPDATE SET
                 import_date = EXCLUDED.import_date
@@ -513,17 +510,8 @@ sub _delete_stories_from_import_queue
 
     my $id_table = $db->get_temporary_ids_table( $stories_ids );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     $db->query( <<SQL
-        DELETE FROM unsharded_public.solr_import_stories
-        WHERE stories_id IN (
-            SELECT id
-            FROM $id_table
-        )
-SQL
-    );
-    $db->query( <<SQL
-        DELETE FROM sharded_public.solr_import_stories
+        DELETE FROM solr_import_stories
         WHERE stories_id IN (
             SELECT id
             FROM $id_table

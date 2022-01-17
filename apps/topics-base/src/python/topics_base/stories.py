@@ -335,44 +335,22 @@ def assign_date_guess_tag(
     stories_id = story['stories_id']
     tags_id = t['tags_id']
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query(
         """
-        DELETE FROM unsharded_public.stories_tags_map
-        WHERE stories_id = %(stories_id)s
-        """,
-        {'stories_id': stories_id}
-    )
-    db.query(
-        """
-        DELETE FROM sharded_public.stories_tags_map
+        DELETE FROM stories_tags_map
         WHERE stories_id = %(stories_id)s
         """,
         {'stories_id': stories_id}
     )
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: restore ON CONFLICT after rows get moved
-    row_exists = db.query(
-        """
-        SELECT 1
-        FROM stories_tags_map
-        WHERE
-            stories_id = %(stories_id)s AND
-            tags_id = %(tags_id)s
-        """,
-        {
-            'stories_id': stories_id,
-            'tags_id': tags_id,
-        }
-    ).hash()
-    if not row_exists:
-        db.query("""
-            INSERT INTO public.stories_tags_map (stories_id, tags_id)
-            VALUES (%(stories_id)s, %(tags_id)s)
-        """, {
-            'stories_id': stories_id,
-            'tags_id': tags_id,
-        })
+    db.query("""
+        INSERT INTO stories_tags_map (stories_id, tags_id)
+        VALUES (%(stories_id)s, %(tags_id)s)
+        ON CONFLICT (stories_id, tags_id) DO NOTHING
+    """, {
+        'stories_id': stories_id,
+        'tags_id': tags_id,
+    })
 
 
 def get_spider_feed(db: DatabaseHandler, medium: dict) -> dict:
@@ -503,28 +481,14 @@ def generate_story(
     stories_id = story['stories_id']
     tags_id = spidered_tag['tags_id']
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: restore ON CONFLICT after rows get moved
-    row_exists = db.query(
-        """
-        SELECT 1
-        FROM stories_tags_map
-        WHERE
-            stories_id = %(stories_id)s AND
-            tags_id = %(tags_id)s
-        """,
-        {
-            'stories_id': stories_id,
-            'tags_id': tags_id,
-        }
-    ).hash()
-    if not row_exists:
-        db.query("""
-            INSERT INTO public.stories_tags_map (stories_id, tags_id)
-            VALUES (%(stories_id)s, %(tags_id)s)
-        """, {
-            'stories_id': stories_id,
-            'tags_id': tags_id,
-        })
+    db.query("""
+        INSERT INTO stories_tags_map (stories_id, tags_id)
+        VALUES (%(stories_id)s, %(tags_id)s)
+        ON CONFLICT (stories_id, tags_id) DO NOTHING
+    """, {
+        'stories_id': stories_id,
+        'tags_id': tags_id,
+    })
 
     if publish_date is None:
         log.debug(f"Assigning date guess tag...")
@@ -588,50 +552,34 @@ def add_to_topic_stories(
     topics_id = topic['topics_id']
     stories_id = story['stories_id']
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: we need to INSERT into the
-    # semi-updatable view in order to trigger snap.live_stories update so we
-    # can't use ON CONFLICT; restore ON CONFLICT after rows get moved
-    row_exists = db.query(
+    db.query(
         """
-        SELECT 1
-        FROM topic_stories
-        WHERE
-            topics_id = %(topics_id)s AND
-            stories_id = %(stories_id)s
+        INSERT INTO topic_stories (
+            topics_id,
+            stories_id,
+            iteration,
+            redirect_url,
+            link_mined,
+            valid_foreign_rss_story
+        ) VALUES (
+            %(topics_id)s,
+            %(stories_id)s,
+            %(iteration)s,
+            %(redirect_url)s,
+            %(link_mined)s,
+            %(valid_foreign_rss_story)s
+        ON CONFLICT (topics_id, stories_id) DO NOTHING
+        )
         """,
         {
             'topics_id': topics_id,
             'stories_id': stories_id,
+            'iteration': iteration,
+            'redirect_url': story['url'],
+            'link_mined': link_mined,
+            'valid_foreign_rss_story': valid_foreign_rss_story
         },
-    ).hash()
-    if not row_exists:
-        db.query(
-            """
-            INSERT INTO public.topic_stories (
-                topics_id,
-                stories_id,
-                iteration,
-                redirect_url,
-                link_mined,
-                valid_foreign_rss_story
-            ) VALUES (
-                %(topics_id)s,
-                %(stories_id)s,
-                %(iteration)s,
-                %(redirect_url)s,
-                %(link_mined)s,
-                %(valid_foreign_rss_story)s
-            )
-            """,
-            {
-                'topics_id': topics_id,
-                'stories_id': stories_id,
-                'iteration': iteration,
-                'redirect_url': story['url'],
-                'link_mined': link_mined,
-                'valid_foreign_rss_story': valid_foreign_rss_story
-            },
-        )
+    )
 
 
 def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
@@ -694,24 +642,9 @@ def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
             },
         )
 
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query(
             """
-                UPDATE unsharded_public.topic_links SET
-                    ref_stories_id = NULL,
-                    link_spidered = 'f'
-                WHERE
-                    topics_id = %(topics_id)s AND
-                    ref_stories_id = %(ref_stories_id)s
-            """,
-            {
-                'ref_stories_id': story['stories_id'],
-                'topics_id': topic['topics_id'],
-            },
-        )
-        db.query(
-            """
-                UPDATE sharded_public.topic_links SET
+                UPDATE topic_links SET
                     ref_stories_id = NULL,
                     link_spidered = 'f'
                 WHERE
@@ -724,22 +657,9 @@ def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
             },
         )
 
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query(
             """
-            DELETE FROM unsharded_public.topic_stories
-            WHERE
-                stories_id = %(stories_id)s AND
-                topics_id = %(topics_id)s
-            """,
-            {
-                'stories_id': story['stories_id'],
-                'topics_id': topic['topics_id'],
-            },
-        )
-        db.query(
-            """
-            DELETE FROM sharded_public.topic_stories
+            DELETE FROM topic_stories
             WHERE
                 stories_id = %(stories_id)s AND
                 topics_id = %(topics_id)s
@@ -786,28 +706,14 @@ def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, 
         stories_id = story['stories_id']
         tags_id = old_story_tag['tags_id']
 
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: restore ON CONFLICT after rows get moved
-        row_exists = db.query(
-            """
-            SELECT 1
-            FROM stories_tags_map
-            WHERE
-                stories_id = %(stories_id)s AND
-                tags_id = %(tags_id)s
-            """,
-            {
-                'stories_id': stories_id,
-                'tags_id': tags_id,
-            }
-        ).hash()
-        if not row_exists:
-            db.query("""
-                INSERT INTO public.stories_tags_map (stories_id, tags_id)
-                VALUES (%(stories_id)s, %(tags_id)s)
-            """, {
-                'stories_id': stories_id,
-                'tags_id': tags_id,
-            })
+        db.query("""
+            INSERT INTO stories_tags_map (stories_id, tags_id)
+            VALUES (%(stories_id)s, %(tags_id)s)
+            ON CONFLICT (stories_id, tags_id) DO NOTHING
+        """, {
+            'stories_id': stories_id,
+            'tags_id': tags_id,
+        })
 
     feed = get_spider_feed(db, new_medium)
     db.create('feeds_stories_map', {'feeds_id': feed['feeds_id'], 'stories_id': story['stories_id']})
@@ -932,14 +838,6 @@ def _merge_dup_story(db, topic, delete_story, keep_story):
     if use_transaction:
         db.begin()
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
-    # updatable view, and we can't upsert directly into the sharded table
-    # as the duplicate row might already exist in the unsharded one;
-    # therefore, we test the unsharded table once for whether the row
-    # exists and do an upsert to a sharded table -- the row won't start
-    # suddenly existing in an essentially read-only unsharded table so this
-    # should be safe from race conditions. After migrating rows, one can
-    # reset this statement to use a native upsert
     for topic_link in db.query(
         """
         SELECT
@@ -961,58 +859,34 @@ def _merge_dup_story(db, topic, delete_story, keep_story):
         }
     ).hashes():
 
-        row_exists = db.query(
+        db.query(
             """
-            SELECT 1
-            FROM topic_links
-            WHERE
-                topics_id = %(topics_id)s AND
-                stories_id = %(stories_id)s AND
-                ref_stories_id = %(ref_stories_id)s
-            """,
-            {
+            INSERT INTO topic_links (
+                topics_id,
+                stories_id,
+                ref_stories_id,
+                url,
+                redirect_url,
+                link_spidered
+            ) VALUES (
+                %(topics_id)s,
+                %(stories_id)s,
+                %(ref_stories_id)s,
+                %(url)s,
+                %(redirect_url)s,
+                %(link_spidered)s
+            )
+            ON CONFLICT (topics_id, stories_id, ref_stories_id) DO NOTHING
+            """, {
                 'topics_id': topics_id,
                 'stories_id': topic_link['stories_id'],
                 'ref_stories_id': topic_link['ref_stories_id'],
+                'url': topic_link['url'],
+                'redirect_url': topic_link['redirect_url'],
+                'link_spidered': topic_link['link_spidered'],
             }
-        ).hash()
-        if not row_exists:
-            db.query(
-                """
-                INSERT INTO sharded_public.topic_links (
-                    topics_id,
-                    stories_id,
-                    ref_stories_id,
-                    url,
-                    redirect_url,
-                    link_spidered
-                ) VALUES (
-                    %(topics_id)s,
-                    %(stories_id)s,
-                    %(ref_stories_id)s,
-                    %(url)s,
-                    %(redirect_url)s,
-                    %(link_spidered)s
-                )
-                ON CONFLICT (topics_id, stories_id, ref_stories_id) DO NOTHING
-                """, {
-                    'topics_id': topics_id,
-                    'stories_id': topic_link['stories_id'],
-                    'ref_stories_id': topic_link['ref_stories_id'],
-                    'url': topic_link['url'],
-                    'redirect_url': topic_link['redirect_url'],
-                    'link_spidered': topic_link['link_spidered'],
-                }
-            )
+        )
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
-    # updatable view, and we can't upsert directly into the sharded table
-    # as the duplicate row might already exist in the unsharded one;
-    # therefore, we test the unsharded table once for whether the row
-    # exists and do an upsert to a sharded table -- the row won't start
-    # suddenly existing in an essentially read-only unsharded table so this
-    # should be safe from race conditions. After migrating rows, one can
-    # reset this statement to use a native upsert
     for topic_link in db.query(
         """
         SELECT
@@ -1034,66 +908,37 @@ def _merge_dup_story(db, topic, delete_story, keep_story):
         }
     ).hashes():
 
-        row_exists = db.query(
+        db.query(
             """
-            SELECT 1
-            FROM topic_links
-            WHERE
-                topics_id = %(topics_id)s AND
-                stories_id = %(stories_id)s AND
-                ref_stories_id = %(ref_stories_id)s
-            """,
-            {
+            INSERT INTO topic_links (
+                topics_id,
+                stories_id,
+                ref_stories_id,
+                url,
+                redirect_url,
+                link_spidered
+            ) VALUES (
+                %(topics_id)s,
+                %(stories_id)s,
+                %(ref_stories_id)s,
+                %(url)s,
+                %(redirect_url)s,
+                %(link_spidered)s
+            )
+            ON CONFLICT (topics_id, stories_id, ref_stories_id) DO NOTHING
+            """, {
                 'topics_id': topics_id,
                 'stories_id': topic_link['stories_id'],
                 'ref_stories_id': topic_link['ref_stories_id'],
+                'url': topic_link['url'],
+                'redirect_url': topic_link['redirect_url'],
+                'link_spidered': topic_link['link_spidered'],
             }
-        ).hash()
-        if not row_exists:
-            db.query(
-                """
-                INSERT INTO sharded_public.topic_links (
-                    topics_id,
-                    stories_id,
-                    ref_stories_id,
-                    url,
-                    redirect_url,
-                    link_spidered
-                ) VALUES (
-                    %(topics_id)s,
-                    %(stories_id)s,
-                    %(ref_stories_id)s,
-                    %(url)s,
-                    %(redirect_url)s,
-                    %(link_spidered)s
-                )
-                ON CONFLICT (topics_id, stories_id, ref_stories_id) DO NOTHING
-                """, {
-                    'topics_id': topics_id,
-                    'stories_id': topic_link['stories_id'],
-                    'ref_stories_id': topic_link['ref_stories_id'],
-                    'url': topic_link['url'],
-                    'redirect_url': topic_link['redirect_url'],
-                    'link_spidered': topic_link['link_spidered'],
-                }
-            )
+        )
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query(
         """
-            DELETE FROM unsharded_public.topic_links
-            WHERE
-                topics_id = %(topics_id)s AND
-                %(stories_id)s IN (stories_id, ref_stories_id)
-        """,
-        {
-            'topics_id': topics_id,
-            'stories_id': delete_story['stories_id'],
-        }
-    )
-    db.query(
-        """
-            DELETE FROM sharded_public.topic_links
+            DELETE FROM topic_links
             WHERE
                 topics_id = %(topics_id)s AND
                 %(stories_id)s IN (stories_id, ref_stories_id)
@@ -1104,22 +949,9 @@ def _merge_dup_story(db, topic, delete_story, keep_story):
         }
     )
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query(
         """
-            DELETE FROM unsharded_public.topic_stories
-            WHERE
-                topics_id = %(topics_id)s AND
-                stories_id = %(stories_id)s
-        """,
-        {
-            'topics_id': topics_id,
-            'stories_id': delete_story['stories_id'],
-        }
-    )
-    db.query(
-        """
-            DELETE FROM sharded_public.topic_stories
+            DELETE FROM topic_stories
             WHERE
                 topics_id = %(topics_id)s AND
                 stories_id = %(stories_id)s
@@ -1130,11 +962,9 @@ def _merge_dup_story(db, topic, delete_story, keep_story):
         }
     )
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: when copying rows from the
-    # unsharded table, we'll make sure to not copy duplicates
     db.query(
         """
-            INSERT INTO sharded_public.topic_merged_stories_map (source_stories_id, target_stories_id)
+            INSERT INTO topic_merged_stories_map (source_stories_id, target_stories_id)
             VALUES (%(source_stories_id)s, %(target_stories_id)s)
             ON CONFLICT (source_stories_id, target_stories_id) DO NOTHING
         """,
@@ -1144,24 +974,9 @@ def _merge_dup_story(db, topic, delete_story, keep_story):
         }
     )
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query(
         """
-            UPDATE unsharded_public.topic_seed_urls SET
-                stories_id = %(keep_stories_id)s
-            WHERE
-                topics_id = %(topics_id)s AND
-                stories_id = %(delete_stories_id)s
-        """,
-        {
-            'topics_id': topic['topics_id'],
-            'delete_stories_id': delete_story['stories_id'],
-            'keep_stories_id': keep_story['stories_id'],
-        }
-    )
-    db.query(
-        """
-            UPDATE sharded_public.topic_seed_urls SET
+            UPDATE topic_seed_urls SET
                 stories_id = %(keep_stories_id)s
             WHERE
                 topics_id = %(topics_id)s AND
@@ -1390,16 +1205,8 @@ def _add_missing_normalized_title_hashes(db: DatabaseHandler, topic: dict) -> No
         if len(stories_ids) < 1:
             break
 
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query("""
-            UPDATE unsharded_public.stories
-            SET normalized_title_hash = md5(get_normalized_title(title, media_id))::UUID
-            WHERE stories_id = ANY(%(story_ids)s)
-        """, {
-            'story_ids': stories_ids,
-        })
-        db.query("""
-            UPDATE sharded_public.stories
+            UPDATE stories
             SET normalized_title_hash = md5(get_normalized_title(title, media_id))::UUID
             WHERE stories_id = ANY(%(story_ids)s)
         """, {

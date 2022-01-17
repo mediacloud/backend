@@ -53,28 +53,14 @@ def _add_story_tags_to_stories(db: DatabaseHandler, stories: List[Dict[str, Any]
         stories_id = story['stories_id']
         tags_id = tag['tags_id']
 
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: restore ON CONFLICT after rows get moved
-        row_exists = db.query(
-            """
-            SELECT 1
-            FROM stories_tags_map
-            WHERE
-                stories_id = %(stories_id)s AND
-                tags_id = %(tags_id)s
-            """,
-            {
-                'stories_id': stories_id,
-                'tags_id': tags_id,
-            }
-        ).hash()
-        if not row_exists:
-            db.query("""
-                INSERT INTO public.stories_tags_map (stories_id, tags_id)
-                VALUES (%(stories_id)s, %(tags_id)s)
-            """, {
-                'stories_id': stories_id,
-                'tags_id': tags_id,
-            })
+        db.query("""
+            INSERT INTO public.stories_tags_map (stories_id, tags_id)
+            VALUES (%(stories_id)s, %(tags_id)s)
+            ON CONFLICT (stories_id, tags_id) DO NOTHING
+        """, {
+            'stories_id': stories_id,
+            'tags_id': tags_id,
+        })
 
 
 def _add_timespans_to_stories(db: DatabaseHandler, stories: List[Dict[str, Any]]) -> None:
@@ -138,16 +124,14 @@ def _add_timespans_to_stories(db: DatabaseHandler, stories: List[Dict[str, Any]]
 def queue_all_stories(db: DatabaseHandler) -> None:
     db.begin()
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
-    db.query("TRUNCATE TABLE sharded_public.solr_import_stories")
+    db.query("TRUNCATE TABLE solr_import_stories")
 
     # "SELECT FROM processed_stories" because only processed stories should get imported. "ORDER BY" so that the
     # import is more efficient when pulling blocks of stories out.
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
     db.query("""
-        INSERT INTO sharded_public.solr_import_stories (stories_id)
+        INSERT INTO solr_import_stories (stories_id)
             SELECT stories_id
-            FROM sharded_public.processed_stories
+            FROM processed_stories
             GROUP BY stories_id
             ORDER BY stories_id
     """)

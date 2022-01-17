@@ -130,8 +130,6 @@ def assign_singleton_tag_to_medium(db: DatabaseHandler,
             'media_id': medium['media_id'],
         })
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: rows have been moved
-    # in a migration so we should be fine INSERTing directly
     db.query("""
         INSERT INTO media_tags_map (tags_id, media_id)
         VALUES (%(tags_id)s, %(media_id)s)

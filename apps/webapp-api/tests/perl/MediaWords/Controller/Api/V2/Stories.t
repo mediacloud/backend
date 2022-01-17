@@ -337,7 +337,6 @@ sub test_stories_count_split($)
 
     my $label = "stories/count split";
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL
         WITH updated_publish_dates AS (
             SELECT
@@ -345,7 +344,7 @@ sub test_stories_count_split($)
                 '2017-01-01'::DATE + ((stories_id % 27)::TEXT || '3 days')::INTERVAL AS new_publish_date
             FROM stories
         )
-        UPDATE sharded_public.stories SET
+        UPDATE stories SET
             publish_date = updated_publish_dates.new_publish_date
         FROM updated_publish_dates
         WHERE stories.stories_id = updated_publish_dates.stories_id

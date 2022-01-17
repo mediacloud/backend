@@ -376,9 +376,8 @@ SQL
     $topic = $db->find_by_id( 'topics', $topic->{ topics_id } );
     ok( $topic->{ respider_stories }, "respider_stories set after query update" );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
-        UPDATE sharded_public.topic_stories SET
+        UPDATE topic_stories SET
             link_mined = 't'
         WHERE topics_id = ?
 SQL
@@ -393,9 +392,8 @@ SQL
         { respider_stories => 'f', start_date => $start_date, end_date => $end_date }
     );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
-        UPDATE sharded_public.stories SET
+        UPDATE stories SET
             publish_date = \$1
         WHERE stories_id IN (
             SELECT stories_id
@@ -408,9 +406,8 @@ SQL
         $start_date, $medium->{ media_id }
     );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
-        UPDATE sharded_public.stories SET
+        UPDATE stories SET
             publish_date = '2016-01-01'
         WHERE stories_id IN (
             SELECT stories_id
@@ -423,9 +420,8 @@ SQL
         $medium->{ media_id }
     );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
-        UPDATE sharded_public.stories SET
+        UPDATE stories SET
             publish_date = '2018-01-01'
         WHERE stories_id IN (
             SELECT stories_id

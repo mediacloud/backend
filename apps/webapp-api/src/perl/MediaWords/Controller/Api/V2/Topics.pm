@@ -737,19 +737,10 @@ sub reset_PUT
         die( "Cannot reset running topic." );
     }
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
-    $db->query( "DELETE FROM unsharded_public.topic_stories WHERE topics_id = ?", $topics_id );
-    $db->query( "DELETE FROM sharded_public.topic_stories WHERE topics_id = ?", $topics_id );
-
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
-    $db->query( "DELETE FROM unsharded_public.topic_links WHERE topics_id = ?", $topics_id );
-    $db->query( "DELETE FROM sharded_public.topic_links WHERE topics_id = ?", $topics_id );
-
-    $db->query( "DELETE FROM topic_dead_links WHERE topics_id = ?",                $topics_id );
-
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
-    $db->query( "DELETE FROM unsharded_public.topic_seed_urls WHERE topics_id = ?", $topics_id );
-    $db->query( "DELETE FROM sharded_public.topic_seed_urls WHERE topics_id = ?", $topics_id );
+    $db->query( "DELETE FROM topic_stories WHERE topics_id = ?", $topics_id );
+    $db->query( "DELETE FROM topic_links WHERE topics_id = ?", $topics_id );
+    $db->query( "DELETE FROM topic_dead_links WHERE topics_id = ?", $topics_id );
+    $db->query( "DELETE FROM topic_seed_urls WHERE topics_id = ?", $topics_id );
 
     $db->query( "UPDATE topics SET solr_seed_query_run = 'f' WHERE topics_id = ?", $topics_id );
 

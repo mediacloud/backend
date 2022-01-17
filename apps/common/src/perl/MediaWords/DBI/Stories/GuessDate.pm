@@ -14,23 +14,8 @@ sub confirm_date
 {
     my ( $db, $story ) = @_;
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     $db->query( <<SQL,
-        DELETE FROM unsharded_public.stories_tags_map
-        WHERE
-            stories_id = ? AND
-            tags_id IN (
-                SELECT tags.tags_id
-                FROM tag_sets
-                    INNER JOIN tags
-                        ON tag_sets.tag_sets_id = tags.tag_sets_id
-                WHERE tag_sets.name = 'date_guess_method'
-            )
-SQL
-        $story->{ stories_id }
-    );
-    $db->query( <<SQL,
-        DELETE FROM sharded_public.stories_tags_map
+        DELETE FROM stories_tags_map
         WHERE
             stories_id = ? AND
             tags_id IN (
@@ -67,17 +52,8 @@ sub unconfirm_date
     my $manual      = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:manual' );
     my $unconfirmed = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:unconfirmed' );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     $db->query( <<SQL,
-        DELETE FROM unsharded_public.stories_tags_map
-        WHERE
-            stories_id = ? AND
-            tags_id = ?
-SQL
-        $story->{ stories_id }, $manual->{ tags_id }
-    );
-    $db->query( <<SQL,
-        DELETE FROM sharded_public.stories_tags_map
+        DELETE FROM stories_tags_map
         WHERE
             stories_id = ? AND
             tags_id = ?
@@ -218,23 +194,8 @@ sub mark_undateable
 
     my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_invalid:undateable' );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     $db->query( <<SQL,
-        DELETE FROM unsharded_public.stories_tags_map
-        WHERE
-            stories_id = ? AND
-            tags_id IN (
-                SELECT tags.tags_id
-                FROM tag_sets
-                    INNER JOIN tags
-                        ON tag_sets.tag_sets_id = tags.tag_sets_id
-                WHERE tag_sets.name = 'date_invalid'
-            )
-SQL
-        $story->{ stories_id }
-    );
-    $db->query( <<SQL,
-        DELETE FROM sharded_public.stories_tags_map
+        DELETE FROM stories_tags_map
         WHERE
             stories_id = ? AND
             tags_id IN (
@@ -345,23 +306,8 @@ sub assign_date_guess_method
     {
         for my $tag_set_name ( 'date_guess_method', 'date_invalid' )
         {
-            # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
             $db->query( <<SQL,
-                DELETE FROM unsharded_public.stories_tags_map
-                WHERE
-                    stories_id = ? AND
-                    tags_id IN (
-                        SELECT tags.tags_id
-                        FROM tag_sets
-                            INNER JOIN tags
-                                ON tag_sets.tag_sets_id = tags.tag_sets_id
-                        WHERE tag_sets.name = ?
-                    )
-SQL
-                $story->{ stories_id }, $tag_set_name
-            );
-            $db->query( <<SQL,
-                DELETE FROM sharded_public.stories_tags_map
+                DELETE FROM stories_tags_map
                 WHERE
                     stories_id = ? AND
                     tags_id IN (

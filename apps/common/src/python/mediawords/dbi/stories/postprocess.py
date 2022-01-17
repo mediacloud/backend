@@ -27,9 +27,6 @@ def story_is_english_and_has_sentences(db: DatabaseHandler, stories_id: int) -> 
 
 def mark_as_processed(db: DatabaseHandler, stories_id: int) -> bool:
     """Mark the story as processed by inserting an entry into 'processed_stories'. Return True on success."""
-
-    # FIXME upsert instead of inserting a potential duplicate
-
     if isinstance(stories_id, bytes):
         stories_id = decode_object_from_bytes_if_needed(stories_id)
     stories_id = int(stories_id)
@@ -37,25 +34,14 @@ def mark_as_processed(db: DatabaseHandler, stories_id: int) -> bool:
     log.debug(f"Marking story ID {stories_id} as processed...")
 
     try:
-
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: restore ON CONFLICT after rows get moved
-        row_exists = db.query(
+        db.query(
             """
-            SELECT 1
-            FROM processed_stories
-            WHERE stories_id = %(stories_id)s
+            INSERT INTO processed_stories (stories_id)
+            VALUES (%(stories_id)s)
+            ON CONFLICT (stories_id) DO NOTHING
             """,
             {'stories_id': stories_id}
-        ).hash()
-        if not row_exists:
-            db.query(
-                """
-                INSERT INTO public.processed_stories (stories_id)
-                VALUES (%(stories_id)s)
-                """,
-                {'stories_id': stories_id}
-            )
-
+        )
     except Exception as ex:
         log.warning(f"Unable to insert story ID {stories_id} into 'processed_stories': {ex}")
         return False

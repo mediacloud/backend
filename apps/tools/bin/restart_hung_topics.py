@@ -86,12 +86,8 @@ def main():
                 # and want the topic to succeed any way rather than triggering a 'fetch error rate ... is greater' err
                 print('deleting topic_fetch_url errors...')
 
-                # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
                 db.query(
-                    "DELETE FROM unsharded_public.topic_fetch_urls WHERE topics_id = %(a)s AND state = 'python error'",
-                    {'a': topics_id})
-                db.query(
-                    "DELETE FROM sharded_public.topic_fetch_urls WHERE topics_id = %(a)s AND state = 'python error'",
+                    "DELETE FROM topic_fetch_urls WHERE topics_id = %(a)s AND state = 'python error'",
                     {'a': topics_id})
 
             elif action == 'c':
