@@ -200,47 +200,88 @@ DROP SCHEMA unsharded_cache;
 DROP SCHEMA unsharded_public_store;
 
 -- Move sharded tables to "public"
-ALTER TABLE sharded_public.auth_user_request_daily_counts SET SCHEMA public;
-ALTER TABLE sharded_public.download_texts SET SCHEMA public;
-ALTER TABLE sharded_public.downloads SET SCHEMA public;
-ALTER TABLE sharded_public.downloads_error SET SCHEMA public;
-ALTER TABLE sharded_public.downloads_feed_error SET SCHEMA public;
-ALTER TABLE sharded_public.downloads_fetching SET SCHEMA public;
-ALTER TABLE sharded_public.downloads_pending SET SCHEMA public;
-ALTER TABLE sharded_public.downloads_success SET SCHEMA public;
-ALTER TABLE sharded_public.feeds_stories_map SET SCHEMA public;
-ALTER TABLE sharded_public.media_coverage_gaps SET SCHEMA public;
-ALTER TABLE sharded_public.media_stats SET SCHEMA public;
-ALTER TABLE sharded_public.processed_stories SET SCHEMA public;
-ALTER TABLE sharded_public.scraped_stories SET SCHEMA public;
-ALTER TABLE sharded_public.solr_import_stories SET SCHEMA public;
-ALTER TABLE sharded_public.solr_imported_stories SET SCHEMA public;
-ALTER TABLE sharded_public.stories SET SCHEMA public;
-ALTER TABLE sharded_public.stories_ap_syndicated SET SCHEMA public;
-ALTER TABLE sharded_public.stories_tags_map SET SCHEMA public;
-ALTER TABLE sharded_public.story_enclosures SET SCHEMA public;
-ALTER TABLE sharded_public.story_sentences SET SCHEMA public;
-ALTER TABLE sharded_public.story_statistics SET SCHEMA public;
-ALTER TABLE sharded_public.story_urls SET SCHEMA public;
-ALTER TABLE sharded_public.topic_fetch_urls SET SCHEMA public;
-ALTER TABLE sharded_public.topic_links SET SCHEMA public;
-ALTER TABLE sharded_public.topic_merged_stories_map SET SCHEMA public;
-ALTER TABLE sharded_public.topic_post_urls SET SCHEMA public;
-ALTER TABLE sharded_public.topic_posts SET SCHEMA public;
-ALTER TABLE sharded_public.topic_seed_urls SET SCHEMA public;
-ALTER TABLE sharded_public.topic_stories SET SCHEMA public;
-ALTER TABLE sharded_snap.live_stories SET SCHEMA snap;
-ALTER TABLE sharded_snap.media SET SCHEMA snap;
-ALTER TABLE sharded_snap.media_tags_map SET SCHEMA snap;
-ALTER TABLE sharded_snap.medium_link_counts SET SCHEMA snap;
-ALTER TABLE sharded_snap.medium_links SET SCHEMA snap;
-ALTER TABLE sharded_snap.stories SET SCHEMA snap;
-ALTER TABLE sharded_snap.stories_tags_map SET SCHEMA snap;
-ALTER TABLE sharded_snap.story_link_counts SET SCHEMA snap;
-ALTER TABLE sharded_snap.story_links SET SCHEMA snap;
-ALTER TABLE sharded_snap.timespan_posts SET SCHEMA snap;
-ALTER TABLE sharded_snap.topic_links_cross_media SET SCHEMA snap;
-ALTER TABLE sharded_snap.topic_stories SET SCHEMA snap;
+ALTER TABLE sharded_public.auth_user_request_daily_counts
+    SET SCHEMA public;
+ALTER TABLE sharded_public.download_texts
+    SET SCHEMA public;
+ALTER TABLE sharded_public.downloads
+    SET SCHEMA public;
+ALTER TABLE sharded_public.downloads_error
+    SET SCHEMA public;
+ALTER TABLE sharded_public.downloads_feed_error
+    SET SCHEMA public;
+ALTER TABLE sharded_public.downloads_fetching
+    SET SCHEMA public;
+ALTER TABLE sharded_public.downloads_pending
+    SET SCHEMA public;
+ALTER TABLE sharded_public.downloads_success
+    SET SCHEMA public;
+ALTER TABLE sharded_public.feeds_stories_map
+    SET SCHEMA public;
+ALTER TABLE sharded_public.media_coverage_gaps
+    SET SCHEMA public;
+ALTER TABLE sharded_public.media_stats
+    SET SCHEMA public;
+ALTER TABLE sharded_public.processed_stories
+    SET SCHEMA public;
+ALTER TABLE sharded_public.scraped_stories
+    SET SCHEMA public;
+ALTER TABLE sharded_public.solr_import_stories
+    SET SCHEMA public;
+ALTER TABLE sharded_public.solr_imported_stories
+    SET SCHEMA public;
+ALTER TABLE sharded_public.stories
+    SET SCHEMA public;
+ALTER TABLE sharded_public.stories_ap_syndicated
+    SET SCHEMA public;
+ALTER TABLE sharded_public.stories_tags_map
+    SET SCHEMA public;
+ALTER TABLE sharded_public.story_enclosures
+    SET SCHEMA public;
+ALTER TABLE sharded_public.story_sentences
+    SET SCHEMA public;
+ALTER TABLE sharded_public.story_statistics
+    SET SCHEMA public;
+ALTER TABLE sharded_public.story_urls
+    SET SCHEMA public;
+ALTER TABLE sharded_public.topic_fetch_urls
+    SET SCHEMA public;
+ALTER TABLE sharded_public.topic_links
+    SET SCHEMA public;
+ALTER TABLE sharded_public.topic_merged_stories_map
+    SET SCHEMA public;
+ALTER TABLE sharded_public.topic_post_urls
+    SET SCHEMA public;
+ALTER TABLE sharded_public.topic_posts
+    SET SCHEMA public;
+ALTER TABLE sharded_public.topic_seed_urls
+    SET SCHEMA public;
+ALTER TABLE sharded_public.topic_stories
+    SET SCHEMA public;
+ALTER TABLE sharded_snap.live_stories
+    SET SCHEMA snap;
+ALTER TABLE sharded_snap.media
+    SET SCHEMA snap;
+ALTER TABLE sharded_snap.media_tags_map
+    SET SCHEMA snap;
+ALTER TABLE sharded_snap.medium_link_counts
+    SET SCHEMA snap;
+ALTER TABLE sharded_snap.medium_links
+    SET SCHEMA snap;
+ALTER TABLE sharded_snap.stories
+    SET SCHEMA snap;
+ALTER TABLE sharded_snap.stories_tags_map
+    SET SCHEMA snap;
+ALTER TABLE sharded_snap.story_link_counts
+    SET SCHEMA snap;
+ALTER TABLE sharded_snap.story_links
+    SET SCHEMA snap;
+ALTER TABLE sharded_snap.timespan_posts
+    SET SCHEMA snap;
+ALTER TABLE sharded_snap.topic_links_cross_media
+    SET SCHEMA snap;
+ALTER TABLE sharded_snap.topic_stories
+    SET SCHEMA snap;
 
 -- Remove sharded schemas
 DROP SCHEMA sharded_public;
