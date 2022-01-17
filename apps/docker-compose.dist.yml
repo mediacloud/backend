@@ -982,66 +982,6 @@ services:
                     memory: "128M"
 
     #
-    # Move rows from unsharded tables to sharded ones (workflow)
-    # ----------------------------------------------------------
-    #
-    move-rows-to-shards-workflow:
-        image: gcr.io/mcback/move-rows-to-shards:release
-        command: "workflow_worker.sh"
-        init: true
-        networks:
-            - default
-        depends_on:
-            - postgresql-pgbouncer
-            - temporal-server
-        deploy:
-            <<: *misc-apps_deploy_placement_constraints
-            <<: *endpoint-mode-dnsrr
-            # Worker count
-            replicas: 1
-            restart_policy:
-                # Automatically restart on non-zero exit codes only instead of on any exit
-                condition: on-failure
-                # Autorestart up to three times
-                max_attempts: 3
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "2"
-                    # RAM limit
-                    memory: "2G"
-
-    #
-    # Move rows from unsharded tables to sharded ones (activities)
-    # ------------------------------------------------------------
-    #
-    move-rows-to-shards-activities:
-        image: gcr.io/mcback/move-rows-to-shards:release
-        command: "activities_worker.sh"
-        init: true
-        networks:
-            - default
-        depends_on:
-            - postgresql-pgbouncer
-            - temporal-server
-        deploy:
-            <<: *misc-apps_deploy_placement_constraints
-            <<: *endpoint-mode-dnsrr
-            # Worker count
-            replicas: 1
-            restart_policy:
-                # Automatically restart on non-zero exit codes only instead of on any exit
-                condition: on-failure
-                # Autorestart up to three times
-                max_attempts: 3
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "2"
-                    # RAM limit
-                    memory: "2G"
-
-    #
     # Munin Cron stats collector
     # --------------------------
     #
