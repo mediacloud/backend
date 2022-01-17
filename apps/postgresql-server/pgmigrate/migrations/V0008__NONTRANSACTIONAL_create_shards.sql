@@ -1,9 +1,5 @@
 -- noinspection SqlResolveForFile @ routine/"create_reference_table"
 
--- FIXME consider making shard count configurable to make tests run faster
--- FIXME update to Citus 10.2.3
-
-
 -- Rename the unsharded schema created in previous migrations
 ALTER SCHEMA public RENAME TO unsharded_public;
 ALTER SCHEMA public_store RENAME TO unsharded_public_store;
