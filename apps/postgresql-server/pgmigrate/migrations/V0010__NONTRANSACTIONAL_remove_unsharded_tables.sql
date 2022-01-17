@@ -247,3 +247,132 @@ DROP SCHEMA sharded_public;
 DROP SCHEMA sharded_snap;
 DROP SCHEMA sharded_cache;
 DROP SCHEMA sharded_public_store;
+
+-- Recreate trigger functions to touch only the sharded tables
+
+CREATE OR REPLACE FUNCTION update_live_story() RETURNS TRIGGER AS
+$$
+
+BEGIN
+
+    UPDATE snap.live_stories
+    SET media_id              = NEW.media_id,
+        url                   = NEW.url,
+        guid                  = NEW.guid,
+        title                 = NEW.title,
+        normalized_title_hash = NEW.normalized_title_hash,
+        description           = NEW.description,
+        publish_date          = NEW.publish_date,
+        collect_date          = NEW.collect_date,
+        full_text_rss         = NEW.full_text_rss,
+        language              = NEW.language
+    WHERE stories_id = NEW.stories_id;
+
+    RETURN NEW;
+
+END;
+
+$$ LANGUAGE plpgsql;
+
+-- noinspection SqlResolve @ routine/"create_distributed_function"
+SELECT create_distributed_function('update_live_story()');
+
+CREATE OR REPLACE FUNCTION insert_solr_import_story() RETURNS TRIGGER AS
+$$
+
+DECLARE
+
+    queue_stories_id BIGINT;
+    return_value     RECORD;
+
+BEGIN
+
+    IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') THEN
+        SELECT NEW.stories_id INTO queue_stories_id;
+    ELSE
+        SELECT OLD.stories_id INTO queue_stories_id;
+    END IF;
+
+    IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') THEN
+        return_value := NEW;
+    ELSE
+        return_value := OLD;
+    END IF;
+
+    IF NOT EXISTS(
+            SELECT 1
+            FROM processed_stories
+            WHERE stories_id = queue_stories_id
+        ) THEN
+        RETURN return_value;
+    END IF;
+
+    INSERT INTO solr_import_stories (stories_id)
+    VALUES (queue_stories_id)
+    ON CONFLICT (stories_id) DO NOTHING;
+
+    RETURN return_value;
+
+END;
+
+$$ LANGUAGE plpgsql;
+
+-- noinspection SqlResolve @ routine/"create_distributed_function"
+SELECT create_distributed_function('insert_solr_import_story()');
+
+
+-- Recreate triggers
+SELECT run_on_shards_or_raise('stories', $cmd$
+
+    DROP TRIGGER stories_insert_solr_import_story ON %s
+
+    $cmd$);
+SELECT run_on_shards_or_raise('stories', $cmd$
+
+    CREATE TRIGGER stories_insert_solr_import_story
+        AFTER INSERT OR UPDATE OR DELETE
+        ON %s
+        FOR EACH ROW
+    EXECUTE PROCEDURE insert_solr_import_story();
+
+    $cmd$);
+
+SELECT run_on_shards_or_raise('processed_stories', $cmd$
+
+    DROP TRIGGER processed_stories_insert_solr_import_story ON %s
+
+    $cmd$);
+SELECT run_on_shards_or_raise('processed_stories', $cmd$
+
+    CREATE TRIGGER processed_stories_insert_solr_import_story
+        AFTER INSERT OR UPDATE OR DELETE
+        ON %s
+        FOR EACH ROW
+    EXECUTE PROCEDURE insert_solr_import_story();
+
+    $cmd$);
+
+SELECT run_on_shards_or_raise('stories_tags_map', $cmd$
+
+    DROP TRIGGER stories_tags_map_insert_solr_import_story ON %s
+
+    $cmd$);
+SELECT run_on_shards_or_raise('stories_tags_map', $cmd$
+
+    CREATE TRIGGER stories_tags_map_insert_solr_import_story
+        AFTER INSERT OR UPDATE OR DELETE
+        ON %s
+        FOR EACH ROW
+    EXECUTE PROCEDURE insert_solr_import_story();
+
+    $cmd$);
+
+SELECT run_on_shards_or_raise('topic_stories', $cmd$
+
+    CREATE TRIGGER topic_stories_insert_live_story
+        AFTER INSERT
+        ON %s
+        FOR EACH ROW
+    EXECUTE PROCEDURE insert_live_story();
+
+    $cmd$);
