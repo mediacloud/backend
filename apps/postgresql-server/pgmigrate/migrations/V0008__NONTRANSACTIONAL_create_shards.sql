@@ -3063,11 +3063,9 @@ CREATE TABLE topic_seed_urls
 -- noinspection SqlResolve @ routine/"create_distributed_table"
 SELECT create_distributed_table('topic_seed_urls', 'topics_id', colocate_with => 'topic_stories');
 
-ALTER TABLE topic_seed_urls
-    ADD CONSTRAINT topic_seed_urls_topics_id_topic_post_urls_id_fkey
-        FOREIGN KEY (topics_id, topic_post_urls_id)
-            REFERENCES topic_post_urls (topics_id, topic_post_urls_id)
-            ON DELETE CASCADE;
+-- There should be a FK to topic_post_urls (topics_id, topic_post_urls_id) here
+-- but unsharded production didn't have such a FK and so there are quite a few
+-- (about 50%) of entries with non-existent topic_post_urls_id
 
 CREATE INDEX topic_seed_urls_topics_id
     ON topic_seed_urls (topics_id);
@@ -3354,11 +3352,9 @@ CREATE TABLE snap.topic_links_cross_media
 -- noinspection SqlResolve @ routine/"create_distributed_table"
 SELECT create_distributed_table('snap.topic_links_cross_media', 'topics_id', colocate_with => 'topic_stories');
 
-ALTER TABLE snap.topic_links_cross_media
-    ADD CONSTRAINT snap_topic_links_cross_media_topics_id_topic_links_id_fkey
-        FOREIGN KEY (topics_id, topic_links_id)
-            REFERENCES topic_links (topics_id, topic_links_id)
-            ON DELETE CASCADE;
+-- There should be a FK to topic_links (topics_id, topic_links_id) here
+-- but unsharded production didn't have such a FK and so there are quite a few
+-- (about 50%) of entries with non-existent topic_links_id
 
 CREATE INDEX snap_topic_links_cross_media_topics_id
     ON snap.topic_links_cross_media (topics_id);
@@ -3835,11 +3831,9 @@ CREATE TABLE snap.timespan_posts
 -- noinspection SqlResolve @ routine/"create_distributed_table"
 SELECT create_distributed_table('snap.timespan_posts', 'topics_id', colocate_with => 'topic_stories');
 
-ALTER TABLE snap.timespan_posts
-    ADD CONSTRAINT snap_timespan_posts_topics_id_topic_posts_id_fkey
-        FOREIGN KEY (topics_id, topic_posts_id)
-            REFERENCES topic_posts (topics_id, topic_posts_id)
-            ON DELETE CASCADE;
+-- There should be a FK to topic_posts (topics_id, topic_posts_id) here
+-- but unsharded production didn't have such a FK and so there are quite a few
+-- (about 50%) of entries with non-existent topic_posts_id
 
 CREATE INDEX snap_timespan_posts_topics_id
     ON snap.timespan_posts (topics_id);
