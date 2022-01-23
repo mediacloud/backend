@@ -178,7 +178,7 @@ def normalize_url(url: str) -> str:
     url = fix_common_url_mistakes(url)
 
     try:
-        url = canonical_url(url)
+       url = canonical_url(url)
     except Exception as ex:
         raise McNormalizeURLException("Unable to get canonical URL: %s" % str(ex))
 

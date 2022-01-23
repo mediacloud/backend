@@ -73,6 +73,9 @@ def _get_youtube_embed_links(db: DatabaseHandler, story: dict) -> List[str]:
         "select * from downloads where stories_id = %(a)s order by stories_id limit 1",
         {'a': story['stories_id']}).hash()
 
+    if not download:
+        return []
+
     html = fetch_content(db, download)
 
     soup = BeautifulSoup(html, 'lxml')

@@ -4,6 +4,7 @@ from mediawords.util.mail import (
     Message,
     send_email,
     send_text_email,
+    sent_test_messages,
     enable_test_mode as enable_mail_test_mode,
     disable_test_mode as disable_mail_test_mode,
 )
@@ -28,6 +29,10 @@ class TestMail(TestCase):
             html_body='<strong>HTML message 𝖜𝖎𝖙𝖍 𝖘𝖔𝖒𝖊 𝖀𝖓𝖎𝖈𝖔𝖉𝖊 𝖈𝖍𝖆𝖗𝖆𝖈𝖙𝖊𝖗𝖘.</strong>',
         )
         assert send_email(message)
+
+        sent_message = sent_test_messages().pop()
+
+        assert sent_message == message
 
     def test_send_text_email(self):
         assert send_text_email(

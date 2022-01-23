@@ -9,4 +9,4 @@ COPY bin /opt/mediacloud/bin
 
 USER mediacloud
 
-CMD ["topics_mine_public_worker.pl"]
+CMD ["topics_mine_public_worker.py"]
