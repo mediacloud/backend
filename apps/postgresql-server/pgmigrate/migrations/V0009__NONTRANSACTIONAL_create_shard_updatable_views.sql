@@ -3599,6 +3599,23 @@ FROM pg_stat_activity,
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
+-- Doesn't exist in production
+DO
+$$
+    BEGIN
+        IF EXISTS(
+                SELECT 1
+                FROM pg_tables
+                WHERE tablename = 'topic_query_story_searches_imported_stories_map'
+            ) THEN
+            ALTER TABLE unsharded_public.topic_query_story_searches_imported_stories_map
+                DROP CONSTRAINT IF EXISTS topic_query_story_searches_imported_stories_map_stories_id_fkey;
+
+        END IF;
+
+    END
+$$;
+
 SELECT pid
 FROM pg_stat_activity,
      LATERAL pg_cancel_backend(pid) f
