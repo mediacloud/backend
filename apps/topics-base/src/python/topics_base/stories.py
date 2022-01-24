@@ -568,8 +568,8 @@ def add_to_topic_stories(
             %(redirect_url)s,
             %(link_mined)s,
             %(valid_foreign_rss_story)s
-        ON CONFLICT (topics_id, stories_id) DO NOTHING
         )
+        ON CONFLICT (topics_id, stories_id) DO NOTHING
         """,
         {
             'topics_id': topics_id,
