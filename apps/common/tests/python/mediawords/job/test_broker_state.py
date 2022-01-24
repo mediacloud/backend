@@ -152,8 +152,9 @@ class TestBrokerState(AbstractBrokerTestCase):
                 job_id = worker.app.add_to_queue(**kwargs)
 
                 if worker_type.expected_result is None:
-                    # Just wait a bit for the thing to finish
-                    time.sleep(5)
+                    # Just wait a bit for the thing to finish; sleeps for quite
+                    # long because tests might be slow on CI
+                    time.sleep(30)
                 else:
                     result = worker.app.get_result(job_id=job_id)
                     assert result == expected_result, f"Result for worker {worker}"
@@ -172,7 +173,15 @@ class TestBrokerState(AbstractBrokerTestCase):
                 if worker_type.expected_state != STATE_QUEUED:
                     assert worker_type.expected_message in job_state['message'], f"Job message for worker {worker}"
                     assert job_state['last_updated'], f"Job's last updated for worker {worker}"
-                    assert decode_json(job_state['args']) == kwargs, f"Job's arguments for worker {worker}"
+
+                    # job_states.args got changed from JSON to JSONB while sharding the
+                    # database, and there's no way to disable decoding JSONB (as
+                    # opposed to JSON) in psycopg2, so "args" might be a JSON string or
+                    # a pre-decoded dictionary
+                    if isinstance(job_state['args'], str):
+                        job_state['args'] = decode_json(job_state['args'])
+
+                    assert job_state['args'] == kwargs, f"Job's arguments for worker {worker}"
                     assert job_state['hostname'] == socket.gethostname(), f"Job's hostname for worker {worker}"
 
                     custom_table_states = self.DB.select(table='test_job_states', what_to_select='*').hashes()

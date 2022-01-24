@@ -86,11 +86,25 @@ sub attach_story_meta_data_to_stories
 
     my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
 
-    my $story_data = $db->query( <<END )->hashes;
-select s.stories_id, s.title, s.publish_date, s.url, s.guid, s.media_id, s.language, m.name media_name
-    from stories s join media m on ( s.media_id = m.media_id )
-    where s.stories_id in ( select id from $ids_table )
-END
+    my $story_data = $db->query( <<SQL
+        SELECT
+            s.stories_id,
+            s.title,
+            s.publish_date,
+            s.url,
+            s.guid,
+            s.media_id,
+            s.language,
+            m.name AS media_name
+        FROM stories AS s
+            INNER JOIN media AS m ON
+                s.media_id = m.media_id
+        WHERE s.stories_id IN (
+            SELECT id
+            FROM $ids_table
+        )
+SQL
+    )->hashes;
 
     $stories = attach_story_data_to_stories( $stories, $story_data );
 

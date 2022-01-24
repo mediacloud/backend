@@ -22,9 +22,16 @@ def test_merge_dup_media_story():
     for field in 'url guid publish_date title'.split():
         assert cloned_story[field] == old_story[field]
 
-    topic_story = db.query(
-        "select * from topic_stories where stories_id = %(a)s and topics_id = %(b)s",
-        {'a': cloned_story['stories_id'], 'b': topic['topics_id']}).hash()
+    topic_story = db.query("""
+        SELECT *
+        FROM topic_stories
+        WHERE
+            stories_id = %(stories_id)s AND
+            topics_id = %(topics_id)s
+    """, {
+        'stories_id': cloned_story['stories_id'],
+        'topics_id': topic['topics_id'],
+    }).hash()
     assert topic_story is not None
 
     merged_story = merge_dup_media_story(db, topic, old_story)

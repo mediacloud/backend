@@ -141,6 +141,7 @@ class DownloadFeedSyndicatedHandler(DefaultFetchMixin, AbstractDownloadFeedHandl
                     for enclosure in story['enclosures']:
                         # ...provided that the URL is set
                         if enclosure['url']:
+
                             db.query("""
                                 INSERT INTO story_enclosures (stories_id, url, mime_type, length)
                                 VALUES (%(stories_id)s, %(url)s, %(mime_type)s, %(length)s)

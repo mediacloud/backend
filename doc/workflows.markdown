@@ -409,6 +409,102 @@ This is useful in tests in which we run local workers and want to stop them afte
 Try avoiding creating a new `WorkflowClient` object often as ["it is a heavyweight object that establishes persistent TCP connections"](https://github.com/uber/cadence/issues/2528#issuecomment-530894674).
 
 
+### Run workflow and activities in separate processes
+
+When executing a long-running activity in the same asyncio loop as the workflow, it might time out with:
+
+<details>
+<summary>run failed: Deadline exceeded, retrying in 3 seconds</summary>
+<p>
+
+```
+run failed: Deadline exceeded, retrying in 3 seconds
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/grpclib/client.py", line 360, in recv_initial_metadata
+    headers = await self._stream.recv_headers()
+  File "/usr/local/lib/python3.8/dist-packages/grpclib/protocol.py", line 349, in recv_headers
+    await self.headers_received.wait()
+  File "/usr/lib/python3.8/asyncio/locks.py", line 309, in wait
+    await fut
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/temporal/retry.py", line 17, in retry_loop
+    await fp(*args, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/temporal/decision_loop.py", line 938, in run
+    decision_task: PollWorkflowTaskQueueResponse = await self.poll()
+  File "/usr/local/lib/python3.8/dist-packages/temporal/decision_loop.py", line 987, in poll
+    task = await self.service.poll_workflow_task_queue(request=poll_decision_request)
+  File "/usr/local/lib/python3.8/dist-packages/temporal/api/workflowservice/v1.py", line 828, in poll_workflow_task_queue
+    return await self._unary_unary(
+  File "/usr/local/lib/python3.8/dist-packages/betterproto/__init__.py", line 1133, in _unary_unary
+    response = await stream.recv_message()
+  File "/usr/local/lib/python3.8/dist-packages/grpclib/client.py", line 408, in recv_message
+    await self.recv_initial_metadata()
+  File "/usr/local/lib/python3.8/dist-packages/grpclib/client.py", line 380, in recv_initial_metadata
+    self.initial_metadata = im
+  File "/usr/local/lib/python3.8/dist-packages/grpclib/utils.py", line 70, in __exit__
+    raise self._error
+asyncio.exceptions.TimeoutError: Deadline exceeded
+Activity MoveRowsToShardsActivities::run_queries_in_transaction failed: StreamTerminatedError(Connection lost)
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/grpclib/client.py", line 360, in recv_initial_metadata
+    headers = await self._stream.recv_headers()
+  File "/usr/local/lib/python3.8/dist-packages/grpclib/protocol.py", line 349, in recv_headers
+    await self.headers_received.wait()
+  File "/usr/lib/python3.8/asyncio/locks.py", line 309, in wait
+    await fut
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/temporal/activity_loop.py", line 80, in activity_task_loop_func
+    await complete(worker.client, task_token, return_value)
+  File "/usr/local/lib/python3.8/dist-packages/temporal/activity.py", line 153, in complete
+    await client.service.respond_activity_task_completed(request=respond)
+  File "/usr/local/lib/python3.8/dist-packages/temporal/api/workflowservice/v1.py", line 952, in respond_activity_task_completed
+    return await self._unary_unary(
+  File "/usr/local/lib/python3.8/dist-packages/betterproto/__init__.py", line 1133, in _unary_unary
+    response = await stream.recv_message()
+  File "/usr/local/lib/python3.8/dist-packages/grpclib/client.py", line 408, in recv_message
+    await self.recv_initial_metadata()
+  File "/usr/local/lib/python3.8/dist-packages/grpclib/client.py", line 380, in recv_initial_metadata
+    self.initial_metadata = im
+  File "/usr/local/lib/python3.8/dist-packages/grpclib/utils.py", line 70, in __exit__
+    raise self._error
+grpclib.exceptions.StreamTerminatedError: Connection lost
+```
+
+</p>
+</details>
+
+It is a [documented problem](https://github.com/firdaus/temporal-python-sdk/issues/15), the fix for which is to run workflow and activities in different processes (or at least threads):
+
+```python
+# workflow_worker.py
+client = workflow_client()
+factory = WorkerFactory(client=client, namespace=client.namespace)
+worker = factory.new_worker(task_queue=TASK_QUEUE)
+worker.register_workflow_implementation_type(impl_cls=SampleWorkflowImpl)
+factory.start()
+```
+
+```python
+# activities_worker.py
+client = workflow_client()
+factory = WorkerFactory(client=client, namespace=client.namespace)
+worker = factory.new_worker(task_queue=TASK_QUEUE)
+worker.register_activities_implementation(
+    activities_instance=SampleActivitiesImpl(),
+    activities_cls_name=SampleActivities.__name__,
+)
+factory.start()
+```
+
+
 ## Links
 
 * [Main Temporal website](https://temporal.io/)

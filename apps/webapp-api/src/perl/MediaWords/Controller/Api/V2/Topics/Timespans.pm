@@ -53,18 +53,26 @@ sub list_GET
 
     if ( !$snapshot && !$timespan )
     {
-        $snapshot = $db->query( <<SQL, $topics_id )->hash;
-select * from snapshots where topics_id = \$1 and state = 'completed' order by snapshot_date desc limit 1
+        $snapshot = $db->query( <<SQL,
+            SELECT *
+            FROM snapshots
+            WHERE
+                topics_id = \$1 AND
+                state = 'completed'
+            ORDER BY snapshot_date DESC
+            LIMIT 1
 SQL
+            $topics_id
+        )->hash;
         die( "Unable to find valid spanshot" ) unless ( $snapshot );
     }
 
-    my $snapshot_clause = $snapshot ? "and snapshots_id = $snapshot->{ snapshots_id }" : "";
-    my $focus_clause    = $focus    ? "and foci_id = $focus->{ foci_id }"              : "and foci_id is null";
-    my $timespan_clause = $timespan ? "and timespans_id = $timespan->{ timespans_id }" : "";
+    my $snapshot_clause = $snapshot ? "AND snapshots_id = $snapshot->{ snapshots_id }" : "";
+    my $focus_clause    = $focus    ? "AND foci_id = $focus->{ foci_id }"              : "AND foci_id IS NULL";
+    my $timespan_clause = $timespan ? "AND timespans_id = $timespan->{ timespans_id }" : "";
 
-    my $timespans = $db->query( <<SQL )->hashes;
-select
+    my $timespans = $db->query( <<SQL,
+        SELECT
             timespans_id,
             period,
             start_date,
@@ -78,14 +86,19 @@ select
             model_num_media,
             foci_id,
             snapshots_id
-        from timespans t
+        FROM timespans AS t
         where
-            true
+            topics_id = ? AND
             $snapshot_clause
             $focus_clause
             $timespan_clause
-        order by period, start_date, end_date
+        ORDER BY
+            period,
+            start_date,
+            end_date
 SQL
+        $topics_id
+    )->hashes;
 
     $self->status_ok( $c, entity => { timespans => $timespans } );
 }

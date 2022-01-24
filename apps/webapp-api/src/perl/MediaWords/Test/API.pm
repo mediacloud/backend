@@ -31,17 +31,31 @@ sub setup_test_api_key($)
     {
         $_test_api_key = MediaWords::Test::DB::Create::User::create_test_user( $db, 'api_key' );
 
-        $db->query( <<SQL );
-insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
-    select a.auth_users_id, r.auth_roles_id
-        from auth_users a, auth_roles r
-        where
-            a.full_name = 'api_key' and
-            r.role = 'admin' and
-            not exists
-            ( select 1 from auth_users_roles_map
-                where auth_users_id = a.auth_users_id and auth_roles_id = r.auth_roles_id )
+        $db->query( <<SQL
+            WITH api_key_user AS (
+                SELECT auth_users_id
+                FROM auth_users
+                WHERE full_name = 'api_key'
+            ),
+
+            admin_role AS (
+                SELECT auth_roles_id
+                FROM auth_roles
+                WHERE role = 'admin'
+            )
+
+            INSERT INTO auth_users_roles_map (
+                auth_users_id, auth_roles_id
+            )
+                SELECT
+                    auth_users_id,
+                    auth_roles_id
+                FROM api_key_user
+                    CROSS JOIN admin_role
+
+            ON CONFLICT (auth_users_id, auth_roles_id) DO NOTHING
 SQL
+        );
     }
 
     return $_test_api_key;

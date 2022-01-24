@@ -18,6 +18,7 @@ Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
 Readonly my $NUM_STORIES_PER_FEED => 10;
 
+
 # return tag in either { tags_id => $tags_id }
 # or { tag => $tag, tag_set => $tag_set } form depending on $input_form
 sub _get_put_tag_input_tag($$$)
@@ -107,16 +108,27 @@ sub test_add_tags
 
     my $tags_ids_list = join( ',', map { $_->{ tags_id } } @{ $add_tags } );
 
-    my ( $map_count ) = $db->query( <<SQL )->flat;
-select count(*) from $map_table where $id_field in ( $row_ids_list ) and tags_id in ( $tags_ids_list )
+    my ( $map_count ) = $db->query( <<SQL
+        SELECT COUNT(*)
+        FROM $map_table
+        WHERE
+            $id_field IN ($row_ids_list) AND
+            tags_id IN ($tags_ids_list)
 SQL
+    )->flat;
 
     my $expected_map_count = scalar( @{ $rows } ) * scalar( @{ $add_tags } );
     is( $map_count, $expected_map_count, "$label map count" );
 
-    my $maps = $db->query( <<SQL )->hashes;
-select * from $map_table where $id_field in ( $row_ids_list ) and tags_id in ( $tags_ids_list )
+    my $maps = $db->query( <<SQL
+        SELECT *
+        FROM $map_table
+        WHERE
+            $id_field IN ($row_ids_list) AND
+            tags_id IN ($tags_ids_list)
 SQL
+    )->hashes;
+
     for my $map ( @{ $maps } )
     {
         my $row_expected = grep { $map->{ $id_field } == $_->{ $id_field } } @{ $rows };
@@ -127,7 +139,13 @@ SQL
     }
 
     # clean up so the next test has a clean slate
-    $db->query( "delete from $map_table where $id_field in ( $row_ids_list ) and tags_id in ( $tags_ids_list )" );
+    $db->query( <<"SQL"
+        DELETE FROM $map_table
+        WHERE
+            $id_field IN ($row_ids_list) AND
+            tags_id IN ($tags_ids_list)
+SQL
+    );
 }
 
 # test removing tag associations
@@ -145,10 +163,19 @@ sub test_remove_tags
 
     for my $row ( @{ $rows } )
     {
-        $db->query( <<SQL, $row->{ $id_field } );
-insert into $map_table ( $id_field, tags_id )
-        select \$1, tags_id from tags where tag_sets_id in ( $tag_sets_ids_list )
+        $db->query( <<SQL,
+            INSERT INTO $map_table (
+                $id_field,
+                tags_id
+            )
+                SELECT
+                    \$1,
+                    tags_id
+                FROM tags
+                WHERE tag_sets_id IN ($tag_sets_ids_list)
 SQL
+            $row->{ $id_field }
+        );
     }
 
     map { $_->{ add_tags } = [ $_->{ tags }->[ 0 ] ] } @{ $tag_sets };
@@ -159,21 +186,30 @@ SQL
     my $expected_map_count =
       scalar( @{ $tag_sets } ) * ( scalar( @{ $tag_sets->[ 0 ]->{ tags } } ) - 1 ) * scalar( @{ $rows } );
 
-    my ( $map_count ) = $db->query( <<SQL )->flat;
-select count(*)
-    from $map_table join tags using ( tags_id )
-    where $id_field in ( $row_ids_list ) and tag_sets_id in ( $tag_sets_ids_list )
+    my ( $map_count ) = $db->query( <<SQL
+        SELECT COUNT(*)
+        FROM $map_table
+            INNER JOIN tags USING (tags_id)
+        WHERE
+            $id_field IN ($row_ids_list) AND
+            tag_sets_id IN ($tag_sets_ids_list)
 SQL
+    )->flat;
+
     is( $map_count, $expected_map_count, "$label map count" );
 
     # clean up so the next test has a clean slate
-    $db->query( <<SQL );
-delete from $map_table
-    using tags
-    where $map_table.tags_id = tags.tags_id and
-        $id_field in ( $row_ids_list ) and
-        tag_sets_id in ( $tag_sets_ids_list )
+    $db->query( <<"SQL"
+        DELETE FROM $map_table
+        WHERE
+            $id_field IN ($row_ids_list) AND
+            tags_id IN (
+                SELECT tags_id
+                FROM tags
+                WHERE tag_sets_id IN ($tag_sets_ids_list)
+            )
 SQL
+    );
 }
 
 # add all tags to the map, use the clear_tags= param, then make sure only added tags are associated
@@ -188,10 +224,19 @@ sub test_clear_tags($$$$$)
 
     for my $row ( @{ $rows } )
     {
-        $db->query( <<SQL, $row->{ $id_field } );
-insert into $map_table ( $id_field, tags_id )
-        select \$1, tags_id from tags where tag_sets_id in ( $tag_sets_ids_list )
+        $db->query( <<SQL,
+            INSERT INTO $map_table (
+                $id_field,
+                tags_id
+            )
+                SELECT
+                    \$1,
+                    tags_id
+                FROM tags
+                WHERE tag_sets_id IN ($tag_sets_ids_list)
 SQL
+            $row->{ $id_field }
+        );
     }
 
     test_add_tags( $db, $table, $rows, $tag_sets, $input_form, 1 );
@@ -224,7 +269,7 @@ sub test_put_tags($$)
     my $first_tags_id = $tag_sets->[ 0 ]->{ tags }->[ 0 ];
 
     my $num_rows = 3;
-    my $rows     = $db->query( "select * from $table limit $num_rows" )->hashes;
+    my $rows     = $db->query( "SELECT * FROM $table LIMIT $num_rows" )->hashes;
 
     my $first_row_id = $rows->[ 0 ]->{ "${ table }_id" };
 
@@ -292,7 +337,7 @@ sub test_tags_single($)
 
     my $label = "tags/single";
 
-    my $expected_tag = $db->query( "select * from tags order by tags_id limit 1" )->hash;
+    my $expected_tag = $db->query( "SELECT * FROM tags ORDER BY tags_id LIMIT 1" )->hash;
 
     my $got_tags = MediaWords::Test::API::test_get( '/api/v2/tags/single/' . $expected_tag->{ tags_id } );
 

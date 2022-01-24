@@ -34,14 +34,18 @@ SQL
     }
     elsif ( $content_type eq 'text' )
     {
-        my ( $text ) = $db->query( <<SQL, $stories_id )->flat;
-select string_agg( download_text, ' ' ) from (
-    select download_text
-        from download_texts dt
-            join downloads d using ( downloads_id )
-        where d.stories_id = \$1
-        order by downloads_id ) q
+        my ( $text ) = $db->query( <<SQL,
+            SELECT STRING_AGG(download_text, ' ')
+            FROM (
+                SELECT download_text
+                FROM download_texts AS dt
+                    JOIN downloads AS d USING (downloads_id)
+                WHERE d.stories_id = \$1
+                ORDER BY downloads_id
+            ) AS q
 SQL
+            $stories_id
+        )->flat;
         return $text;
     }
     elsif ( $content_type eq 'raw' )

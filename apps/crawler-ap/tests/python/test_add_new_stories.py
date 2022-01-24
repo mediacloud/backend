@@ -36,7 +36,10 @@ def test_add_new_stories():
 
     add_new_stories(db=db, new_stories=ap_stories)
 
-    stories = db.query("select * from stories").hashes()
+    stories = db.query("""
+        SELECT *
+        FROM stories
+    """).hashes()
     assert len(stories) == len(ap_stories)
 
     story_sentences = []
@@ -44,7 +47,10 @@ def test_add_new_stories():
     # It's extract-and-vector worker that's doing the extraction, so wait for a minute for all of the expected sentences
     # to show up
     for retry in range(60):
-        story_sentences = db.query("select * from story_sentences").hashes()
+        story_sentences = db.query("""
+            SELECT *
+            FROM story_sentences
+        """).hashes()
         if len(story_sentences) == len(ap_stories):
             log.info("All stories got extracted, continuing")
             break
@@ -55,7 +61,13 @@ def test_add_new_stories():
     assert len(story_sentences) == len(ap_stories)
 
     for ap_story in ap_stories:
-        got_story = db.query("select * from stories where title = %(a)s", {'a': ap_story['title']}).hash()
+        got_story = db.query("""
+            SELECT *
+            FROM stories
+            WHERE title = %(title)s
+        """, {
+            'title': ap_story['title'],
+        }).hash()
         assert got_story
         for field in ['url', 'guid', 'description', 'publish_date']:
             assert got_story[field] == ap_story[field]
@@ -64,5 +76,8 @@ def test_add_new_stories():
     add_new_stories(db=db, new_stories=ap_stories)
 
     # should be same number of stories, since these new ones are dups
-    stories = db.query("select * from stories").hashes()
+    stories = db.query("""
+        SELECT *
+        FROM stories
+    """).hashes()
     assert len(stories) == len(ap_stories)

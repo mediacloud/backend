@@ -21,13 +21,13 @@ def test_fetch_twitter_urls_update_state():
 
     num_tweets = 150
     for i in range(num_tweets):
-        url = 'https://twitter.com/foo/status/%d' % i
+        url = f'https://twitter.com/foo/status/{i}'
         tfu = db.create('topic_fetch_urls', {'topics_id': topics_id, 'url': url, 'state': 'pending'})
         tfus.append(tfu)
 
     num_users = 150
     for i in range(num_users):
-        url = 'https://twitter.com/test_user_%s' % i
+        url = f'https://twitter.com/test_user_{i}'
         tfu = db.create('topic_fetch_urls', {'topics_id': topics_id, 'url': url, 'state': 'pending'})
         tfus.append(tfu)
 
@@ -38,24 +38,44 @@ def test_fetch_twitter_urls_update_state():
         m.get("https://api.twitter.com/1.1/statuses/lookup.json", text=mock_statuses_lookup)
         m.post("https://api.twitter.com/1.1/users/lookup.json", text=mock_users_lookup)
 
-        fetch_twitter_urls_update_state(db=db, topic_fetch_urls_ids=tfu_ids)
+        fetch_twitter_urls_update_state(db=db, topics_id=topics_id, topic_fetch_urls_ids=tfu_ids)
 
-    [num_tweet_stories] = db.query(
-        """
-        select count(*)
-            from topic_stories ts
-                join stories s using ( stories_id )
-            where topics_id = %(a)s and url ~ '/status/[0-9]+'
-        """,
-        {'a': topics_id}).flat()
+    [num_tweet_stories] = db.query("""
+        WITH stories_from_topic AS (
+            SELECT stories_id
+            FROM topic_stories
+            WHERE topics_id = %(topics_id)s
+        )
+        
+        SELECT COUNT(*)
+        FROM stories
+        WHERE
+            stories_id IN (
+                SELECT stories_id
+                FROM stories_from_topic
+            ) AND
+            url ~ '/status/[0-9]+'
+    """, {
+        'topics_id': topics_id,
+    }).flat()
     assert num_tweet_stories == num_tweets
 
-    [num_user_stories] = db.query(
-        """
-        select count(*)
-            from topic_stories ts
-                join stories s using ( stories_id )
-            where topics_id = %(a)s and url !~ '/status/[0-9]+'
-        """,
-        {'a': topics_id}).flat()
+    [num_user_stories] = db.query("""
+        WITH stories_from_topic AS (
+            SELECT stories_id
+            FROM topic_stories
+            WHERE topics_id = %(topics_id)s
+        )
+        
+        SELECT COUNT(*)
+        FROM stories
+        WHERE
+            stories_id IN (
+                SELECT stories_id
+                FROM stories_from_topic
+            ) AND
+            url !~ '/status/[0-9]+' 
+    """, {
+        'topics_id': topics_id
+    }).flat()
     assert num_user_stories == num_users

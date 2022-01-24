@@ -23,7 +23,7 @@ Readonly my $DEFAULT_PAGING_LIMIT => 20;
 =cut
 
 # look for a link associated with the parameters for this request.  if found, return; else create and return a new one.
-sub find_or_create_link($$)
+sub __find_or_create_link($$)
 {
     my ( $c, $params ) = @_;
 
@@ -35,30 +35,43 @@ sub find_or_create_link($$)
 
     my $path = $c->req->path;
 
-    my $link = $db->query( <<SQL, $params_json, $path )->hash;
-select * from api_links where md5( params_json ) = md5( \$1 ) and path = \$2
+    my $link = $db->query( <<SQL,
+        SELECT *
+        FROM api_links
+        WHERE
+            MD5(params::TEXT) = MD5(\$1::JSONB::TEXT) AND
+            path = \$2
 SQL
+        $params_json, $path
+    )->hash;
 
     return $link if ( $link );
 
-    $link = { params_json => $params_json, path => $path };
+    $link = { params => $params_json, path => $path };
 
     return $db->create( 'api_links', $link );
 }
 
 # if use_link_paging, set the next and previous link_id fields in the $entity->{ link_ids } hash;
-sub set_paging_links($$$$)
+sub __set_paging_links($$$$)
 {
     my ( $c, $link, $entity, $entity_data_key ) = @_;
 
-    my $link_params = MediaWords::Util::ParseJSON::decode_json( $link->{ params_json } );
+    # api_links.params got changed from TEXT to JSONB while sharding the
+    # database, and there's no way to disable decoding JSONB (as
+    # opposed to JSON) in psycopg2, so "args" might be a JSON string or
+    # a pre-decoded dictionary
+    my $link_params = $link->{ params };
+    unless ( ref( $link_params ) eq ref( {} ) ) {
+        $link_params = MediaWords::Util::ParseJSON::decode_json( $link_params );
+    }
 
     if ( $link_params->{ offset } )
     {
         my $prev_params = { %{ $link_params } };
         $prev_params->{ offset } = List::Util::max( $prev_params->{ offset } - $prev_params->{ limit }, 0 );
 
-        my $prev_link = find_or_create_link( $c, $prev_params );
+        my $prev_link = __find_or_create_link( $c, $prev_params );
         $entity->{ link_ids }->{ previous } = $link->{ previous_link_id } = $prev_link->{ api_links_id };
     }
 
@@ -69,12 +82,16 @@ sub set_paging_links($$$$)
         my $next_params = { %{ $link_params } };
         $next_params->{ offset } += $next_params->{ limit };
 
-        my $next_link = find_or_create_link( $c, $next_params );
+        my $next_link = __find_or_create_link( $c, $next_params );
         $entity->{ link_ids }->{ next } = $link->{ next_link_id } = $next_link->{ api_links_id };
     }
 
     if ( $entity->{ link_ids }->{ next } || $entity->{ link_ids }->{ previous } )
     {
+        if (ref( $link->{ params } ) eq ref( {} )) {
+            $link->{ params } = MediaWords::Util::ParseJSON::encode_json( $link->{ params } );
+        }
+
         $c->dbis->update_by_id( 'api_links', $link->{ api_links_id }, $link );
     }
 }
@@ -94,7 +111,7 @@ sub add_links_to_entity($$$)
 
     $entity->{ link_ids }->{ current } = $link->{ api_links_id };
 
-    set_paging_links( $c, $link, $entity, $entity_data_key );
+    __set_paging_links( $c, $link, $entity, $entity_data_key );
 }
 
 # add 'link' to the stash with a link that derefences to the current set of parameters;
@@ -114,13 +131,26 @@ sub process_and_stash_link($)
     if ( $link_id )
     {
         my $path = $c->req->path;
-        $link = $db->query( <<SQL, $link_id, $path )->hash;
-select * from api_links where api_links_id = \$1 and path = \$2
+        $link = $db->query( <<SQL,
+            SELECT *
+            FROM api_links
+            WHERE
+                api_links_id = \$1 AND
+                path = \$2
 SQL
+            $link_id, $path
+        )->hash;
 
         die( "no such link id exists: $link_id [$path]" ) unless ( $link );
 
-        my $link_params = MediaWords::Util::ParseJSON::decode_json( $link->{ params_json } );
+        # api_links.params got changed from TEXT to JSONB while sharding the
+        # database, and there's no way to disable decoding JSONB (as
+        # opposed to JSON) in psycopg2, so "args" might be a JSON string or
+        # a pre-decoded dictionary
+        my $link_params = $link->{ params };
+        unless ( ref( $link_params ) eq ref( {} ) ) {
+            $link_params = MediaWords::Util::ParseJSON::decode_json( $link_params );
+        }
 
         my $key = $c->req->params->{ key };
 
@@ -133,7 +163,7 @@ SQL
     {
         $c->req->params->{ limit }  ||= $DEFAULT_PAGING_LIMIT;
         $c->req->params->{ offset } ||= 0;
-        $link = find_or_create_link( $c, $c->req->params );
+        $link = __find_or_create_link( $c, $c->req->params );
     }
 
     $c->stash->{ link } = $link;

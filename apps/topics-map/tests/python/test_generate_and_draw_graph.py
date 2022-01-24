@@ -10,6 +10,7 @@ class TestGenerateAndDrawGraph(TestMap):
 
         svg = generate_and_draw_graph(
             db=db,
+            topics_id=self.timespan['topics_id'],
             timespans_id=self.timespan['timespans_id'],
             memory_limit_mb=512,
         ).decode('UTF-8')

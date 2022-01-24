@@ -20,13 +20,14 @@ def update_extractor_version_tag(db: DatabaseHandler, stories_id: int, extractor
     tag_set = db.find_or_create(table='tag_sets', insert_hash={'name': extractor_version_tag_sets_name()})
 
     db.query("""
-        DELETE FROM stories_tags_map AS stm
-            USING tags AS t
-                JOIN tag_sets AS ts
-                    ON ts.tag_sets_id = t.tag_sets_id
-        WHERE t.tags_id = stm.tags_id
-          AND ts.tag_sets_id = %(tag_sets_id)s
-          AND stm.stories_id = %(stories_id)s
+        DELETE FROM stories_tags_map
+        WHERE
+            stories_id = %(stories_id)s AND
+            tags_id IN (
+                SELECT tags_id
+                FROM tags
+                WHERE tag_sets_id = %(tag_sets_id)s
+            )
     """, {
         'tag_sets_id': tag_set['tag_sets_id'],
         'stories_id': stories_id,
@@ -38,4 +39,8 @@ def update_extractor_version_tag(db: DatabaseHandler, stories_id: int, extractor
     db.query("""
         INSERT INTO stories_tags_map (stories_id, tags_id)
         VALUES (%(stories_id)s, %(tags_id)s)
-    """, {'stories_id': stories_id, 'tags_id': tags_id})
+        ON CONFLICT (stories_id, tags_id) DO NOTHING
+    """, {
+        'stories_id': stories_id,
+        'tags_id': tags_id,
+    })

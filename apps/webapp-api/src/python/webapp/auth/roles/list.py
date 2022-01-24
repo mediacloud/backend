@@ -36,11 +36,6 @@ class UserRoles(object):
         """Topic mapper; excludes media and story editing."""
         return 'tm-readonly'
 
-    @staticmethod
-    def stories_api() -> str:
-        """Access to the stories API."""
-        return 'stories-api'
-
 
 def topic_mc_queue_roles() -> List[str]:
     """Roles that are allows to queue a topic into the 'mc' queue instead of the 'public' queue."""

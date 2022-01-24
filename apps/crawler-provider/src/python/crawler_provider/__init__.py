@@ -20,6 +20,7 @@ host over a period of several minutes, while allowing the crawler_fetcher jobs t
 worker jobs that just do a quick query of queued_downloads to grab the oldest queued download.
 """
 
+import datetime
 import time
 from typing import List, Any, Iterator
 
@@ -59,15 +60,19 @@ def _timeout_stale_downloads(db: DatabaseHandler) -> None:
 
     _timeout_stale_downloads.last_check = time.time()
 
+    date_stale_download_interval_ago = datetime.datetime.now() - datetime.timedelta(seconds=STALE_DOWNLOAD_INTERVAL)
+
     db.query(
         """
         UPDATE downloads SET
             state = 'pending',
             download_time = NOW()
-        WHERE state = 'fetching'
-          AND download_time < now() - (%(a)s || ' seconds')::interval
+        WHERE
+            state = 'fetching' AND
+            download_time < %(date_stale_download_interval_ago)s
         """,
-        {'a': STALE_DOWNLOAD_INTERVAL})
+        {'date_stale_download_interval_ago': date_stale_download_interval_ago}
+    )
 
 
 def _add_stale_feeds(db: DatabaseHandler) -> None:
@@ -167,11 +172,15 @@ def provide_download_ids(db: DatabaseHandler) -> List[int]:
     log.info("Querying pending downloads...")
 
     # get one downloads_id per host, ordered by priority asc, downloads_id desc
-    # noinspection SqlResolve
     downloads_ids = db.query("""
 
         -- Pending downloads by host, ranked by priority and the biggest "downloads_id"  
-        WITH pending_downloads_per_host AS (
+        WITH queued_downloads_copy AS (
+            SELECT downloads_id
+            FROM queued_downloads
+        ),
+
+        pending_downloads_per_host AS (
     
             SELECT
                 host,
@@ -182,12 +191,14 @@ def provide_download_ids(db: DatabaseHandler) -> List[int]:
                         priority,
                         downloads_id DESC NULLS LAST
                 ) AS rank
-            FROM downloads_pending AS dp
-            WHERE (
-                SELECT 1
-                FROM queued_downloads AS qd
-                WHERE qd.downloads_id = dp.downloads_id
-            ) IS NULL
+            FROM downloads
+            WHERE
+                state = 'pending' AND
+                NOT EXISTS (
+                    SELECT 1
+                    FROM queued_downloads_copy
+                    WHERE queued_downloads_copy.downloads_id = downloads.downloads_id
+                )
         )
         
         SELECT downloads_id
@@ -240,6 +251,7 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
                 # 2) We don't have to come up with a query that's 2 MB long.
                 for chunk_downloads_ids in __chunks(list_to_be_chunked=downloads_ids, chunk_size=1000):
                     log.info(f"Inserting chunk of downloads ({len(chunk_downloads_ids)} download IDs)...")
+
                     # noinspection SqlResolve,SqlSignature
                     db.query(
                         """

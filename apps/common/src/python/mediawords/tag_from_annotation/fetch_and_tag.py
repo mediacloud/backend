@@ -350,6 +350,7 @@ class TagsFromJSONAnnotation(metaclass=abc.ABCMeta):
             # Find or create a tag set
             db_tag_set = db.select(table='tag_sets', what_to_select='*', condition_hash={'name': tag_sets_name}).hash()
             if db_tag_set is None:
+
                 db.query("""
                     INSERT INTO tag_sets (name, label, description)
                     VALUES (%(name)s, %(label)s, %(description)s)
@@ -359,6 +360,7 @@ class TagsFromJSONAnnotation(metaclass=abc.ABCMeta):
                     'label': tag.tag_sets_label,
                     'description': tag.tag_sets_description
                 })
+
                 db_tag_set = db.select(table='tag_sets',
                                        what_to_select='*',
                                        condition_hash={'name': tag_sets_name}).hash()
@@ -370,6 +372,7 @@ class TagsFromJSONAnnotation(metaclass=abc.ABCMeta):
                 'tag': tags_name,
             }).hash()
             if db_tag is None:
+
                 db.query("""
                     INSERT INTO tags (tag_sets_id, tag, label, description)
                     VALUES (%(tag_sets_id)s, %(tag)s, %(label)s, %(description)s)
@@ -380,6 +383,7 @@ class TagsFromJSONAnnotation(metaclass=abc.ABCMeta):
                     'label': tag.tags_label,
                     'description': tag.tags_description,
                 })
+
                 db_tag = db.select(table='tags', what_to_select='*', condition_hash={
                     'tag_sets_id': tag_sets_id,
                     'tag': tags_name,
@@ -388,13 +392,12 @@ class TagsFromJSONAnnotation(metaclass=abc.ABCMeta):
 
             # Assign story to tag (if no such mapping exists yet)
             #
-            # (partitioned table's INSERT trigger will take care of conflicts)
-            #
             # Not using db.create() because it tests last_inserted_id, and on duplicates there would be no such
             # "last_inserted_id" set.
             db.query("""
-                INSERT INTO stories_tags_map (stories_id, tags_id)
+                INSERT INTO public.stories_tags_map (stories_id, tags_id)
                 VALUES (%(stories_id)s, %(tags_id)s)
+                ON CONFLICT (stories_id, tags_id) DO NOTHING
             """, {
                 'stories_id': stories_id,
                 'tags_id': tags_id,

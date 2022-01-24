@@ -46,7 +46,7 @@ sub test_downloads($)
         MediaWords::DBI::Downloads::Store::store_content( $db, $download, $content );
     }
 
-    my $expected_downloads = $db->query( "select * from downloads where feeds_id = ?", $feed->{ feeds_id } )->hashes;
+    my $expected_downloads = $db->query( "SELECT * FROM downloads WHERE feeds_id = ?", $feed->{ feeds_id } )->hashes;
     map { $_->{ raw_content } = "content $_->{ downloads_id }" } @{ $expected_downloads };
 
     my $got_downloads = MediaWords::Test::API::test_get( '/api/v2/downloads/list', { feeds_id => $feed->{ feeds_id } } );

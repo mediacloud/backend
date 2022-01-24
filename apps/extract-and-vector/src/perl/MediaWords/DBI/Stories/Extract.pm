@@ -53,9 +53,15 @@ sub get_all_sentences
     my $all_sentences = [];
     for my $sentence ( @{ $raw_sentences } )
     {
-        my $ss = $db->query( <<END, $sentence, $story->{ stories_id } )->hash;
-select * from story_sentences where sentence = \$1 and stories_id = \$2
-END
+        my $ss = $db->query( <<SQL,
+            SELECT *
+            FROM story_sentences
+            WHERE
+                sentence = ? AND
+                stories_id = ?
+SQL
+            $sentence, $story->{ stories_id }
+        )->hash;
 
         push( @{ $all_sentences }, { sentence => $sentence, ss => $ss, stories_id => $story->{ stories_id } } );
     }

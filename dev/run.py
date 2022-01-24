@@ -122,7 +122,21 @@ def docker_run_commands(
     ]
 
     commands.append(docker_compose + ['run', '--rm', '--use-aliases'] + map_ports_args + [container_name] + command)
-    commands.append(docker_compose + ['down', '--volumes'])
+
+    commands.append(docker_compose + [
+        'down',
+        '--volumes',
+
+        # When running tests, sometimes Docker Compose doesn't manage to remove the network:
+        #
+        #     error while removing network: network mc-webapp-api-prove_opt_mediacloud_tests_perl_
+        #     mediawords_util_mail_message_templates_t_default id 18d347f9b147e3deebb66cfebe0707ad
+        #     251af90e5b294036b0977f0242b63c9a has active endpoints
+        #
+        # This below is a guessfix for that:
+        '--timeout', '60',
+        '--remove-orphans',
+    ])
 
     return commands
 

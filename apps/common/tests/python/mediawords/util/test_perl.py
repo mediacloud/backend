@@ -164,12 +164,14 @@ def test_convert_dbd_pg_arguments_to_psycopg2_format_ignore_literals():
             type = 'content'
         WHERE downloads_id = ?
     """.strip(), 1, 2,)
+
     expected_parameters = ("""
         UPDATE downloads
         SET stories_id = %s,
             type = 'content'
         WHERE downloads_id = %s
     """.strip(), (1, 2,))
+
     actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
     assert expected_parameters == actual_parameters
 

@@ -12,6 +12,7 @@ def test_get_and_store_story_stats():
     media = create_test_story_stack(db=db, data={'A': {'B': [1, 2, 3]}})
     story = media['A']['feeds']['B']['stories']['1']
 
+    # noinspection HttpUrlsUsage
     story['url'] = 'http://google.com'
     returned_stats = get_and_store_story_stats(db=db, story=story)
 

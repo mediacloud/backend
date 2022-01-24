@@ -232,9 +232,19 @@ sub _get_existing_stories
 {
     my ( $self ) = @_;
 
-    my $stories = $self->db->query( <<SQL, $self->{ media_id } )->hashes;
-select stories_id, media_id, publish_date, url, guid, title from stories where media_id = ?
+    my $stories = $self->db->query( <<SQL,
+        SELECT
+            stories_id,
+            media_id,
+            publish_date,
+            url,
+            guid,
+            title
+        FROM stories
+        WHERE media_id = ?
 SQL
+        $self->{ media_id }
+    )->hashes;
 
     return $stories;
 }
@@ -253,13 +263,32 @@ sub _get_scrape_feed
     my $feed_name = ref( $self );
     my $feed_url  = "$feed_name:$medium->{ url }";
 
-    my $feed = $db->query( <<SQL, $medium->{ media_id }, $feed_url, $feed_name )->hash;
-select * from feeds where media_id = ? and url = ? order by ( name = ? )
+    my $feed = $db->query( <<SQL,
+        SELECT *
+        FROM feeds
+        WHERE
+            media_id = ? AND
+            url = ?
+        ORDER BY (name = ?)
 SQL
+        $medium->{ media_id }, $feed_url, $feed_name
+    )->hash;
 
-    $feed ||= $db->query( <<SQL, $medium->{ media_id }, $feed_url, $feed_name )->hash;
-insert into feeds ( media_id, url, name, active ) values ( ?, ?, ?, 'f' ) returning *
+    $feed ||= $db->query( <<SQL,
+        INSERT INTO feeds (
+            media_id,
+            url,
+            name,
+            active
+        ) VALUES (
+            ?,
+            ?,
+            ?,
+            'f'
+        ) RETURNING *
 SQL
+        $medium->{ media_id }, $feed_url, $feed_name
+    )->hash;
 
     DEBUG "scrape feed: $feed->{ name } [$feed->{ feeds_id }]";
 
@@ -321,11 +350,19 @@ sub _add_scraped_stories_flag
 {
     my ( $self, $story ) = @_;
 
-    $self->db->query( <<SQL, $story->{ stories_id }, ref( $self ) );
-insert into scraped_stories ( stories_id, import_module )
-    select \$1, \$2 where not exists (
-        select 1 from scraped_stories where stories_id = \$1 and import_module = \$2 )
+    $self->db->query( <<SQL,
+        INSERT INTO scraped_stories (stories_id, import_module)
+            SELECT \$1, \$2
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM scraped_stories
+                WHERE
+                    stories_id = \$1 AND
+                    import_module = \$2
+            )
 SQL
+        $story->{ stories_id }, ref( $self )
+    );
 
 }
 

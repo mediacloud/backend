@@ -88,10 +88,13 @@ def __get_topic_url_variants(db: DatabaseHandler, urls: List[str]) -> List[str]:
     urls = decode_object_from_bytes_if_needed(urls)
 
     # MC_REWRITE_TO_PYTHON: change to tuple parameter because Perl database handler proxy can't handle tuples
-    stories_ids_sql = "SELECT stories_id "
-    stories_ids_sql += "FROM stories "
-    stories_ids_sql += "WHERE url = ANY(?)"
-    stories_ids = db.query(stories_ids_sql, urls).flat()
+    stories_ids = db.query("""
+        SELECT stories_id
+        FROM stories
+        WHERE url = ANY(%(urls)s)
+    """, {
+        'urls': urls,
+    }).flat()
 
     # MC_REWRITE_TO_PYTHON: Perl database handler proxy (the dreaded "wantarray" part) returns None on empty result
     # sets, a scalar on a single item and arrayref on many items

@@ -44,16 +44,31 @@ sub list_GET
 
     my $topics_id = $c->stash->{ topics_id };
 
-    my $fsds = $db->query( <<SQL, $topics_id )->hashes;
-select focal_set_definitions_id, name, description, focal_technique, false
-    from focal_set_definitions
-    where topics_id = \$1
-    order by name
+    my $fsds = $db->query( <<SQL,
+        SELECT
+            focal_set_definitions_id,
+            name,
+            description,
+            focal_technique,
+            false AS is_exclusive
+        FROM focal_set_definitions
+        WHERE topics_id = \$1
+        ORDER BY name
 SQL
+        $topics_id
+    )->hashes;
 
-    $fsds = $db->attach_child_query( $fsds, <<SQL, 'focus_definitions', 'focal_set_definitions_id' );
-select focal_set_definitions_id, focus_definitions_id, name, description, arguments->>'query' query from focus_definitions
+    $fsds = $db->attach_child_query( $fsds, <<SQL,
+        SELECT
+            focal_set_definitions_id,
+            focus_definitions_id,
+            name,
+            description,
+            arguments->>'query' AS query
+        FROM focus_definitions
 SQL
+        'focus_definitions', 'focal_set_definitions_id'
+    );
 
     $self->status_ok( $c, entity => { focal_set_definitions => $fsds } );
 }
@@ -96,9 +111,14 @@ sub delete_PUT
     my $topics_id                = $c->stash->{ topics_id };
     my $focal_set_definitions_id = $c->stash->{ focal_set_definitions_id };
 
-    $c->dbis->query( <<SQL, $topics_id, $focal_set_definitions_id );
-delete from focal_set_definitions where topics_id = \$1 and focal_set_definitions_id = \$2
+    $c->dbis->query( <<SQL,
+        DELETE FROM focal_set_definitions
+        WHERE
+            topics_id = \$1 AND
+            focal_set_definitions_id = \$2
 SQL
+        $topics_id, $focal_set_definitions_id
+    );
 
     $self->status_ok( $c, entity => { success => 1 } );
 }

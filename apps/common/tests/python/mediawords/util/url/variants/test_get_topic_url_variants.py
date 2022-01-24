@@ -28,6 +28,7 @@ class TestGetTopicURLVariants(TestURLVariantsTestCase):
         self.db.query("""
             INSERT INTO topic_merged_stories_map (source_stories_id, target_stories_id)
             VALUES (%(source_stories_id)s, %(target_stories_id)s)
+            ON CONFLICT (source_stories_id, target_stories_id) DO NOTHING
         """, {
             'source_stories_id': story_2['stories_id'],
             'target_stories_id': story_1['stories_id'],
@@ -36,6 +37,7 @@ class TestGetTopicURLVariants(TestURLVariantsTestCase):
         self.db.query("""
             INSERT INTO topic_merged_stories_map (source_stories_id, target_stories_id)
             VALUES (%(source_stories_id)s, %(target_stories_id)s)
+            ON CONFLICT (source_stories_id, target_stories_id) DO NOTHING
         """, {
             'source_stories_id': story_3['stories_id'],
             'target_stories_id': story_2['stories_id'],

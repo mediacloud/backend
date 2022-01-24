@@ -43,6 +43,7 @@ around execute => sub {
         if ( !grep { $_ eq 'admin' || $_ eq 'admin-readonly' } @{ $user_roles } )
         {
             my $db = $c->dbis;
+
             $db->query(
                 <<SQL,
                 INSERT INTO auth_user_request_daily_counts (email, day, requests_count, requested_items_count)

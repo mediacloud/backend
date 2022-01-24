@@ -126,7 +126,12 @@ sub run_solr_tests($)
         }
     );
 
-    my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
+    my $test_stories = $db->query( <<SQL
+        SELECT *
+        FROM stories
+        ORDER BY md5(stories_id::TEXT)
+SQL
+    )->hashes;
 
     {
         # basic query
@@ -136,16 +141,24 @@ sub run_solr_tests($)
 
     {
         # get_solr_num_found
-        my ( $expected_num_stories ) = $db->query( "select count(*) from stories" )->flat;
+        my ( $expected_num_stories ) = $db->query( <<SQL
+            SELECT COUNT(*)
+            FROM stories
+SQL
+        )->flat;
         my $got_num_stories = MediaWords::Solr::get_solr_num_found( $db, { q => '*:*' } );
         is( $got_num_stories, $expected_num_stories, 'get_solr_num_found' );
     }
 
     {
         # search_solr_for_processed_stories_ids
-        my $first_story = $db->query( <<SQL )->hash;
-select * from processed_stories order by processed_stories_id asc limit 1
+        my $first_story = $db->query( <<SQL
+            SELECT *
+            FROM processed_stories
+            ORDER BY processed_stories_id ASC
+            LIMIT 1
 SQL
+        )->hash;
 
         my $got_processed_stories_ids = MediaWords::Solr::search_solr_for_processed_stories_ids( $db, '*:*', undef, 0, 1 );
         is( scalar( @{ $got_processed_stories_ids } ), 1, "search_solr_for_processed_stories_ids count" );
@@ -230,9 +243,12 @@ sub test_collections_id_queries($)
         for my $medium_i ( 1 .. $num_media_per_tag )
         {
             my $medium = MediaWords::Test::DB::Create::create_test_medium( $db, "tag $tag_i medium $medium_i" );
-            $db->query( <<SQL, $tag->{ tags_id }, $medium->{ media_id } );
-insert into media_tags_map ( tags_id, media_id ) values ( ?, ? )
+            $db->query( <<SQL,
+                INSERT INTO media_tags_map (tags_id, media_id)
+                VALUES (?, ?)
 SQL
+                $tag->{ tags_id }, $medium->{ media_id }
+            );
             push( @{ $tag->{ media } }, $medium );
         }
 

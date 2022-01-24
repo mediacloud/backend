@@ -23,7 +23,12 @@ sub test_threaded_import($)
         }
     );
 
-    my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
+    my $test_stories = $db->query( <<SQL
+        SELECT *
+        FROM stories
+        ORDER BY MD5(stories_id::TEXT)
+SQL
+    )->hashes;
 
     MediaWords::Test::Solr::queue_all_stories( $db );
 
@@ -31,7 +36,11 @@ sub test_threaded_import($)
 
     $db = MediaWords::DB::connect_to_db();
 
-    my ( $test_stories_size ) = $db->query( "select count(*) from stories" )->flat;
+    my ( $test_stories_size ) = $db->query( <<SQL
+        SELECT COUNT(*)
+        FROM stories
+SQL
+    )->flat;
     is( MediaWords::Solr::get_solr_num_found( $db, { q => '*:*' } ), $test_stories_size, "stories threaded import" );
 
     my $story = pop( @{ $test_stories } );

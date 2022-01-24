@@ -1,0 +1,2 @@
+TRUNCATE story_statistics_twitter;
+DROP TABLE story_statistics_twitter;

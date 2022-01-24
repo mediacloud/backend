@@ -13,18 +13,14 @@ from word2vec_generate_snapshot_model import McWord2vecException
 log = create_logger(__name__)
 
 
-class AbstractSentenceIterator(Iterator, ABC, metaclass=abc.ABCMeta):
-    """Abstract story sentence iterator."""
-    pass
-
-
-class SnapshotSentenceIterator(AbstractSentenceIterator, metaclass=abc.ABCMeta):
+class SnapshotSentenceIterator(Iterator):
     """Iterator that iterates over sentences in a snapshot."""
 
     __DEFAULT_STORIES_ID_CHUNK_SIZE = 1000
 
     __slots__ = [
         '__db',
+        '__topics_id',
         '__snapshots_id',
 
         # Deque of sentences
@@ -39,13 +35,16 @@ class SnapshotSentenceIterator(AbstractSentenceIterator, metaclass=abc.ABCMeta):
 
     def __init__(self,
                  db: DatabaseHandler,
+                 topics_id: int,
                  snapshots_id: int,
                  stories_id_chunk_size: int = __DEFAULT_STORIES_ID_CHUNK_SIZE):
         super().__init__()
 
+        topics_id = int(topics_id)
         snapshots_id = int(snapshots_id)
 
         self.__db = db
+        self.__topics_id = topics_id
         self.__snapshots_id = snapshots_id
         self.__stories_id_chunk_size = stories_id_chunk_size
 
@@ -70,7 +69,9 @@ class SnapshotSentenceIterator(AbstractSentenceIterator, metaclass=abc.ABCMeta):
             WHERE stories_id IN (
                 SELECT stories_id
                 FROM snap.stories
-                WHERE snapshots_id = %(snapshots_id)s
+                WHERE
+                    topics_id = %(topics_id)s AND
+                    snapshots_id = %(snapshots_id)s
 
                   -- Reasonably fast, but maybe OFFSET would be even faster?
                   AND stories_id > %(last_encountered_stories_id)s
@@ -81,6 +82,7 @@ class SnapshotSentenceIterator(AbstractSentenceIterator, metaclass=abc.ABCMeta):
             -- Need ORDER to write down last fetched "stories_id"
             ORDER BY stories_id, sentence_number
         """, {
+            'topics_id': self.__topics_id,
             'snapshots_id': self.__snapshots_id,
             'last_encountered_stories_id': self.__last_encountered_stories_id,
             'stories_id_chunk_size': self.__stories_id_chunk_size,

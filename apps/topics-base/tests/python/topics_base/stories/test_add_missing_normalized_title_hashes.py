@@ -12,16 +12,23 @@ from topics_base.stories import add_to_topic_stories, _add_missing_normalized_ti
 
 def __count_null_title_stories(db: DatabaseHandler, topic: dict) -> int:
     """Count the stories in the topic with a null normalized_title_hash."""
-    null_count = db.query(
-        """
-        select count(*)
-            from stories s
-                join topic_stories ts using ( stories_id )
-            where
-                ts.topics_id = %(a)s and
-                s.normalized_title_hash is null
-        """,
-        {'a': topic['topics_id']}).flat()[0]
+    null_count = db.query("""
+        WITH topic_story_ids AS (
+            SELECT stories_id
+            FROM topic_stories
+            WHERE topics_id = %(topics_id)s
+        )
+        SELECT COUNT(*)
+        FROM stories
+        WHERE
+            normalized_title_hash IS NULL AND
+            stories_id IN (
+                SELECT stories_id
+                FROM topic_story_ids
+            )
+    """, {
+        'topics_id': topic['topics_id'],
+    }).flat()[0]
 
     return null_count
 
@@ -39,10 +46,44 @@ def test_add_missing_normalized_title_hashes():
         add_to_topic_stories(db, story, topic)
 
     # disable trigger so that we can actually set normalized_title_hash to null
-    db.query("alter table stories disable trigger stories_add_normalized_title")
-    # noinspection SqlWithoutWhere
-    db.query("update stories set normalized_title_hash = null")
-    db.query("alter table stories enable trigger stories_add_normalized_title")
+    db.query(
+        "SELECT run_on_shards_or_raise('stories', %(command)s)",
+        {
+            'command': """
+                -- noinspection SqlResolveForFile @ trigger/"stories_add_normalized_title"
+                BEGIN;
+                LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
+                ALTER TABLE %s DISABLE TRIGGER stories_add_normalized_title;
+                COMMIT;
+            """,
+        }
+    )
+
+    db.query("""
+        WITH all_story_ids AS (
+            SELECT stories_id
+            FROM stories
+        )
+        UPDATE stories SET
+            normalized_title_hash = NULL
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM all_story_ids
+        )
+    """)
+
+    db.query(
+        "SELECT run_on_shards_or_raise('stories', %(command)s)",
+        {
+            'command': """
+                -- noinspection SqlResolveForFile @ trigger/"stories_add_normalized_title"
+                BEGIN;
+                LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
+                ALTER TABLE %s ENABLE TRIGGER stories_add_normalized_title;
+                COMMIT;
+            """,
+        }
+    )
 
     assert __count_null_title_stories(db=db, topic=topic) == num_stories
 

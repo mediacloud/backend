@@ -2720,15 +2720,6 @@ create view feedly_unscraped_feeds as
             sf.feeds_id is null;
 
 
-create table topic_query_story_searches_imported_stories_map (
-    topics_id            int not null references topics on delete cascade,
-    stories_id                  int not null references stories on delete cascade
-);
-
-create index cqssism_c on topic_query_story_searches_imported_stories_map ( topics_id );
-create index cqssism_s on topic_query_story_searches_imported_stories_map ( stories_id );
-
-
 CREATE VIEW stories_collected_in_past_day AS
     SELECT *
     FROM stories
@@ -2887,8 +2878,7 @@ INSERT INTO auth_roles (role, description) VALUES
     ('media-edit', 'Add / edit media; includes feeds.'),
     ('stories-edit', 'Add / edit stories.'),
     ('tm', 'Topic mapper; includes media and story editing'),
-    ('tm-readonly', 'Topic mapper; excludes media and story editing'),
-    ('stories-api', 'Access to the stories api');
+    ('tm-readonly', 'Topic mapper; excludes media and story editing');
 
 
 --

@@ -23,7 +23,7 @@ def test_copy_story_to_new_medium_with_download_error():
 
     add_content_to_test_story(db, old_story, old_feed)
 
-    db.query("update downloads set state = 'error' where stories_id = %(a)s", {'a': old_story['stories_id']})
+    db.query("UPDATE downloads SET state = 'error' WHERE stories_id = %(a)s", {'a': old_story['stories_id']})
 
     add_to_topic_stories(db, old_story, topic)
 
@@ -31,8 +31,12 @@ def test_copy_story_to_new_medium_with_download_error():
 
     assert db.find_by_id('stories', new_story['stories_id']) is not None
 
-    new_download = db.query(
-        "select * from downloads where stories_id = %(a)s",
-        {'a': new_story['stories_id']}).hash()
+    new_download = db.query("""
+        SELECT *
+        FROM downloads
+        WHERE stories_id = %(stories_id)s
+    """, {
+        'stories_id': new_story['stories_id'],
+    }).hash()
     assert new_download is not None
     assert new_download['state'] == 'error'

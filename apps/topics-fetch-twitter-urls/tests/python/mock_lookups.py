@@ -10,7 +10,7 @@ from mediawords.util.parse_json import encode_json
 # noinspection PyUnusedLocal
 def mock_users_lookup(request: requests.PreparedRequest, context) -> str:
     """Mock twitter /users/lookup response."""
-    params = parse_qs(urlparse(request.url).query)
+    params = parse_qs(urlparse(str(request.url)).query)
 
     screen_names = params['screen_name'][0].split(',')
 
@@ -25,9 +25,9 @@ def mock_users_lookup(request: requests.PreparedRequest, context) -> str:
 
         user = {
             'id': user_id,
-            'name': 'test user %s' % user_id,
+            'name': f'test user {user_id}',
             'screen_name': screen_name,
-            'description': "test description for user %s" % user_id}
+            'description': f"test description for user {user_id}"}
         users.append(user)
 
     context.status_code = 200
@@ -38,7 +38,7 @@ def mock_users_lookup(request: requests.PreparedRequest, context) -> str:
 # noinspection PyUnusedLocal
 def mock_statuses_lookup(request: requests.PreparedRequest, context) -> str:
     """Mock twitter /statuses/lookup response."""
-    params = parse_qs(urlparse(request.url).query)
+    params = parse_qs(urlparse(str(request.url)).query)
 
     ids = params['id'][0].split(',')
 
@@ -46,9 +46,9 @@ def mock_statuses_lookup(request: requests.PreparedRequest, context) -> str:
     for tweet_id in ids:
         tweet = {
             'id': tweet_id,
-            'text': 'test content for tweet %s' % tweet_id,
+            'text': f'test content for tweet {tweet_id}',
             'created_at': 'Mon Dec 13 23:21:48 +0000 2010',
-            'user': {'screen_name': 'user %s' % tweet_id},
+            'user': {'screen_name': f'user {tweet_id}'},
             'entities': {'urls': []}}
         tweets.append(tweet)
 

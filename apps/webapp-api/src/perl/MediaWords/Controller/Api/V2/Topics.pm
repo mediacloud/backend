@@ -42,11 +42,21 @@ __PACKAGE__->config(
 );
 
 Readonly::Scalar my $TOPICS_EDIT_FIELDS => [
-    qw/name solr_seed_query description max_iterations start_date end_date platform is_public max_stories is_logogram is_story_index_ready/
+    'name',
+    'solr_seed_query',
+    'description',
+    'max_iterations',
+    'start_date',
+    'end_date',
+    'platform',
+    'is_public',
+    'max_stories',
+    'is_logogram',
+    'is_story_index_ready',
 ];
 
 Readonly::Scalar my $JOB_STATE_FIELD_LIST =>
-"job_states_id, ( args->>'topics_id' )::int topics_id, ( args->>'snapshots_id' )::int snapshots_id, state, message, last_updated";
+"job_states_id, ( args->>'topics_id' )::bigint topics_id, ( args->>'snapshots_id' )::bigint snapshots_id, state, message, last_updated";
 
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
@@ -69,13 +79,13 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
     my $id_clause = '';
     if ( $topics_id )
     {
-        $id_clause = 't.topics_id = ' . int( $topics_id ) . ' and ';
+        $id_clause = 't.topics_id = ' . int( $topics_id ) . ' AND ';
     }
 
     my $public_clause = '';
     if ( defined( $public ) )
     {
-        $public_clause = $public ? "t.is_public and" : "not t.is_public and";
+        $public_clause = $public ? "t.is_public AND" : "NOT t.is_public AND";
     }
 
     my $topics = $db->query(
@@ -103,8 +113,10 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
                 t.is_story_index_ready,
                 0 ch_monitor_id
             FROM topics AS t
-                JOIN topics_with_user_permission AS p USING (topics_id)
-                LEFT JOIN snapshots AS snap ON t.topics_id = snap.topics_id
+                INNER JOIN topics_with_user_permission AS p ON
+                    t.topics_id = p.topics_id
+                LEFT JOIN snapshots ON
+                    t.topics_id = snapshots.topics_id
             WHERE
                 $id_clause
                 $public_clause
@@ -115,7 +127,7 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
             ORDER BY
                 t.state = 'completed',
                 t.state,
-                MAX(COALESCE(snap.snapshot_date, '2000-01-01'::date)) DESC
+                MAX(COALESCE(snapshots.snapshot_date, '2000-01-01'::date)) DESC
             LIMIT \$3
             OFFSET \$4
 SQL
@@ -129,7 +141,7 @@ SQL
             m.name,
             tmm.topics_id
         FROM media AS m
-            JOIN topics_media_map AS tmm USING (media_id)
+            INNER JOIN topics_media_map AS tmm USING (media_id)
 SQL
         'media', 'topics_id'
     );
@@ -143,7 +155,7 @@ SQL
             t.description,
             tmtm.topics_id
         FROM tags AS t
-            JOIN topics_media_tags_map AS tmtm USING (tags_id)
+            INNER JOIN topics_media_tags_map AS tmtm USING (tags_id)
 SQL
         'media_tags', 'topics_id'
     );
@@ -156,7 +168,7 @@ SQL
             au.email,
             au.full_name
         FROM topic_permissions AS tp
-            JOIN auth_users AS au USING (auth_users_id)
+            INNER JOIN auth_users AS au USING (auth_users_id)
     where
         tp.permission = 'admin'
 SQL
@@ -172,18 +184,23 @@ SQL
                 js.state,
                 js.message,
                 js.last_updated,
-                ( js.args->>'topics_id' )::int topics_id,
-                ( js.args->>'snapshots_id' )::int snapshots_id
-            FROM job_states js
-            ORDER BY job_states_id desc
+                ( js.args->>'topics_id' )::BIGINT AS topics_id,
+                ( js.args->>'snapshots_id' )::BIGINT AS snapshots_id
+            FROM job_states AS js
+            ORDER BY job_states_id DESC
         )
 
-        select * from js
+        SELECT * FROM js
 SQL
         'job_states', 'topics_id'
     );
 
-    $topics = $db->attach_child_query( $topics, "select * from topic_seed_queries", 'topic_seed_queries', 'topics_id' );
+    $topics = $db->attach_child_query( $topics, <<SQL,
+        SELECT *
+        FROM topic_seed_queries
+SQL
+        'topic_seed_queries', 'topics_id'
+    );
 
     return $topics;
 }
@@ -236,19 +253,34 @@ sub _set_topic_media($$$$)
 
     if ( $media_ids )
     {
-        $db->query( "delete from topics_media_map where topics_id = ?", $topics_id );
+        $db->query( "DELETE FROM topics_media_map WHERE topics_id = ?", $topics_id );
         for my $media_id ( @{ $media_ids } )
         {
-            $db->query( "insert into topics_media_map ( topics_id, media_id ) values ( ?, ? )", $topics_id, $media_id );
+            $db->query( <<SQL,
+                INSERT INTO topics_media_map (topics_id, media_id)
+                VALUES (?, ?)
+SQL
+                $topics_id, $media_id
+            );
         }
     }
 
     if ( $media_tags_ids )
     {
-        $db->query( "delete from topics_media_tags_map where topics_id = ?", $topics_id );
+        $db->query( <<SQL,
+            DELETE FROM topics_media_tags_map
+            WHERE topics_id = ?
+SQL
+            $topics_id
+        );
         for my $tags_id ( @{ $media_tags_ids } )
         {
-            $db->query( "insert into topics_media_tags_map ( topics_id, tags_id ) values ( ?, ? )", $topics_id, $tags_id );
+            $db->query( <<SQL,
+                INSERT INTO topics_media_tags_map (topics_id, tags_id)
+                VALUES (?, ?)
+SQL
+                $topics_id, $tags_id
+            );
         }
     }
 }
@@ -267,19 +299,24 @@ SQL
         $auth_users_id
     )->hash;
 
-    my $admin_roles = [ $MediaWords::DBI::Auth::Roles::List::ADMIN, $MediaWords::DBI::Auth::Roles::List::ADMIN_READONLY ];
+    my $admin_roles = [
+        $MediaWords::DBI::Auth::Roles::List::ADMIN,
+        $MediaWords::DBI::Auth::Roles::List::ADMIN_READONLY,
+    ];
 
     $auth_users_id = int( $auth_users_id );
 
-    my $is_admin = $db->query( <<SQL, @{ $admin_roles } )->hash;
-select ar.role
-    from auth_roles ar
-        join auth_users_roles_map aurm using ( auth_roles_id )
-    where
-        aurm.auth_users_id = $auth_users_id and
-        ar.role in ( ?? )
-    limit 1
+    my $is_admin = $db->query( <<SQL,
+        SELECT ar.role
+        FROM auth_roles AS ar
+            INNER JOIN auth_users_roles_map AS aurm USING (auth_roles_id)
+        WHERE
+            aurm.auth_users_id = $auth_users_id AND
+            ar.role IN (??)
+        LIMIT 1
 SQL
+        @{ $admin_roles }
+    )->hash;
 
     # admins have no limit
     return if ( $is_admin );
@@ -298,15 +335,14 @@ sub _is_mc_queue_user($$)
 
     $auth_users_id = int( $auth_users_id );
 
-    my $is_mc = $db->query(
-        <<SQL,
-select ar.role
-    from auth_roles ar
-        join auth_users_roles_map aurm using ( auth_roles_id )
-    where
-        aurm.auth_users_id = $auth_users_id and
-        ar.role in ( ?? )
-    limit 1
+    my $is_mc = $db->query( <<SQL,
+        SELECT ar.role
+        FROM auth_roles AS ar
+            INNER JOIN auth_users_roles_map AS aurm USING (auth_roles_id)
+        WHERE
+            aurm.auth_users_id = $auth_users_id AND
+            ar.role IN (??)
+        LIMIT 1
 SQL
         @{ MediaWords::DBI::Auth::Roles::List::topic_mc_queue_roles() }
     )->hash;
@@ -390,9 +426,17 @@ sub _update_decreases_query_scope($$$)
 {
     my ( $db, $topic, $data ) = @_;
 
-    my $spidered_story = $db->query( <<SQL, $topic->{ topics_id } )->hash;
-select * from topic_stories where iteration > 1 and topics_id = ? limit 1
+    my $spidered_story = $db->query( <<SQL,
+        SELECT *
+        FROM topic_stories
+        WHERE
+            iteration > 1 AND
+            topics_id = ?
+        LIMIT 1
 SQL
+        $topic->{ topics_id }
+    )->hash;
+
     return 0 if ( !$spidered_story && $topic->{ state } ne 'running' );
 
     return 1 if ( $data->{ start_date } && ( $data->{ start_date } gt $topic->{ start_date } ) );
@@ -401,9 +445,13 @@ SQL
 
     if ( my $update_media_ids = $data->{ media_ids } )
     {
-        my $existing_media_ids = $db->query( <<SQL, $topic->{ topics_id } )->flat();
-select media_id from topics_media_map where topics_id = ?
+        my $existing_media_ids = $db->query( <<SQL,
+            SELECT media_id
+            FROM topics_media_map
+            WHERE topics_id = ?
 SQL
+            $topic->{ topics_id }
+        )->flat();
 
         for my $existing_id ( @{ $existing_media_ids } )
         {
@@ -413,9 +461,13 @@ SQL
 
     if ( my $update_media_tags_ids = $data->{ media_tags_ids } )
     {
-        my $existing_media_tags_ids = $db->query( <<SQL, $topic->{ topics_id } )->flat;
-select tags_id from topics_media_tags_map where topics_id = ?
+        my $existing_media_tags_ids = $db->query( <<SQL,
+            SELECT tags_id
+            FROM topics_media_tags_map
+            WHERE topics_id = ?
 SQL
+            $topic->{ topics_id }
+        )->flat;
 
         for my $existing_id ( @{ $existing_media_tags_ids } )
         {
@@ -542,8 +594,11 @@ sub update_PUT
     if ( $update->{ solr_seed_query } && ( $topic->{ solr_seed_query } ne $update->{ solr_seed_query } ) )
     {
         my $is_logogram = defined( $update->{ is_logogram } ) ? $update->{ is_logogram } : $topic->{ is_logogram };
-        $update->{ pattern } =
-          eval { MediaWords::Solr::Query::Parse::parse_solr_query( $update->{ solr_seed_query } )->re( $is_logogram ) };
+        $update->{ pattern } = eval {
+            MediaWords::Solr::Query::Parse::parse_solr_query(
+                $update->{ solr_seed_query }
+            )->re( $is_logogram )
+        };
         die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
         $topic->{ solr_seed_query } = $update->{ solr_seed_query };
@@ -622,7 +677,13 @@ sub spider_GET
 
     MediaWords::Job::StatefulBroker->new( $queue_name )->add_to_queue( $mine_args );
 
-    my $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
+    my $job_state = $db->query( <<SQL
+        SELECT $JOB_STATE_FIELD_LIST
+        FROM job_states
+        ORDER BY job_states_id DESC
+        LIMIT 1
+SQL
+    )->hash;
 
     $db->commit;
 
@@ -643,14 +704,16 @@ sub spider_status_GET
 
     my $db = $c->dbis;
 
-    my $job_states = $db->query( <<SQL, $topics_id )->hashes;
-select $JOB_STATE_FIELD_LIST
-    from job_states
-    where
-        class like 'MediaWords::Job::TM::MineTopic%' and
-        ( args->>'topics_id' )::int = \$1
-    order by last_updated desc
+    my $job_states = $db->query( <<SQL,
+        SELECT $JOB_STATE_FIELD_LIST
+        FROM job_states
+        WHERE
+            class LIKE 'MediaWords::Job::TM::MineTopic%' AND
+            (args->>'topics_id')::BIGINT = \$1
+        ORDER BY last_updated DESC
 SQL
+        $topics_id
+    )->hashes;
 
     $self->status_ok( $c, entity => { job_states => $job_states } );
 }
@@ -674,11 +737,12 @@ sub reset_PUT
         die( "Cannot reset running topic." );
     }
 
-    $db->query( "delete from topic_stories where topics_id = ?",                   $topics_id );
-    $db->query( "delete from topic_links where topics_id = ?",                     $topics_id );
-    $db->query( "delete from topic_dead_links where topics_id = ?",                $topics_id );
-    $db->query( "delete from topic_seed_urls where topics_id = ?",                 $topics_id );
-    $db->query( "update topics set solr_seed_query_run = 'f' where topics_id = ?", $topics_id );
+    $db->query( "DELETE FROM topic_stories WHERE topics_id = ?", $topics_id );
+    $db->query( "DELETE FROM topic_links WHERE topics_id = ?", $topics_id );
+    $db->query( "DELETE FROM topic_dead_links WHERE topics_id = ?", $topics_id );
+    $db->query( "DELETE FROM topic_seed_urls WHERE topics_id = ?", $topics_id );
+
+    $db->query( "UPDATE topics SET solr_seed_query_run = 'f' WHERE topics_id = ?", $topics_id );
 
     $db->update_by_id( 'topics', $topic->{ topics_id }, { state => 'created but not queued', message => undef } );
 
@@ -700,19 +764,22 @@ sub info_GET
     $info->{ topic_modes } = $db->query( "select * from topic_modes order by name" )->hashes;
     $info->{ topic_platforms } = $db->query( "select * from topic_platforms order by name" )->hashes;
     $info->{ topic_sources } = $db->query( "select * from topic_sources order by name" )->hashes;
-    $info->{ topic_platforms_sources_map } = $db->query( <<SQL )->hashes;
-select 
-        tp.topic_platforms_id,
-        tp.name platform_name,
-        tp.description platform_description,
-        ts.topic_sources_id,
-        ts.name source_name,
-        ts.description source_description
-    from topic_platforms tp
-        join topic_platforms_sources_map tpsm using ( topic_platforms_id )
-        join topic_sources ts using ( topic_sources_id )
-    order by ts.name, tp.name
+    $info->{ topic_platforms_sources_map } = $db->query( <<SQL
+        SELECT 
+            tp.topic_platforms_id,
+            tp.name AS platform_name,
+            tp.description AS platform_description,
+            ts.topic_sources_id,
+            ts.name AS source_name,
+            ts.description AS source_description
+        FROM topic_platforms AS tp
+            INNER JOIN topic_platforms_sources_map AS tpsm USING (topic_platforms_id)
+            INNER JOIN topic_sources AS ts USING (topic_sources_id)
+        ORDER BY
+            ts.name,
+            tp.name
 SQL
+    )->hashes;
 
     $self->status_ok( $c, entity => { info => $info } );
 
@@ -733,9 +800,16 @@ sub list_timespan_files_GET
 
     my $timespan = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
 
-    my $timespan_files = $db->query( <<SQL, $timespan->{ timespans_id } )->hashes;
-select * from timespan_files where timespans_id = ? order by timespan_files_id
+    my $timespan_files = $db->query( <<SQL,
+        SELECT *
+        FROM timespan_files
+        WHERE
+            topics_id = ? AND
+            timespans_id = ?
+        ORDER BY timespan_files_id
 SQL
+        $timespan->{ topics_id }, $timespan->{ timespans_id }
+    )->hashes;
 
     $self->status_ok( $c, entity => { timespan_files => $timespan_files } );
 }
@@ -755,9 +829,16 @@ sub list_snapshot_files_GET
 
     my $timespan = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
 
-    my $snapshot_files = $db->query( <<SQL, $timespan->{ snapshots_id } )->hashes;
-select * from snapshot_files where snapshots_id = ? order by snapshot_files_id
+    my $snapshot_files = $db->query( <<SQL,
+        SELECT *
+        FROM snapshot_files
+        WHERE
+            topics_id = ? AND
+            snapshots_id = ?
+        ORDER BY snapshot_files_id
 SQL
+        $timespan->{ topics_id }, $timespan->{ snapshots_id }
+    )->hashes;
 
     $self->status_ok( $c, entity => { snapshot_files => $snapshot_files } );
 }

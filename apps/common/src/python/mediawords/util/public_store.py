@@ -47,32 +47,50 @@ def _get_test_directory_name_from_db(db) -> str:
     name = 'public_store_directory'
 
     max_stories = 100000
-    has_max_stories = db.query("select 1 from stories offset %(a)s", {'a': max_stories}).hash()
+    has_max_stories = db.query("""
+        SELECT 1
+        FROM stories
+        OFFSET %(max_stories)s
+    """, {
+        'max_stories': max_stories,
+    }).hash()
     if has_max_stories:
         error = "cowardly refusing to create test directory in database with at least %d stories" % max_stories
         raise McConfigEnvironmentVariableUnsetException(error)
 
-    directory_names = db.query(
-        "select value from database_variables where name = %(a)s",
-        {'a': name }).flat()
+    directory_names = db.query("""
+        SELECT value
+        FROM database_variables
+        WHERE name = %(name)s
+    """, {
+        'name': name,
+    }).flat()
 
     if directory_names:
         return directory_names[0]
 
     db.begin();
-    db.query("lock table database_variables")
+    db.query("LOCK TABLE database_variables")
     
-    directory_names = db.query(
-        "select value from database_variables where name = %(a)s",
-        {'a': name }).flat()
+    directory_names = db.query("""
+        SELECT value
+        FROM database_variables
+        WHERE name = %(name)s
+    """, {
+        'name': name,
+    }).flat()
     if directory_names:
         directory_name = directory_names[0]
     else:
         log.warning("generating test directory name for public s3 store")
         directory_name = "test/%d" % uuid.uuid4().int
-        db.query(
-            "insert into database_variables (name, value) values(%(a)s, %(b)s)",
-            {'a': name, 'b': directory_name })
+        db.query("""
+            INSERT INTO database_variables (name, value)
+            VALUES (%(name)s, %(value)s)
+        """, {
+            'name': name,
+            'value': directory_name,
+        })
 
     db.commit()
 

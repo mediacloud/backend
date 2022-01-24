@@ -26,14 +26,23 @@ sub test_query_matching_sentences($)
         }
     );
 
-    my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
+    my $test_stories = $db->query( <<SQL
+        SELECT *
+        FROM stories
+        ORDER BY MD5(stories_id::TEXT)
+SQL
+    )->hashes;
 
     {
         # query_matching_sentences
         my $story = pop( @{ $test_stories } );
-        my $story_sentences = $db->query( <<SQL, $story->{ stories_id } )->hashes;
-select * from story_sentences where stories_id = ?
+        my $story_sentences = $db->query( <<SQL,
+            SELECT *
+            FROM story_sentences
+            WHERE stories_id = ?
 SQL
+            $story->{ stories_id }
+        )->hashes;
         my ( $test_word ) = grep { length( $_ ) > 3 } split( ' ', $story_sentences->[ 0 ]->{ sentence } );
 
         $test_word = lc( $test_word );
@@ -50,9 +59,13 @@ SQL
     {
         # query matching sentences with query with no text terms
         my $story = pop( @{ $test_stories } );
-        my $story_sentences = $db->query( <<SQL, $story->{ stories_id } )->hashes;
-select * from story_sentences where stories_id = ?
+        my $story_sentences = $db->query( <<SQL,
+            SELECT *
+            FROM story_sentences
+            WHERE stories_id = ?
 SQL
+            $story->{ stories_id }
+        )->hashes;
         my $query = "stories_id:$story->{ stories_id }";
         my $got_sentences = MediaWords::Solr::Query::MatchingSentences::query_matching_sentences( $db, { q => $query } );
 

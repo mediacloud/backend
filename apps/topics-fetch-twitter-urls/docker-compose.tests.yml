@@ -25,6 +25,9 @@ services:
               source: ./../topics-base/src/
               target: /opt/mediacloud/src/topics-base/
             - type: bind
+              source: ./../extract-and-vector/src/
+              target: /opt/mediacloud/src/extract-and-vector/
+            - type: bind
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
         depends_on:
@@ -97,8 +100,11 @@ services:
               source: ./../postgresql-server/pgmigrate/
               target: /opt/postgresql-server/pgmigrate/
             - type: bind
-              source: ./../postgresql-base/etc/postgresql/
-              target: /etc/postgresql/
+              source: ./../postgresql-server/etc/postgresql/14/extra/
+              target: /etc/postgresql/14/extra/
+            - type: bind
+              source: ./../postgresql-base/etc/postgresql/14/main/
+              target: /etc/postgresql/14/main/
 
     rabbitmq-server:
         image: gcr.io/mcback/rabbitmq-server:latest

@@ -28,11 +28,21 @@ sub test_wc_list($)
 
     my $label = "wc/list";
 
-    my $story = $db->query( "select * from stories order by stories_id limit 1" )->hash;
-
-    my $sentences = $db->query( <<SQL, $story->{ stories_id } )->flat;
-select sentence from story_sentences where stories_id = ?
+    my $story = $db->query( <<SQL
+        SELECT *
+        FROM stories
+        ORDER BY stories_id
+        LIMIT 1
 SQL
+    )->hash;
+
+    my $sentences = $db->query( <<SQL,
+        SELECT sentence
+        FROM story_sentences
+        WHERE stories_id = ?
+SQL
+        $story->{ stories_id }
+    )->flat;
 
     my $expected_word_counts = {};
     for my $sentence ( @{ $sentences } )

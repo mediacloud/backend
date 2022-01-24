@@ -9,7 +9,7 @@ Make a full backup, or a delta backup if a full backup exists and not more than 
 
 ```bash
 # No slash at the end!
-wal-g.sh backup-push /var/lib/postgresql/13/main
+wal-g.sh backup-push /var/lib/postgresql/14/main
 ```
 
 Verify WAL segment storage:

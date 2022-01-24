@@ -210,11 +210,10 @@ EOF
         }
 
         # Save
-        $db->query(
-            <<EOF,
-            INSERT INTO activities (name, user_identifier, object_id, reason, description_json)
+        $db->query( <<SQL,
+            INSERT INTO activities (name, user_identifier, object_id, reason, description)
             VALUES (?, ?, ?, ?, ?)
-EOF
+SQL
             $activity_name, $user, $object_id, $reason, $description_json
         );
     };

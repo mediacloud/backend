@@ -21,9 +21,15 @@ sub add_feed_url_to_medium
 {
     my ( $db, $medium, $feed_url ) = @_;
 
-    my $feed_exists = $db->query( <<SQL, $medium->{ media_id }, $feed_url )->hash;
-select * from feeds where media_id = ? and lower( url ) = lower( ? )
+    my $feed_exists = $db->query( <<SQL,
+        SELECT *
+        FROM feeds
+        WHERE
+            media_id = ? AND
+            LOWER(url) = LOWER(?)
 SQL
+        $medium->{ media_id }, $feed_url
+    )->hash;
 
     return if $feed_exists;
 
@@ -54,7 +60,14 @@ SQL
         return;
     }
 
-    $db->create( 'feeds', { media_id => $medium->{ media_id }, name => 'csv imported feed', url => $feed_url } );
+    $db->create(
+        'feeds',
+        {
+            media_id => $medium->{ media_id },
+            name => 'csv imported feed',
+            url => $feed_url,
+        }
+    );
 }
 
 # Return true if the media sources has enough stories or is old enough that we
@@ -71,19 +84,38 @@ sub medium_is_ready_for_analysis($$)
 
     my $media_id = $medium->{ media_id };
 
-    my $active_feed = $db->query( "select 1 from feeds where active = 't' and media_id = \$1", $media_id )->hash;
+    my $active_feed = $db->query( <<SQL,
+        SELECT 1
+        FROM feeds
+        WHERE
+            active = 't' AND
+            media_id = \$1
+SQL
+        $media_id
+    )->hash;
 
     return 0 unless ( $active_feed );
 
-    my $first_story = $db->query( <<SQL, $media_id )->hash;
-select * from stories where media_id = ? limit 1
+    my $first_story = $db->query( <<SQL,
+        SELECT *
+        FROM stories
+        WHERE media_id = ?
+        LIMIT 1
 SQL
+        $media_id
+    )->hash;
 
     return 0 unless ( $first_story );
 
-    my $story_101 = $db->query( <<SQL, $media_id )->hash;
-    select * from stories where media_id = ? offset 101 limit 1
+    my $story_101 = $db->query( <<SQL,
+        SELECT *
+        FROM stories
+        WHERE media_id = ?
+        OFFSET 101
+        LIMIT 1
 SQL
+        $media_id
+    )->hash;
 
     return $story_101 ? 1 : 0;
 }

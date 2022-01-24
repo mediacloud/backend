@@ -12,12 +12,11 @@ sub _get_timespan
 {
     my ( $db, $timespans_id ) = @_;
 
+    # Could be optimized if we knew topics_id here
     my $timespan = $db->query( <<SQL, $timespans_id )->hash;
-select timespan.*, snap.topics_id
-    from timespans timespan
-        join snapshots snap on (snap.snapshots_id = timespan.snapshots_id)
-    where
-        timespan.timespans_id = ?
+        SELECT *
+        FROM timespans
+        WHERE timespans_id = ?
 SQL
     unless ( $timespan )
     {
@@ -27,36 +26,43 @@ SQL
 
 sub _get_overall_timespan_from_snapshot
 {
-    my ( $db, $snapshot ) = @_;
+    my ( $db, $snapshots_id ) = @_;
 
-    my $timespan = $db->query( <<SQL, $snapshot )->hash;
-select timespan.*, snap.topics_id
-  from timespans timespan
-  join snapshots snap on (snap.snapshots_id = timespan.snapshots_id)
-  where
-    timespan.snapshots_id = ? and
-    timespan.period = 'overall' and
-    timespan.foci_id is null
+    my $timespan = $db->query( <<SQL,
+        SELECT *
+        FROM timespans
+        WHERE
+            snapshots_id = ? AND
+            period = 'overall' AND
+            foci_id IS NULL
 SQL
+        $snapshots_id
+    )->hash;
+
     unless ( $timespan )
     {
-        LOGDIE( "no overall timespan for snapshot $snapshot" );
+        LOGDIE( "no overall timespan for snapshot $snapshots_id" );
     }
 }
 
 sub _get_latest_overall_timespan_from_topic
 {
     my ( $db, $topics_id ) = @_;
-    my $timespan = $db->query( <<SQL, $topics_id )->hash;
-select timespan.*, snap.topics_id
-  from timespans timespan
-  join snapshots snap on (snap.snapshots_id = timespan.snapshots_id)
-  where
-    snap.topics_id = ? and
-    timespan.period = 'overall' and
-    timespan.foci_id is null
-  order by snap.snapshot_date desc limit 1
+    my $timespan = $db->query( <<SQL,
+        SELECT timespans.*
+        FROM timespans
+            JOIN snapshots ON
+                timespans.topics_id = snapshots.topics_id AND
+                timespans.snapshots_id = timespans.snapshots_id
+        where
+            timespans.topics_id = ? AND
+            timespans.period = 'overall' AND
+            timespans.foci_id IS NULL
+        ORDER BY snapshots.snapshot_date DESC
+        LIMIT 1
 SQL
+        $topics_id
+    )->hash;
 }
 
 # return in order of preference:
@@ -110,6 +116,7 @@ sub set_timespans_id_param($)
         $c->req->params->{ snapshots_id }
     );
 
+    $c->req->params->{ topics_id } = $timespan->{ topics_id };
     $c->req->params->{ timespans_id } = $timespan->{ timespans_id };
 
     return $timespan;

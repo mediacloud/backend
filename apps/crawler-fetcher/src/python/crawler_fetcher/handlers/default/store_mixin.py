@@ -70,6 +70,7 @@ class DefaultStoreMixin(AbstractDownloadHandler, metaclass=abc.ABCMeta):
 
         responded_with_timeout = re.search(r'(503|500 read timeout)', response.status_line(), flags=re.IGNORECASE)
         if responded_with_timeout and error_num < self._MAX_5XX_RETRIES:
+
             db.query("""
                 UPDATE downloads
                 SET

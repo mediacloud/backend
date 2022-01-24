@@ -33,6 +33,9 @@ __COMPRESS_TEST_DATA = [
     b"\xf0\x28\x8c\x28",
     b"\xf8\xa1\xa1\xa1\xa1",
     b"\xfc\xa1\xa1\xa1\xa1\xa1",
+
+    # memoryview simulating BYTEA columns coming from psycopg2
+    memoryview(b"This is a test"),
 ]
 
 

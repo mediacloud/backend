@@ -11,6 +11,7 @@ use namespace::autoclean;
 use MediaWords::DBI::Snapshots;
 use MediaWords::Job::StatefulBroker;
 use MediaWords::KeyValueStore::PostgreSQL;
+use MediaWords::Util::Compress;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
@@ -25,7 +26,7 @@ __PACKAGE__->config(
 );
 
 Readonly my $JOB_STATE_FIELD_LIST =>
-"job_states_id, ( args->>'topics_id' )::int topics_id, ( args->>'snapshots_id' )::int snapshots_id, state, message, last_updated";
+"job_states_id, ( args->>'topics_id' )::bigint topics_id, ( args->>'snapshots_id' )::bigint snapshots_id, state, message, last_updated";
 
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
@@ -55,6 +56,7 @@ sub list_GET
     my $snapshots = $db->query(
         <<SQL,
         SELECT
+            topics_id,
             snapshots_id,
             snapshot_date,
             note,
@@ -72,11 +74,11 @@ SQL
     $snapshots = $db->attach_child_query(
         $snapshots, <<SQL,
         SELECT
-            word2vec_models_id AS models_id,
+            snap_word2vec_models_id AS models_id,
 
             -- FIXME snapshots_id gets into resulting hashes, not sure how to
             -- get rid of it with attach_child_query()
-            object_id AS snapshots_id,
+            snapshots_id,
 
             creation_date
         FROM snap.word2vec_models
@@ -128,10 +130,18 @@ sub generate_GET
 
     $db->begin;
 
-    MediaWords::Job::StatefulBroker->new( 'MediaWords::Job::TM::SnapshotTopic' )->add_to_queue(
-        { snapshots_id => $snapshots_id, topics_id => $topics_id, note => $note },
-    );
-    my $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
+    MediaWords::Job::StatefulBroker->new( 'MediaWords::Job::TM::SnapshotTopic' )->add_to_queue( {
+        snapshots_id => $snapshots_id,
+        topics_id => $topics_id,
+        note => $note,
+    } );
+    my $job_state = $db->query( <<SQL
+        SELECT $JOB_STATE_FIELD_LIST
+        FROM job_states
+        ORDER BY job_states_id DESC
+        LIMIT 1
+SQL
+    )->hash;
     $db->commit;
 
     die( "Unable to find job state from queued job" ) unless ( $job_state );
@@ -155,14 +165,16 @@ sub generate_status_GET
 
     my $job_states;
 
-    $job_states = $db->query( <<SQL, $topics_id, $job_class )->hashes;
-select $JOB_STATE_FIELD_LIST
-    from job_states
-    where
-        class = \$2 and
-        ( args->>'topics_id' )::int = \$1
-    order by last_updated desc
+    $job_states = $db->query( <<SQL,
+        SELECT $JOB_STATE_FIELD_LIST
+        FROM job_states
+        WHERE
+            class = ? AND
+            ( args->>'topics_id' )::BIGINT = ?
+        ORDER BY last_updated DESC
 SQL
+        $job_class, $topics_id
+    )->hashes;
 
     $self->status_ok( $c, entity => { job_states => $job_states } );
 }
@@ -194,14 +206,28 @@ sub word2vec_model_GET
         die "models_id is not set.";
     }
 
-    my $model_store = MediaWords::KeyValueStore::PostgreSQL->new( { table => 'snap.word2vec_models_data' } );
-    my $object_path = undef;
-    my $raw = 1;
-    my $model_data = $model_store->fetch_content( $db, $models_id, $object_path, $raw );
-    unless ( defined $model_data )
-    {
-        die "Model data for topic $topics_id, snapshot $snapshots_id, model $models_id is undefined.";
+    my $model = $db->select(
+        'snap.word2vec_models',
+        'raw_data',
+        {
+            'topics_id' => $topics_id,
+            'snapshots_id' => $snapshots_id,
+            'snap_word2vec_models_id' => $models_id,
+        },
+    )->hash();
+    unless ( $model ) {
+        die "Model $models_id for topic $topics_id, snapshot $snapshots_id was not found";
     }
+
+    my $compressed_model_data = $model->{ 'raw_data' };
+
+    if ( ref( $compressed_model_data ) eq ref([]) ) {
+        # Perl database handler returns byte arrays
+        $compressed_model_data = join('', @{ $compressed_model_data } );
+    }
+
+    my $is_binary = 1;
+    my $model_data = MediaWords::Util::Compress::gunzip( $compressed_model_data, $is_binary );
 
     my $filename = "word2vec-topic_$topics_id-snapshot_$snapshots_id-model_$models_id.bin";
 

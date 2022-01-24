@@ -49,12 +49,17 @@ def _add_story_tags_to_stories(db: DatabaseHandler, stories: List[Dict[str, Any]
         assert isinstance(story, dict)
         tag = tags.pop()
         tags.insert(0, tag)
+
+        stories_id = story['stories_id']
+        tags_id = tag['tags_id']
+
         db.query("""
-            INSERT INTO stories_tags_map (stories_id, tags_id)
+            INSERT INTO public.stories_tags_map (stories_id, tags_id)
             VALUES (%(stories_id)s, %(tags_id)s)
+            ON CONFLICT (stories_id, tags_id) DO NOTHING
         """, {
-            'stories_id': story['stories_id'],
-            'tags_id': tag['tags_id'],
+            'stories_id': stories_id,
+            'tags_id': tags_id,
         })
 
 
@@ -74,6 +79,7 @@ def _add_timespans_to_stories(db: DatabaseHandler, stories: List[Dict[str, Any]]
     timespans = []
     for i in range(1, 5 + 1):
         timespan = db.create(table='timespans', insert_hash={
+            'topics_id': topic['topics_id'],
             'snapshots_id': snapshot['snapshots_id'],
             'start_date': '2018-01-01',
             'end_date': '2018-01-01',
@@ -93,13 +99,15 @@ def _add_timespans_to_stories(db: DatabaseHandler, stories: List[Dict[str, Any]]
         timespans.insert(0, timespan)
 
         db.query("""
-            insert into snap.story_link_counts (
+            INSERT INTO snap.story_link_counts (
+                topics_id,
                 timespans_id,
                 stories_id,
                 media_inlink_count,
                 inlink_count,
                 outlink_count
-            ) values (
+            ) VALUES (
+                %(topics_id)s,
                 %(timespans_id)s,
                 %(stories_id)s,
                 1,
@@ -107,22 +115,21 @@ def _add_timespans_to_stories(db: DatabaseHandler, stories: List[Dict[str, Any]]
                 1
             )
         """, {
+            'topics_id': timespan['topics_id'],
             'timespans_id': timespan['timespans_id'],
             'stories_id': story['stories_id'],
         })
 
 
-def queue_all_stories(db: DatabaseHandler, stories_queue_table: str = 'solr_import_stories') -> None:
-    stories_queue_table = decode_object_from_bytes_if_needed(stories_queue_table)
-
+def queue_all_stories(db: DatabaseHandler) -> None:
     db.begin()
 
-    db.query(f"TRUNCATE TABLE {stories_queue_table}")
+    db.query("TRUNCATE TABLE solr_import_stories")
 
     # "SELECT FROM processed_stories" because only processed stories should get imported. "ORDER BY" so that the
     # import is more efficient when pulling blocks of stories out.
-    db.query(f"""
-        INSERT INTO {stories_queue_table}
+    db.query("""
+        INSERT INTO solr_import_stories (stories_id)
             SELECT stories_id
             FROM processed_stories
             GROUP BY stories_id

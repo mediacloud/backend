@@ -97,20 +97,20 @@ def _get_story_with_most_sentences(db: DatabaseHandler, stories: list) -> dict:
     if len(stories) == 1:
         return stories[0]
 
-    story = db.query(
-        """
-            select s.*
-            from stories s
-            where stories_id in (
-                select stories_id
-                from story_sentences
-                where stories_id = any (%(a)s)
-                group by stories_id
-                order by count(*) desc
-                limit 1
-            )
-        """,
-        {'a': [s['stories_id'] for s in stories]}).hash()
+    story = db.query("""
+        SELECT *
+        FROM stories
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM story_sentences
+            WHERE stories_id = ANY(%(story_ids)s)
+            GROUP BY stories_id
+            ORDER BY COUNT(*) DESC
+            LIMIT 1
+        )
+    """, {
+        'story_ids': [s['stories_id'] for s in stories],
+    }).hash()
 
     if story is not None:
         return story
@@ -157,16 +157,21 @@ def get_preferred_story(db: DatabaseHandler, stories: list) -> dict:
     if len(stories) == 1:
         return stories[0]
 
-    log.debug("get_preferred_story: %d stories" % len(stories))
+    log.debug(f"get_preferred_story: {len(stories)} stories")
 
-    media = db.query(
-        """
-            select *,
-                exists ( select 1 from media d where d.dup_media_id = m.media_id ) as is_dup_target
-            from media m
-            where media_id = any(%(a)s)
-        """,
-        {'a': [s['media_id'] for s in stories]}).hashes()
+    media = db.query("""
+        SELECT
+            *,
+            EXISTS(
+                SELECT 1
+                FROM media AS d
+                WHERE d.dup_media_id = m.media_id
+            ) AS is_dup_target
+        FROM media AS m
+        WHERE media_id = ANY(%(media_ids)s)
+    """, {
+        'media_ids': [s['media_id'] for s in stories],
+    }).hashes()
 
     story_urls = [s['url'] for s in stories]
 
@@ -232,45 +237,51 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: Optional[str] =
 
     urls = list({u, ru, nu, nru})
 
-    # for some reason some rare urls trigger a seq scan on the below query
-    db.query("set enable_seqscan=off")
-
     # look for matching stories, ignore those in foreign_rss_links media, only get last
     # 100 to avoid hanging job trying to handle potentially thousands of matches
-    stories = db.query(
-        """
-            with matching_stories as (
-                select distinct(s.*)
-                from stories s
-                    join media m
-                        on s.media_id = m.media_id
-                where (
-                        ( s.url = any( %(a)s ) )
-                     or ( s.guid = any ( %(a)s ) )
-                      )
-                  and m.foreign_rss_links = false
-            
-                union
-            
-                select distinct(s.*)
-                from stories s
-                    join media m
-                        on s.media_id = m.media_id
-                    join story_urls su
-                        on s.stories_id = su.stories_id
-                where su.url = any ( %(a)s )
-                  and m.foreign_rss_links = false
-            )
-            
-            select distinct(ms.*)
-            from matching_stories ms
-            order by collect_date desc
-            limit 100
-        """,
-        {'a': urls}
-    ).hashes()
+    stories = db.query("""
+        WITH _matching_stories_stories AS (
+            SELECT DISTINCT s.*
+            FROM stories AS s
+                INNER JOIN media AS m ON
+                    s.media_id = m.media_id AND
+                    m.foreign_rss_links = false
+            WHERE
+                s.url = ANY(%(urls)s) OR
+                s.guid = ANY(%(urls)s)
+            ORDER BY s.collect_date DESC
+            LIMIT %(limit)s
+        ),
 
-    db.query("set enable_seqscan=on")
+        _matching_stories_story_urls AS (
+            SELECT DISTINCT s.*
+            FROM story_urls AS su
+                INNER JOIN stories AS s ON
+                    su.stories_id = s.stories_id
+                INNER JOIN media AS m ON
+                    s.media_id = m.media_id AND
+                    m.foreign_rss_links = false
+            WHERE su.url = ANY(%(urls)s)
+            ORDER BY s.collect_date DESC
+            LIMIT %(limit)s
+        )
+        
+        SELECT DISTINCT *
+        FROM (
+            SELECT *
+            FROM _matching_stories_stories
+
+            UNION
+
+            SELECT *
+            FROM _matching_stories_story_urls
+        ) AS m
+        ORDER BY collect_date DESC
+        LIMIT %(limit)s
+    """, {
+        'urls': urls,
+        'limit': 100,
+    }).hashes()
 
     if len(stories) == 0:
         return None
@@ -321,28 +332,56 @@ def assign_date_guess_tag(
     ts = db.find_or_create('tag_sets', {'name': tag_set})
     t = db.find_or_create('tags', {'tag': tag, 'tag_sets_id': ts['tag_sets_id']})
 
-    db.query("delete from stories_tags_map where stories_id = %(a)s", {'a': story['stories_id']})
+    stories_id = story['stories_id']
+    tags_id = t['tags_id']
+
     db.query(
-        "insert into stories_tags_map (stories_id, tags_id) values (%(a)s, %(b)s)",
-        {'a': story['stories_id'], 'b': t['tags_id']})
+        """
+        DELETE FROM stories_tags_map
+        WHERE stories_id = %(stories_id)s
+        """,
+        {'stories_id': stories_id}
+    )
+
+    db.query("""
+        INSERT INTO stories_tags_map (stories_id, tags_id)
+        VALUES (%(stories_id)s, %(tags_id)s)
+        ON CONFLICT (stories_id, tags_id) DO NOTHING
+    """, {
+        'stories_id': stories_id,
+        'tags_id': tags_id,
+    })
 
 
 def get_spider_feed(db: DatabaseHandler, medium: dict) -> dict:
     """Find or create the 'Spider Feed' feed for the media source."""
 
     feed = db.query(
-        "select * from feeds where media_id = %(a)s and name = %(b)s",
-        {'a': medium['media_id'], 'b': SPIDER_FEED_NAME}).hash()
+        """
+            SELECT *
+            FROM feeds
+            WHERE
+                media_id = %(media_id)s AND
+                name = %(name)s
+        """,
+        {
+            'media_id': medium['media_id'],
+            'name': SPIDER_FEED_NAME,
+        }
+    ).hash()
 
     if feed is not None:
         return feed
 
-    return db.find_or_create('feeds', {
-        'media_id': medium['media_id'],
-        'url': medium['url'] + '#spiderfeed',
-        'name': SPIDER_FEED_NAME,
-        'active': False,
-    })
+    return db.find_or_create(
+        'feeds',
+        {
+            'media_id': medium['media_id'],
+            'url': medium['url'] + '#spiderfeed',
+            'name': SPIDER_FEED_NAME,
+            'active': False,
+        },
+    )
 
 
 def store_and_verify_content(db: DatabaseHandler, download: dict, content: str) -> None:
@@ -363,7 +402,7 @@ def store_and_verify_content(db: DatabaseHandler, download: dict, content: str) 
             if tries > STORE_CONTENT_TIMEOUT:
                 raise e
 
-            log.debug("story_and_verify_content: waiting to retry verification (%d) ..." % tries)
+            log.debug(f"story_and_verify_content: waiting to retry verification ({tries}) ...")
             tries += 1
             time.sleep(1)
 
@@ -439,24 +478,23 @@ def generate_story(
     story = add_story(db, story, feed['feeds_id'])
     log.debug(f"Done adding story {story}")
 
-    db.query(
-        """
-        insert into stories_tags_map (stories_id, tags_id)
-            select %(a)s, %(b)s
-            where not exists (
-                select 1
-                from stories_tags_map
-                where stories_id = %(a)s
-                  and tags_id = %(b)s
-            )
-        """,
-        {'a': story['stories_id'], 'b': spidered_tag['tags_id']})
+    stories_id = story['stories_id']
+    tags_id = spidered_tag['tags_id']
+
+    db.query("""
+        INSERT INTO stories_tags_map (stories_id, tags_id)
+        VALUES (%(stories_id)s, %(tags_id)s)
+        ON CONFLICT (stories_id, tags_id) DO NOTHING
+    """, {
+        'stories_id': stories_id,
+        'tags_id': tags_id,
+    })
 
     if publish_date is None:
         log.debug(f"Assigning date guess tag...")
         assign_date_guess_tag(db, story, date_guess, fallback_date)
 
-    log.debug("add story: %s; %s; %s; %d" % (story['title'], story['url'], story['publish_date'], story['stories_id']))
+    log.debug(f"add story: {story['title']}; {story['url']}; {story['publish_date']}; {stories_id}")
 
     if story.get('is_new', False):
         log.debug("Story is new, creating download...")
@@ -492,57 +530,97 @@ def add_to_topic_stories(
     if iteration is None:
         source_story = db.query(
             """
-                select ts.*
-                from topic_stories ts
-                    join topic_links tl
-                        on ( ts.stories_id = tl.stories_id and ts.topics_id = tl.topics_id )
-                where
-                    tl.ref_stories_id = %(a)s and
-                    tl.topics_id = %(b)s
-                order by ts.iteration
-                limit 1
-            """, {'a': story['stories_id'], 'b': topic['topics_id']}
+                SELECT ts.*
+                FROM topic_stories AS ts
+                    INNER JOIN topic_links AS tl ON
+                        ts.topics_id = tl.topics_id AND
+                        ts.stories_id = tl.stories_id
+                WHERE
+                    tl.ref_stories_id = %(ref_stories_id)s AND
+                    tl.topics_id = %(topics_id)s
+                ORDER BY ts.iteration
+                LIMIT 1
+            """,
+            {
+                'ref_stories_id': story['stories_id'],
+                'topics_id': topic['topics_id'],
+            }
         ).hash()
 
         iteration = (source_story['iteration'] + 1) if source_story else 0
 
+    topics_id = topic['topics_id']
+    stories_id = story['stories_id']
+
     db.query(
         """
-        insert into topic_stories
-            ( topics_id, stories_id, iteration, redirect_url, link_mined, valid_foreign_rss_story )
-            values ( %(a)s, %(b)s, %(c)s, %(d)s, %(e)s, %(f)s )
-            on conflict do nothing
+        INSERT INTO topic_stories (
+            topics_id,
+            stories_id,
+            iteration,
+            redirect_url,
+            link_mined,
+            valid_foreign_rss_story
+        ) VALUES (
+            %(topics_id)s,
+            %(stories_id)s,
+            %(iteration)s,
+            %(redirect_url)s,
+            %(link_mined)s,
+            %(valid_foreign_rss_story)s
+        )
+        ON CONFLICT (topics_id, stories_id) DO NOTHING
         """,
         {
-            'a': topic['topics_id'],
-            'b': story['stories_id'],
-            'c': iteration,
-            'd': story['url'],
-            'e': link_mined,
-            'f': valid_foreign_rss_story
-        })
+            'topics_id': topics_id,
+            'stories_id': stories_id,
+            'iteration': iteration,
+            'redirect_url': story['url'],
+            'link_mined': link_mined,
+            'valid_foreign_rss_story': valid_foreign_rss_story
+        },
+    )
 
 
 def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
     """Move all topic stories with a foreign_rss_links medium from topic_stories back to topic_seed_urls."""
     topic = decode_object_from_bytes_if_needed(topic)
 
-    stories = db.query(
-        """
-        select s.*
-        from stories s, topic_stories ts, media m
-        where s.stories_id = ts.stories_id
-          and s.media_id = m.media_id
-          and m.foreign_rss_links = true
-          and ts.topics_id = %(a)s
-          and not ts.valid_foreign_rss_story
-        """, {'a': topic['topics_id']}
-    ).hashes()
+    stories = db.query("""
+        WITH topic_stories_from_topic AS (
+            SELECT stories_id
+            FROM topic_stories
+            WHERE
+                topics_id = %(topics_id)s AND
+                (NOT valid_foreign_rss_story)
+        )
+
+        SELECT stories.*
+        FROM stories
+            INNER JOIN media ON
+                stories.media_id = media.media_id AND
+                media.foreign_rss_links
+        WHERE stories.stories_id IN (
+            SELECT stories_id
+            FROM topic_stories_from_topic
+        )
+    """, {
+        'topics_id': topic['topics_id'],
+    }).hashes()
 
     for story in stories:
         download = db.query(
-            "select * from downloads where stories_id = %(a)s order by downloads_id limit 1",
-            {'a': story['stories_id']}).hash()
+            """
+                SELECT *
+                FROM downloads
+                WHERE stories_id = %(stories_id)s
+                ORDER BY downloads_id
+                LIMIT 1
+            """,
+            {
+                'stories_id': story['stories_id'],
+            }
+        ).hash()
 
         content = ''
         try:
@@ -554,23 +632,44 @@ def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
         content = content.replace('\x00', '')
 
         db.begin()
-        db.create('topic_seed_urls', {
-            'url': story['url'],
-            'topics_id': topic['topics_id'],
-            'source': 'merge_foreign_rss_stories',
-            'content': content
-        })
+        db.create(
+            'topic_seed_urls',
+            {
+                'topics_id': topic['topics_id'],
+                'url': story['url'],
+                'source': 'merge_foreign_rss_stories',
+                'content': content,
+            },
+        )
 
         db.query(
             """
-            update topic_links set ref_stories_id = null, link_spidered = 'f'
-                where topics_id = %(b)s and ref_stories_id = %(a)s
+                UPDATE topic_links SET
+                    ref_stories_id = NULL,
+                    link_spidered = 'f'
+                WHERE
+                    topics_id = %(topics_id)s AND
+                    ref_stories_id = %(ref_stories_id)s
             """,
-            {'a': story['stories_id'], 'b': topic['topics_id']})
+            {
+                'ref_stories_id': story['stories_id'],
+                'topics_id': topic['topics_id'],
+            },
+        )
 
         db.query(
-            "delete from topic_stories where stories_id = %(a)s and topics_id = %(b)s",
-            {'a': story['stories_id'], 'b': topic['topics_id']})
+            """
+            DELETE FROM topic_stories
+            WHERE
+                stories_id = %(stories_id)s AND
+                topics_id = %(topics_id)s
+            """,
+            {
+                'stories_id': story['stories_id'],
+                'topics_id': topic['topics_id'],
+            },
+        )
+
         db.commit()
 
 
@@ -581,32 +680,56 @@ def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, 
     Return the new story.
     """
 
-    story = {
-        'url': old_story['url'],
-        'media_id': new_medium['media_id'],
-        'guid': old_story['guid'],
-        'publish_date': old_story['publish_date'],
-        'collect_date': sql_now(),
-        'description': old_story['description'],
-        'title': old_story['title']
-    }
-
-    story = db.create('stories', story)
+    story = db.create(
+        'stories',
+        {
+            'url': old_story['url'],
+            'media_id': new_medium['media_id'],
+            'guid': old_story['guid'],
+            'publish_date': old_story['publish_date'],
+            'collect_date': sql_now(),
+            'description': old_story['description'],
+            'title': old_story['title']
+        },
+    )
     add_to_topic_stories(db=db, story=story, topic=topic, valid_foreign_rss_story=True)
 
-    db.query(
+    for old_story_tag in db.query(
         """
-        insert into stories_tags_map (stories_id, tags_id)
-            select %(a)s, stm.tags_id from stories_tags_map stm where stm.stories_id = %(b)s
+        SELECT tags_id
+        FROM stories_tags_map
+        WHERE stories_id = %(stories_id)s
+        ORDER BY tags_id
         """,
-        {'a': story['stories_id'], 'b': old_story['stories_id']})
+        {'stories_id': old_story['stories_id']},
+    ).hashes():
+        stories_id = story['stories_id']
+        tags_id = old_story_tag['tags_id']
+
+        db.query("""
+            INSERT INTO stories_tags_map (stories_id, tags_id)
+            VALUES (%(stories_id)s, %(tags_id)s)
+            ON CONFLICT (stories_id, tags_id) DO NOTHING
+        """, {
+            'stories_id': stories_id,
+            'tags_id': tags_id,
+        })
 
     feed = get_spider_feed(db, new_medium)
     db.create('feeds_stories_map', {'feeds_id': feed['feeds_id'], 'stories_id': story['stories_id']})
 
     old_download = db.query(
-        "select * from downloads where stories_id = %(a)s order by downloads_id limit 1",
-        {'a': old_story['stories_id']}).hash()
+        """
+            SELECT *
+            FROM downloads
+            WHERE stories_id = %(stories_id)s
+            ORDER BY downloads_id
+            LIMIT 1
+        """,
+        {
+            'stories_id': old_story['stories_id'],
+        }
+    ).hash()
     download = create_download_for_new_story(db, story, feed)
 
     if old_download is not None:
@@ -619,22 +742,49 @@ def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, 
 
         db.query(
             """
-            insert into download_texts (downloads_id, download_text, download_text_length)
-                select %(a)s, dt.download_text, dt.download_text_length
-                    from download_texts dt
-                    where dt.downloads_id = %(a)s
+                INSERT INTO download_texts (
+                    downloads_id,
+                    download_text,
+                    download_text_length
+                )
+                    SELECT
+                        %(downloads_id)s,
+                        dt.download_text,
+                        dt.download_text_length
+                    FROM download_texts AS dt
+                    WHERE dt.downloads_id = %(downloads_id)s
             """,
-            {'a': download['downloads_id']})
+            {
+                'downloads_id': download['downloads_id'],
+            },
+        )
 
     # noinspection SqlInsertValues
     db.query(
-        f"""
-        insert into story_sentences (stories_id, sentence_number, sentence, media_id, publish_date, language)
-            select {int(story['stories_id'])} as stories_id, sentence_number, sentence, media_id, publish_date, language
-                from story_sentences
-                where stories_id = %(b)s
+        """
+            INSERT INTO story_sentences (
+                stories_id,
+                sentence_number,
+                sentence,
+                media_id,
+                publish_date,
+                language
+            )
+                SELECT
+                    %(new_stories_id)s,
+                    sentence_number,
+                    sentence,
+                    media_id,
+                    publish_date,
+                    language
+                FROM story_sentences
+                WHERE stories_id = %(old_stories_id)s
         """,
-        {'b': old_story['stories_id']})
+        {
+            'old_stories_id': old_story['stories_id'],
+            'new_stories_id': int(story['stories_id']),
+        },
+    )
 
     return story
 
@@ -643,13 +793,19 @@ def _get_merged_iteration(db: DatabaseHandler, topic: dict, delete_story: dict, 
     """Get the smaller iteration of two stories"""
     iterations = db.query(
         """
-        select iteration
-        from topic_stories
-        where topics_id = %(a)s
-          and stories_id in (%(b)s, %(c)s)
-          and iteration is not null
+            SELECT iteration
+            FROM topic_stories
+            WHERE
+                topics_id = %(topics_id)s AND
+                stories_id IN (%(delete_stories_id)s, %(keep_stories_id)s) AND
+                iteration IS NOT NULL
         """,
-        {'a': topic['topics_id'], 'b': delete_story['stories_id'], 'c': keep_story['stories_id']}).flat()
+        {
+            'topics_id': topic['topics_id'],
+            'delete_stories_id': delete_story['stories_id'],
+            'keep_stories_id': keep_story['stories_id'],
+        }
+    ).flat()
 
     if len(iterations) > 0:
         return min(iterations)
@@ -682,45 +838,156 @@ def _merge_dup_story(db, topic, delete_story, keep_story):
     if use_transaction:
         db.begin()
 
+    for topic_link in db.query(
+        """
+        SELECT
+            topics_id,
+            %(keep_stories_id)s AS stories_id,
+            ref_stories_id,
+            url,
+            redirect_url,
+            link_spidered
+        FROM topic_links
+        WHERE
+            topics_id = %(topics_id)s AND
+            stories_id = %(delete_stories_id)s
+        """,
+        {
+            'topics_id': topics_id,
+            'delete_stories_id': delete_story['stories_id'],
+            'keep_stories_id': keep_story['stories_id'],
+        }
+    ).hashes():
+
+        db.query(
+            """
+            INSERT INTO topic_links (
+                topics_id,
+                stories_id,
+                ref_stories_id,
+                url,
+                redirect_url,
+                link_spidered
+            ) VALUES (
+                %(topics_id)s,
+                %(stories_id)s,
+                %(ref_stories_id)s,
+                %(url)s,
+                %(redirect_url)s,
+                %(link_spidered)s
+            )
+            ON CONFLICT (topics_id, stories_id, ref_stories_id) DO NOTHING
+            """, {
+                'topics_id': topics_id,
+                'stories_id': topic_link['stories_id'],
+                'ref_stories_id': topic_link['ref_stories_id'],
+                'url': topic_link['url'],
+                'redirect_url': topic_link['redirect_url'],
+                'link_spidered': topic_link['link_spidered'],
+            }
+        )
+
+    for topic_link in db.query(
+        """
+        SELECT
+            topics_id,
+            stories_id,
+            %(keep_stories_id)s AS ref_stories_id,
+            url,
+            redirect_url,
+            link_spidered
+        FROM topic_links
+        WHERE
+            topics_id = %(topics_id)s AND
+            ref_stories_id = %(delete_stories_id)s
+        """,
+        {
+            'topics_id': topics_id,
+            'delete_stories_id': delete_story['stories_id'],
+            'keep_stories_id': keep_story['stories_id'],
+        }
+    ).hashes():
+
+        db.query(
+            """
+            INSERT INTO topic_links (
+                topics_id,
+                stories_id,
+                ref_stories_id,
+                url,
+                redirect_url,
+                link_spidered
+            ) VALUES (
+                %(topics_id)s,
+                %(stories_id)s,
+                %(ref_stories_id)s,
+                %(url)s,
+                %(redirect_url)s,
+                %(link_spidered)s
+            )
+            ON CONFLICT (topics_id, stories_id, ref_stories_id) DO NOTHING
+            """, {
+                'topics_id': topics_id,
+                'stories_id': topic_link['stories_id'],
+                'ref_stories_id': topic_link['ref_stories_id'],
+                'url': topic_link['url'],
+                'redirect_url': topic_link['redirect_url'],
+                'link_spidered': topic_link['link_spidered'],
+            }
+        )
+
     db.query(
         """
-        insert into topic_links ( topics_id, stories_id, ref_stories_id, url, redirect_url, link_spidered )
-            select topics_id, %(c)s, ref_stories_id, url, redirect_url, link_spidered
-                from topic_links tl
-                where
-                    tl.topics_id = %(a)s and
-                    tl.stories_id = %(b)s
-            on conflict do nothing
+            DELETE FROM topic_links
+            WHERE
+                topics_id = %(topics_id)s AND
+                %(stories_id)s IN (stories_id, ref_stories_id)
         """,
-        {'a': topics_id, 'b': delete_story['stories_id'], 'c': keep_story['stories_id']})
+        {
+            'topics_id': topics_id,
+            'stories_id': delete_story['stories_id'],
+        }
+    )
 
     db.query(
         """
-        insert into topic_links ( topics_id, stories_id, ref_stories_id, url, redirect_url, link_spidered )
-            select topics_id, stories_id, %(c)s, url, redirect_url, link_spidered
-                from topic_links tl
-                where
-                    tl.topics_id = %(a)s and
-                    tl.ref_stories_id = %(b)s
-            on conflict do nothing
+            DELETE FROM topic_stories
+            WHERE
+                topics_id = %(topics_id)s AND
+                stories_id = %(stories_id)s
         """,
-        {'a': topics_id, 'b': delete_story['stories_id'], 'c': keep_story['stories_id']})
+        {
+            'topics_id': topics_id,
+            'stories_id': delete_story['stories_id'],
+        }
+    )
 
     db.query(
-        "delete from topic_links where topics_id = %(a)s and %(b)s in ( stories_id, ref_stories_id )",
-        {'a': topics_id, 'b': delete_story['stories_id']})
+        """
+            INSERT INTO topic_merged_stories_map (source_stories_id, target_stories_id)
+            VALUES (%(source_stories_id)s, %(target_stories_id)s)
+            ON CONFLICT (source_stories_id, target_stories_id) DO NOTHING
+        """,
+        {
+            'source_stories_id': delete_story['stories_id'],
+            'target_stories_id': keep_story['stories_id'],
+        }
+    )
 
     db.query(
-        "delete from topic_stories where stories_id = %(a)s and topics_id = %(b)s",
-        {'a': delete_story['stories_id'], 'b': topics_id})
-
-    db.query(
-        "insert into topic_merged_stories_map (source_stories_id, target_stories_id) values (%(a)s, %(b)s)",
-        {'a': delete_story['stories_id'], 'b': keep_story['stories_id']})
-
-    db.query(
-        "update topic_seed_urls set stories_id = %(b)s where stories_id = %(a)s and topics_id = %(c)s",
-        {'a': delete_story['stories_id'], 'b': keep_story['stories_id'], 'c': topic['topics_id']})
+        """
+            UPDATE topic_seed_urls SET
+                stories_id = %(keep_stories_id)s
+            WHERE
+                topics_id = %(topics_id)s AND
+                stories_id = %(delete_stories_id)s
+        """,
+        {
+            'topics_id': topic['topics_id'],
+            'delete_stories_id': delete_story['stories_id'],
+            'keep_stories_id': keep_story['stories_id'],
+        }
+    )
 
     if use_transaction:
         db.commit()
@@ -743,22 +1010,23 @@ def merge_dup_media_story(db, topic, story):
 
     dup_medium = _get_deduped_medium(db, story['media_id'])
 
-    new_story = db.query(
-        """
-        SELECT s.* FROM stories s
-            WHERE s.media_id = %(media_id)s and
-                (( %(url)s in ( s.url, s.guid ) ) or
-                 ( %(guid)s in ( s.url, s.guid) ) or
-                 ( s.title = %(title)s and date_trunc( 'day', s.publish_date ) = %(date)s ) )
-        """,
-        {
-            'media_id': dup_medium['media_id'],
-            'url': story['url'],
-            'guid': story['guid'],
-            'title': story['title'],
-            'date': story['publish_date']
-        }
-    ).hash()
+    new_story = db.query("""
+        SELECT s.*
+        FROM stories s
+        WHERE
+            s.media_id = %(media_id)s AND
+            (
+                (%(url)s IN (s.url, s.guid)) OR
+                (%(guid)s IN (s.url, s.guid)) OR
+                (s.title = %(title)s AND date_trunc('day', s.publish_date) = %(date)s)
+            )
+    """, {
+        'media_id': dup_medium['media_id'],
+        'url': story['url'],
+        'guid': story['guid'],
+        'title': story['title'],
+        'date': story['publish_date']
+    }).hash()
 
     if new_story is None:
         new_story = copy_story_to_new_medium(db, topic, story, dup_medium)
@@ -773,20 +1041,23 @@ def merge_dup_media_stories(db, topic):
 
     log.info("merge dup media stories")
 
-    dup_media_stories = db.query(
-        """
-        SELECT distinct s.*
-            FROM snap.live_stories s
-                join topic_stories cs on (s.stories_id = cs.stories_id and s.topics_id = cs.topics_id)
-                join media m on (s.media_id = m.media_id)
-            WHERE
-                m.dup_media_id is not null and
-                cs.topics_id = %(a)s
-        """,
-        {'a': topic['topics_id']}).hashes()
+    dup_media_stories = db.query("""
+        SELECT DISTINCT s.*
+        FROM snap.live_stories AS s
+            INNER JOIN topic_stories AS cs ON
+                s.stories_id = cs.stories_id AND
+                s.topics_id = cs.topics_id
+            INNER JOIN media AS m ON
+                s.media_id = m.media_id
+        WHERE
+            m.dup_media_id IS NOT NULL AND
+            cs.topics_id = %(topics_id)s
+    """, {
+        'topics_id': topic['topics_id'],
+    }).hashes()
 
     if len(dup_media_stories) > 0:
-        log.info("merging %d stories" % len(dup_media_stories))
+        log.info(f"merging {len(dup_media_stories)} stories")
 
     [merge_dup_media_story(db, topic, s) for s in dup_media_stories]
 
@@ -797,40 +1068,78 @@ def copy_stories_to_topic(db: DatabaseHandler, source_topics_id: int, target_top
 
     log.info("querying novel urls from source topic...")
 
-    db.query("set work_mem = '8GB'")
+    db.query("SET work_mem = '8GB'")
 
     db.query(
         """
-        create temporary table _stories as
-            select distinct stories_id from topic_seed_urls where topics_id = %(a)s and stories_id is not null;
-        create temporary table _urls as
-            select distinct url from topic_seed_urls where topics_id = %(a)s;
+        CREATE TEMPORARY TABLE _stories AS
+            SELECT DISTINCT stories_id
+            FROM topic_seed_urls
+            WHERE
+                topics_id = %(topics_id)s AND
+                stories_id IS NOT NULL
         """,
-        {'a': target_topics_id})
+        {
+            'topics_id': target_topics_id,
+        }
+    )
+
+    db.query(
+        """
+        CREATE TEMPORARY TABLE _urls AS
+            SELECT DISTINCT url
+            FROM topic_seed_urls
+            WHERE topics_id = %(topics_id)s
+        """,
+        {
+            'topics_id': target_topics_id,
+        }
+    )
+
 
     # noinspection SqlResolve
     db.query(
         """
-        create temporary table _tsu as
-            select %(target)s topics_id, url, stories_id, %(message)s source
-                from snap.live_stories s
-                where
-                    s.topics_id = %(source)s and
-                    s.stories_id not in ( select stories_id from _stories ) and
-                    s.url not in ( select url from _urls )
+        CREATE TEMPORARY TABLE _tsu AS
+            SELECT
+                %(target_topics_id)s AS topics_id,
+                url,
+                stories_id,
+                %(message)s AS source
+            FROM snap.live_stories AS s
+            WHERE
+                s.topics_id = %(source_topics_id)s AND
+                s.stories_id NOT IN (
+                    SELECT stories_id
+                    FROM _stories
+                ) AND
+                s.url NOT IN (
+                    SELECT url
+                    FROM _urls
+                )
         """,
-        {'target': target_topics_id, 'source': source_topics_id, 'message': message})
+        {
+            'source_topics_id': source_topics_id,
+            'target_topics_id': target_topics_id,
+            'message': message,
+        }
+    )
 
     # noinspection SqlResolve
-    (num_inserted,) = db.query("select count(*) from _tsu").flat()
+    (num_inserted,) = db.query("SELECT COUNT(*) FROM _tsu").flat()
 
-    log.info("inserting %d urls ..." % num_inserted)
+    log.info(f"inserting {num_inserted} urls ...")
 
     # noinspection SqlInsertValues,SqlResolve
-    db.query("insert into topic_seed_urls ( topics_id, url, stories_id, source ) select * from _tsu")
+    db.query("""
+        INSERT INTO topic_seed_urls (topics_id, url, stories_id, source)
+            SELECT * FROM _tsu
+    """)
 
     # noinspection SqlResolve
-    db.query("drop table _stories; drop table _urls; drop table _tsu;")
+    db.query("DROP TABLE _stories")
+    db.query("DROP TABLE _urls")
+    db.query("DROP TABLE _tsu")
 
 
 def _merge_dup_stories(db, topic, stories):
@@ -841,12 +1150,17 @@ def _merge_dup_stories(db, topic, stories):
 
     story_sentence_counts = db.query(
         """
-        select stories_id, count(*) sentence_count
-            from story_sentences
-            where stories_id = ANY(%(a)s)
-            group by stories_id
+            SELECT
+                stories_id,
+                COUNT(*) AS sentence_count
+            FROM story_sentences
+            WHERE stories_id = ANY(%(story_ids)s)
+            GROUP BY stories_id
         """,
-        {'a': stories_ids}).hashes()
+        {
+            'story_ids': stories_ids,
+        }
+    ).hashes()
 
     ssc = {}
 
@@ -860,7 +1174,7 @@ def _merge_dup_stories(db, topic, stories):
 
     keep_story = stories.pop(0)
 
-    log.debug("duplicates: %s [%s %d]" % (keep_story['title'], keep_story['url'], keep_story['stories_id']))
+    log.debug(f"duplicates: {keep_story['title']} [{keep_story['url']} {keep_story['stories_id']}]")
 
     [_merge_dup_story(db, topic, s, keep_story) for s in stories]
 
@@ -870,10 +1184,17 @@ def _add_missing_normalized_title_hashes(db: DatabaseHandler, topic: dict) -> No
     db.begin()
     db.query(
         """
-        declare c cursor for
-            select stories_id from snap.live_stories where topics_id = %(a)s and normalized_title_hash is null
+        DECLARE c CURSOR FOR
+            SELECT stories_id
+            FROM snap.live_stories
+            WHERE
+                topics_id = %(topics_id)s AND
+                normalized_title_hash IS NULL
         """,
-        {'a': topic['topics_id']})
+        {
+            'topics_id': topic['topics_id']
+        }
+    )
 
     log.info('adding normalized story titles ...')
 
@@ -885,10 +1206,12 @@ def _add_missing_normalized_title_hashes(db: DatabaseHandler, topic: dict) -> No
             break
 
         db.query("""
-            update stories
-            set normalized_title_hash = md5(get_normalized_title(title, media_id))::uuid
-            where stories_id = any( %(a)s )
-        """, {'a': stories_ids})
+            UPDATE stories
+            SET normalized_title_hash = md5(get_normalized_title(title, media_id))::UUID
+            WHERE stories_id = ANY(%(story_ids)s)
+        """, {
+            'story_ids': stories_ids,
+        })
 
     db.commit()
 
@@ -901,19 +1224,27 @@ def _get_dup_story_groups(db: DatabaseHandler, topic: dict) -> list:
     """
     story_pairs = db.query(
         """
-        select a.stories_id stories_id_a, b.stories_id stories_id_b
-            from snap.live_stories a,
-                snap.live_stories b
-            where
-                a.topics_id = %(a)s and
-                a.topics_id = b.topics_id and
-                a.stories_id < b.stories_id and
-                a.media_id = b.media_id and
-                a.normalized_title_hash = b.normalized_title_hash and
+            SELECT
+                a.stories_id AS stories_id_a,
+                b.stories_id AS stories_id_b
+            FROM
+                snap.live_stories AS a,
+                snap.live_stories AS b
+            WHERE
+                a.topics_id = %(topics_id)s AND
+                a.topics_id = b.topics_id AND
+                a.stories_id < b.stories_id AND
+                a.media_id = b.media_id AND
+                a.normalized_title_hash = b.normalized_title_hash AND
                 date_trunc('day', a.publish_date) = date_trunc('day', b.publish_date)
-            order by stories_id_a, stories_id_b
+            ORDER BY
+                stories_id_a,
+                stories_id_b
         """,
-        {'a': topic['topics_id']}).hashes()
+        {
+            'topics_id': topic['topics_id'],
+        }
+    ).hashes()
 
     story_groups = {}
     ignore_stories = {}
@@ -944,5 +1275,5 @@ def find_and_merge_dup_stories(db: DatabaseHandler, topic: dict) -> None:
     log.info("finding duplicate stories ...")
     dup_story_groups = _get_dup_story_groups(db, topic)
 
-    log.info("merging %d duplicate story groups ..." % len(dup_story_groups))
+    log.info(f"merging {len(dup_story_groups)} duplicate story groups ...")
     [_merge_dup_stories(db, topic, g) for g in dup_story_groups]

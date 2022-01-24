@@ -4,6 +4,7 @@ from facebook_fetch_story_stats import _get_url_stats
 from facebook_fetch_story_stats.exceptions import McFacebookInvalidURLException
 
 
+# noinspection HttpUrlsUsage
 def test_bogus_urls():
     """Test with URLs that might fail."""
     bogus_urls = [
@@ -54,6 +55,7 @@ def test_bogus_urls():
             assert False, f"Bogus URL '{bogus_url}' should have worked but didn't: {ex}"
 
 
+# noinspection HttpUrlsUsage
 def test_get_url_stats_normal_url():
     url = (
         'http://www.nytimes.com/interactive/2014/08/13/us/'
@@ -64,6 +66,7 @@ def test_get_url_stats_normal_url():
     assert stats.share_count > 0, f"Share could should be positive for URL '{url}'"
 
 
+# noinspection HttpUrlsUsage
 def test_get_url_stats_bogus_url():
     url = 'http://totally.bogus.url.123456'
     stats = _get_url_stats(url=url)

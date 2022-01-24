@@ -39,21 +39,41 @@ sub list_GET
     my $timespan     = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
     my $snapshots_id = $timespan->{ snapshots_id };
 
-    my $focal_sets = $db->query( <<SQL, $snapshots_id )->hashes;
-select focal_sets_id, name, description, false is_exclusive
-    from focal_sets
-    where snapshots_id = \$1
-    order by name desc
+    my $focal_sets = $db->query( <<SQL,
+        SELECT
+            focal_sets_id,
+            name,
+            description,
+            false AS is_exclusive
+        FROM focal_sets
+        WHERE
+            topics_id = ? AND
+            snapshots_id = ?
+        ORDER BY name DESC
 SQL
+        $topics_id, $snapshots_id
+    )->hashes;
 
     my $fs_ids = [ map { int( $_->{ focal_sets_id } ) } @{ $focal_sets } ];
     my $ids_table = $db->get_temporary_ids_table( $fs_ids );
 
-    my $foci = $db->query( <<SQL )->hashes;
-select foci_id, name, description, arguments->>'query' query, focal_sets_id
-    from foci
-    where focal_sets_id in ( select id from $ids_table )
+    my $foci = $db->query( <<SQL,
+        SELECT
+            foci_id,
+            name,
+            description,
+            arguments->>'query' AS query,
+            focal_sets_id
+        FROM foci
+        WHERE
+            topics_id = ? AND
+            focal_sets_id IN (
+                SELECT id
+                FROM $ids_table
+            )
 SQL
+        $topics_id
+    )->hashes;
 
     my $foci_lookup = {};
     map { push( @{ $foci_lookup->{ int( $_->{ focal_sets_id } ) } }, $_ ) } @{ $foci };

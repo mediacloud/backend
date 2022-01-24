@@ -55,9 +55,9 @@ def create_download_for_story(db: DatabaseHandler, feed: dict, story: dict) -> d
             'type': 'content',
             'sequence': 1,
             'state': 'success',
+            'path': 'postgresql:raw_downloads',
             'priority': 1,
             'extracted': False,
-            'path': 'postgresql:foo',
             'stories_id': story['stories_id'],
         }
     )
@@ -309,15 +309,51 @@ def create_test_topic_stories(
             db.update_by_id('stories', story['stories_id'], {'publish_date': topic['start_date']})
             db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': story['stories_id']})
 
-    db.query(
-        """
-        insert into topic_links ( topics_id, stories_id, url, ref_stories_id )
-            select %(a)s, a.stories_id, b.url, b.stories_id
-                from stories a
-                    join stories b on ( a.media_id <> b.media_id )
-                limit %(b)s
-        """,
-        {'a': topic['topics_id'], 'b': num_media * num_stories_per_medium})
+    test_topic_links = db.query("""
+        WITH src_stories AS (
+            SELECT *
+            FROM stories
+        ),
+        test_topic_links AS (
+            SELECT
+                src_stories.stories_id,
+                ref_stories.url,
+                ref_stories.stories_id AS ref_stories_id
+            FROM src_stories
+                INNER JOIN stories AS ref_stories
+                    ON src_stories.media_id != ref_stories.media_id
+            LIMIT 50
+        )
+        SELECT
+            stories_id,
+            url,
+            ref_stories_id
+        FROM test_topic_links
+    """, {
+        'topic_link_count': num_media * num_stories_per_medium,
+    }).hashes()
+
+    # Inserting individually because otherwise it complains with:
+    # ERROR:  cannot handle complex subqueries when the router executor is disabled
+    for test_topic_link in test_topic_links:
+        db.query("""
+            INSERT INTO topic_links (
+                topics_id,
+                stories_id,
+                url,
+                ref_stories_id
+            ) VALUES (
+                %(topics_id)s,
+                %(stories_id)s,
+                %(url)s,
+                %(ref_stories_id)s
+            )
+        """, {
+            'topics_id': topic['topics_id'],
+            'stories_id': test_topic_link['stories_id'],
+            'url': test_topic_link['url'],
+            'ref_stories_id': test_topic_link['ref_stories_id'],
+        })
 
 
 def create_test_topic_posts(
@@ -336,11 +372,18 @@ def create_test_topic_posts(
     }
     tsq = db.create('topic_seed_queries', tsq)
 
-    stories = db.query( "select * from snap.live_stories where topics_id = %(a)s", {'a': topic['topics_id']}).hashes()
+    stories = db.query( """
+        SELECT *
+        FROM snap.live_stories
+        WHERE topics_id = %(topics_id)s
+    """, {
+        'topics_id': topic['topics_id'],
+    }).hashes()
 
     num_posts = 0
     while date < end_date:
         tpd = {
+            'topics_id': topic['topics_id'],
             'topic_seed_queries_id': tsq['topic_seed_queries_id'],
             'day': date.strftime('%Y-%m-%d'),
             'num_posts_stored': num_posts_per_day,
@@ -352,6 +395,7 @@ def create_test_topic_posts(
             author_num = i 
             channel_num = i % num_posts_per_day
             topic_post = {
+                'topics_id': topic['topics_id'],
                 'topic_post_days_id': tpd['topic_post_days_id'],
                 'post_id': i,
                 'content': f'content {i}',
@@ -364,6 +408,7 @@ def create_test_topic_posts(
 
             post_story = stories[num_posts % len(stories)]
             tpu = {
+                'topics_id': topic['topics_id'],
                 'topic_posts_id': topic_post['topic_posts_id'],
                 'url': post_story['url']
             }
@@ -411,6 +456,7 @@ def create_test_timespan(db: DatabaseHandler, topic: dict=None, snapshot: dict=N
     return db.create(
         table='timespans',
         insert_hash={
+            'topics_id': snapshot['topics_id'],
             'snapshots_id': snapshot['snapshots_id'],
             'start_date': snapshot['start_date'],
             'end_date': snapshot['end_date'],
@@ -535,7 +581,8 @@ def add_content_to_test_story(db: DatabaseHandler, story: dict, feed: dict) -> d
             'host': host,
             'type': 'content',
             'sequence': 1,
-            'state': 'fetching',
+            'state': 'success',
+            'path': 'postgresql:raw_downloads',
             'priority': 1,
             'extracted': True,
             'stories_id': story['stories_id'],

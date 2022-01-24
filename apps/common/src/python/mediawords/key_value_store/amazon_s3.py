@@ -202,7 +202,8 @@ class AmazonS3Store(KeyValueStore):
 
         return content
 
-    def __get_content_disposition(self, object_id: int, content_type: str) -> str:
+    @classmethod
+    def __get_content_disposition(cls, object_id: int, content_type: str) -> str:
         """Get an http content disposition header that adds an appropriate file extension."""
         extension = mimetypes.guess_extension(content_type)
 
@@ -214,10 +215,10 @@ class AmazonS3Store(KeyValueStore):
         return 'filename="%s"' % filename
 
     def store_content(self,
-            db: DatabaseHandler,
-            object_id: int,
-            content: Union[str, bytes],
-            content_type: str='binary/octet-stream') -> str:
+                      db: DatabaseHandler,
+                      object_id: int,
+                      content: Union[str, bytes],
+                      content_type: str = 'binary/octet-stream') -> str:
         """Write object to Amazon S3."""
 
         object_id = self._prepare_object_id(object_id)

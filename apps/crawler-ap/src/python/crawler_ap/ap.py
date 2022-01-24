@@ -243,9 +243,18 @@ def _extract_url_parameters(url: str) -> dict:
 def _id_exists_in_db(db: DatabaseHandler,
                      guid: str) -> bool:
     """Internal method to check if item exists in the database."""
-    guid_exists = db.query(
-        "select 1 from stories s join media m using (media_id) where m.name = %(b)s and s.guid = %(a)s",
-        {'a': guid, 'b': AP_MEDIUM_NAME}).hash()
+    guid_exists = db.query("""
+        SELECT 1
+        FROM stories AS s
+            INNER JOIN media AS m ON
+                s.media_id = m.media_id
+        WHERE
+            m.name = %(medium_name)s AND
+            s.guid = %(guid)s
+    """, {
+        'guid': guid,
+        'medium_name': AP_MEDIUM_NAME,
+    }).hash()
 
     if guid_exists:
         log.debug('Story with guid: {} is already in the database -- skipping story.')
@@ -478,7 +487,13 @@ def get_new_stories(db: DatabaseHandler = None,
 
 def _import_ap_story(db: DatabaseHandler, ap_story: dict) -> None:
     """Given a ap story return by get_new_stories(), add it to the database."""
-    ap_medium = db.query("select * from media where name = %(a)s", {'a': AP_MEDIUM_NAME}).hash()
+    ap_medium = db.query("""
+        SELECT *
+        FROM media
+        WHERE name = %(medium_name)s
+    """, {
+        'medium_name': AP_MEDIUM_NAME,
+    }).hash()
     ap_feed = {
         'media_id': ap_medium['media_id'],
         'name': 'API Feed',
@@ -509,12 +524,12 @@ def _import_ap_story(db: DatabaseHandler, ap_story: dict) -> None:
         'download_text_length': len(ap_story['text'])
     }
 
-    db.query(
-        """
-        insert into download_texts (downloads_id, download_text, download_text_length)
-            values (%(downloads_id)s, %(download_text)s, %(download_text_length)s)
+    db.query("""
+        INSERT INTO download_texts (downloads_id, download_text, download_text_length)
+        VALUES (%(downloads_id)s, %(download_text)s, %(download_text_length)s)
         """,
-        download_text)
+        download_text
+    )
 
     # Send to the extractor for it to do vectorization, language detection, etc.
     JobBroker(queue_name='MediaWords::Job::ExtractAndVector').add_to_queue(
