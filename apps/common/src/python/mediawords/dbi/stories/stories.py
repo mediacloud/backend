@@ -53,36 +53,15 @@ def insert_story_urls(db: DatabaseHandler, story: dict, url: str) -> None:
         # http://dinamani.com/india/2020/feb/19/அயோத்தியில்-பாபா்-மசூதியை-சுற்றி
         # யுள்ள-மயானத்தை-விட்டுவைக்க-வேண்டும்-ராமா்-கோயில்-அறக்கட்டளைக்கு-மூத்த-வழ
         # க்குரைஞா்-கடிதம்-3361308.html
-        #
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
-        # updatable view, and we can't upsert directly into the sharded table
-        # as the duplicate row might already exist in the unsharded one;
-        # therefore, we test the unsharded table once for whether the row
-        # exists and do an upsert to a sharded table -- the row won't start
-        # suddenly existing in an essentially read-only unsharded table so this
-        # should be safe from race conditions. After migrating rows, one can
-        # reset this statement to use a native upsert
         if len(url) <= MAX_URL_LENGTH:
-
-            row_exists = db.query(
+            db.query(
                 """
-                SELECT 1
-                FROM story_urls
-                WHERE
-                    stories_id = %(stories_id)s AND
-                    url = %(url)s
+                INSERT INTO story_urls (stories_id, url)
+                VALUES (%(stories_id)s, %(url)s)
+                ON CONFLICT (stories_id, url) DO NOTHING
                 """,
                 {'stories_id': story['stories_id'], 'url': url}
-            ).hash()
-            if not row_exists:
-                db.query(
-                    """
-                    INSERT INTO sharded_public.story_urls (stories_id, url)
-                    VALUES (%(stories_id)s, %(url)s)
-                    ON CONFLICT (stories_id, url) DO NOTHING
-                    """,
-                    {'stories_id': story['stories_id'], 'url': url}
-                )
+            )
 
 
 def _get_story_url_variants(story: dict) -> List[str]:
@@ -247,15 +226,8 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
         story['is_new'] = True
 
     elif len(db_stories) > 1:
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query("""
-            DELETE FROM unsharded_public.stories
-            WHERE stories_id = %(stories_id)s
-        """, {
-            'stories_id': inserted_story['stories_id'],
-        })
-        db.query("""
-            DELETE FROM sharded_public.stories
+            DELETE FROM stories
             WHERE stories_id = %(stories_id)s
         """, {
             'stories_id': inserted_story['stories_id'],
@@ -264,39 +236,17 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
 
     [insert_story_urls(db, story, u) for u in (story['url'], story['guid'])]
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
-    # updatable view, and we can't upsert directly into the sharded table
-    # as the duplicate row might already exist in the unsharded one;
-    # therefore, we test the unsharded table once for whether the row
-    # exists and do an upsert to a sharded table -- the row won't start
-    # suddenly existing in an essentially read-only unsharded table so this
-    # should be safe from race conditions. After migrating rows, one can
-    # reset this statement to use a native upsert
-    row_exists = db.query(
+    db.query(
         """
-        SELECT 1
-        FROM feeds_stories_map
-        WHERE
-            feeds_id = %(feeds_id)s AND
-            stories_id = %(stories_id)s
+        INSERT INTO feeds_stories_map (feeds_id, stories_id)
+        VALUES (%(feeds_id)s, %(stories_id)s)
+        ON CONFLICT (feeds_id, stories_id) DO NOTHING
         """,
         {
             'feeds_id': feeds_id,
             'stories_id': story['stories_id'],
         }
-    ).hash()
-    if not row_exists:
-        db.query(
-            """
-            INSERT INTO sharded_public.feeds_stories_map (feeds_id, stories_id)
-            VALUES (%(feeds_id)s, %(stories_id)s)
-            ON CONFLICT (feeds_id, stories_id) DO NOTHING
-            """,
-            {
-                'feeds_id': feeds_id,
-                'stories_id': story['stories_id'],
-            }
-        )
+    )
 
     log.debug(f"Added story: {story['url']}")
 

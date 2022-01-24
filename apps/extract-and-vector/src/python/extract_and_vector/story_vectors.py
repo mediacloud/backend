@@ -119,18 +119,16 @@ def _insert_story_sentences(
         log.warning(f"Story sentences are empty for story {stories_id}")
         return []
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     if no_dedup_sentences:
         log.debug(f"Won't de-duplicate sentences for story {stories_id} because 'no_dedup_sentences' is set")
 
-        dedup_sentences_statement_unsharded = """
+        dedup_sentences_statement = """
 
             -- Nothing to deduplicate, return empty list
             SELECT NULL
             WHERE 1 = 0
 
         """
-        dedup_sentences_statement_sharded = dedup_sentences_statement_unsharded
 
     else:
 
@@ -139,22 +137,10 @@ def _insert_story_sentences(
 
         # Set is_dup = 't' to sentences already in the table, return those to be later skipped on INSERT of new
         # sentences
-        dedup_sentences_statement_unsharded = f"""
+        dedup_sentences_statement = f"""
 
             -- noinspection SqlResolve
-            UPDATE unsharded_public.story_sentences
-            SET is_dup = 't'
-            FROM new_sentences
-            WHERE unsharded_public.half_md5(story_sentences.sentence) = unsharded_public.half_md5(new_sentences.sentence)
-              AND unsharded_public.week_start_date(story_sentences.publish_date::date) = unsharded_public.week_start_date({escaped_story_publish_date})
-              AND story_sentences.media_id = new_sentences.media_id
-            RETURNING story_sentences.sentence
-
-        """
-        dedup_sentences_statement_sharded = f"""
-
-            -- noinspection SqlResolve
-            UPDATE sharded_public.story_sentences
+            UPDATE story_sentences
             SET is_dup = 't'
             FROM new_sentences
             WHERE public.half_md5(story_sentences.sentence) = public.half_md5(new_sentences.sentence)
@@ -190,7 +176,7 @@ def _insert_story_sentences(
     log.debug(f"Adding advisory lock on media ID {media_id}...")
     db.query("SELECT pg_advisory_lock(%(media_id)s)", {'media_id': media_id})
 
-    sql_unsharded = f"""
+    sql = f"""
         -- noinspection SqlType,SqlResolve
         WITH new_sentences ({str_story_sentences_columns}) AS (VALUES
             -- New sentences to potentially insert
@@ -202,35 +188,14 @@ def _insert_story_sentences(
         --
         -- The query assumes that there are no existing sentences for this story in the "story_sentences" table, so
         -- if you are reextracting a story, DELETE its sentences from "story_sentences" before running this query.
-        {dedup_sentences_statement_unsharded}
+        {dedup_sentences_statement}
 
     """
-    log.debug(f"Running 'UPDATE unsharded_public.story_sentences SET is_dup' query:\n{sql_unsharded}")
-    duplicate_sentences_unsharded = db.query(sql_unsharded).flat()
-
-    sql_sharded = f"""
-        -- noinspection SqlType,SqlResolve
-        WITH new_sentences ({str_story_sentences_columns}) AS (VALUES
-            -- New sentences to potentially insert
-            {str_new_sentences_sql}
-        )
-
-        -- Either list of duplicate sentences already found in the table or return an empty list if deduplication is
-        -- disabled
-        --
-        -- The query assumes that there are no existing sentences for this story in the "story_sentences" table, so
-        -- if you are reextracting a story, DELETE its sentences from "story_sentences" before running this query.
-        {dedup_sentences_statement_sharded}
-
-    """
-    log.debug(f"Running 'UPDATE sharded_public.story_sentences SET is_dup' query:\n{sql_sharded}")
-    duplicate_sentences_sharded = db.query(sql_sharded).flat()
-
-    duplicate_sentences = list(set(duplicate_sentences_unsharded + duplicate_sentences_sharded))
+    log.debug(f"Running 'UPDATE story_sentences SET is_dup' query:\n{sql}")
+    duplicate_sentences = db.query(sql).flat()
 
     duplicate_sentences = [db.quote_varchar(sentence) for sentence in duplicate_sentences]
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     sql = f"""
         -- noinspection SqlType,SqlResolve
         WITH new_sentences ({str_story_sentences_columns}) AS (VALUES
@@ -309,13 +274,8 @@ def _update_ap_syndicated(db: DatabaseHandler,
 
     ap_syndicated = is_syndicated(db=db, story_title=story_title, story_text=story_text, story_language=story_language)
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query("""
-        DELETE FROM unsharded_public.stories_ap_syndicated
-        WHERE stories_id = %(stories_id)s
-    """, {'stories_id': stories_id})
-    db.query("""
-        DELETE FROM sharded_public.stories_ap_syndicated
+        DELETE FROM stories_ap_syndicated
         WHERE stories_id = %(stories_id)s
     """, {'stories_id': stories_id})
 
@@ -331,13 +291,8 @@ def _delete_story_sentences(db: DatabaseHandler, story: dict) -> None:
     """Delete any existing stories for the given story."""
     story = decode_object_from_bytes_if_needed(story)
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query("""
-        DELETE FROM unsharded_public.story_sentences
-        WHERE stories_id = %(stories_id)s
-    """, {'stories_id': story['stories_id']})
-    db.query("""
-        DELETE FROM sharded_public.story_sentences
+        DELETE FROM story_sentences
         WHERE stories_id = %(stories_id)s
     """, {'stories_id': story['stories_id']})
 
@@ -377,14 +332,8 @@ def update_story_sentences_and_language(db: DatabaseHandler,
     sentences = _get_sentences_from_story_text(story_text=story_text, story_lang=story_lang)
 
     if (not story.get('language', None)) or story.get('language', None) != story_lang:
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query("""
-            UPDATE unsharded_public.stories
-            SET language = %(story_lang)s
-            WHERE stories_id = %(stories_id)s
-        """, {'stories_id': stories_id, 'story_lang': story_lang})
-        db.query("""
-            UPDATE sharded_public.stories
+            UPDATE stories
             SET language = %(story_lang)s
             WHERE stories_id = %(stories_id)s
         """, {'stories_id': stories_id, 'story_lang': story_lang})

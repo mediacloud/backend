@@ -38,14 +38,13 @@ SQL
         $medium->{ media_id }
     );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
         WITH stories_to_update AS (
             SELECT stories_id
             FROM stories
             WHERE media_id = \$1
         )
-        UPDATE sharded_public.stories SET
+        UPDATE stories SET
             collect_date = NOW()
         WHERE stories_id IN (
             SELECT stories_id
@@ -86,14 +85,13 @@ SQL
         $medium->{ media_id }
     );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
         WITH stories_to_update AS (
             SELECT stories_id
             FROM stories
             WHERE media_id = ?
         )
-        UPDATE sharded_public.stories SET
+        UPDATE stories SET
             publish_date = NOW() - '1 year'::interval
         WHERE stories_id IN (
             SELECT stories_id
@@ -164,14 +162,13 @@ SQL
         $medium->{ media_id }
     );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
         WITH stories_to_update AS (
             SELECT stories_id
             FROM stories
             WHERE media_id = ?
         )
-        UPDATE sharded_public.stories SET
+        UPDATE stories SET
             publish_date = NOW() - '1 year'::interval
         WHERE stories_id IN (
             SELECT stories_id

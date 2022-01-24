@@ -102,19 +102,6 @@ class PostgreSQLStore(KeyValueStore):
         if not isinstance(content, bytes):
             raise McPostgreSQLStoreException("Content is not bytes after compression for object ID %d" % object_id)
 
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
-        # updatable view, so we're INSERTing directly into the sharded table
-        # which should be safe because:
-        #
-        # * "public_store.timespan_files" has been moved in a migration
-        # * "public_store.snapshot_files" has been moved in a migration
-        # * "public_store.timespan_maps" has been moved in a migration
-        # * "public.raw_downloads" has been moved in a migration
-        # * "snap.word2vec_models" and "snap.word2vec_models_data" have been
-        #   merged and moved in a migration
-        #
-        # Nonetheless, after getting rid of updatable views, we should make
-        # this statement INSERT into "public" schema.
         sql = "INSERT INTO %s " % self.__table  # interpolated by Python
         sql += "(object_id, raw_data) "
         sql += "VALUES (%(object_id)s, %(raw_data)s) "  # interpolated by psycopg2

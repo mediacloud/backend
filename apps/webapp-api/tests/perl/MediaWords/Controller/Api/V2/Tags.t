@@ -18,19 +18,6 @@ Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
 Readonly my $NUM_STORIES_PER_FEED => 10;
 
-# MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: huge sharded tables with
-# semi-updatable views in front of them and for which we need to do the "check
-# the unsharded table, INSERT into the sharded table" trick because atomic ON
-# CONFLICT upserts don't work of them. Revert back to atomic upserts after
-# moving the rows.
-Readonly my $BIG_SHARDED_TABLES => {
-    'public.feeds_stories_map' => 1,
-    'public.stories_tags_map' => 1,
-    'public.topic_merged_stories_map' => 1,
-    'snap.media_tags_map' => 1,
-    'snap.stories_tags_map' => 1,
-};
-
 
 # return tag in either { tags_id => $tags_id }
 # or { tag => $tag, tag_set => $tag_set } form depending on $input_form
@@ -110,12 +97,6 @@ sub test_add_tags
     my $row_ids      = [ map { $_->{ $id_field } } @{ $rows } ];
     my $row_ids_list = join( ',', @{ $row_ids } );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: add schema to be able to match
-    # with the big sharded table list
-    unless ( $map_table =~ /\./ ) {
-        $map_table = "public.$map_table";
-    }
-
     my $add_tags = [];
     map { push( @{ $add_tags }, @{ $_->{ add_tags } } ) } @{ $add_tag_sets };
 
@@ -157,46 +138,14 @@ SQL
         ok( $tag_expected, "$label expected tag $map->{ tags_id }" );
     }
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: without transaction, Citus
-    # complains about "cannot use 2PC in transactions involving multiple
-    # servers"; possibly OK for the transaction to be removed after row
-    # migration
-    $db->begin();
-
     # clean up so the next test has a clean slate
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: revert back to using native
-    # upsert after row move
-    if ( $BIG_SHARDED_TABLES->{ $map_table } ) {
-        # Sharded with semi-updatable view
-
-        $db->query( <<"SQL"
-            DELETE FROM unsharded_${map_table}
-            WHERE
-                $id_field IN ($row_ids_list) AND
-                tags_id IN ($tags_ids_list)
+    $db->query( <<"SQL"
+        DELETE FROM $map_table
+        WHERE
+            $id_field IN ($row_ids_list) AND
+            tags_id IN ($tags_ids_list)
 SQL
-        );
-        $db->query( <<"SQL"
-            DELETE FROM sharded_${map_table}
-            WHERE
-                $id_field IN ($row_ids_list) AND
-                tags_id IN ($tags_ids_list)
-SQL
-        );
-
-    } else {
-        # Unsharded, or sharded and already moved
-
-        $db->query( <<"SQL"
-            DELETE FROM $map_table
-            WHERE
-                $id_field IN ($row_ids_list) AND
-                tags_id IN ($tags_ids_list)
-SQL
-        );
-    }
-
-    $db->commit();
+    );
 }
 
 # test removing tag associations
@@ -211,12 +160,6 @@ sub test_remove_tags
     my $tag_sets_ids_list = join( ',', map { $_->{ tag_sets_id } } @{ $tag_sets } );
 
     my $label = "test remove tags $table input $input_form";
-
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: add schema to be able to match
-    # with the big sharded table list
-    unless ( $map_table =~ /\./ ) {
-        $map_table = "public.$map_table";
-    }
 
     for my $row ( @{ $rows } )
     {
@@ -255,58 +198,18 @@ SQL
 
     is( $map_count, $expected_map_count, "$label map count" );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: without transaction, Citus
-    # complains about "cannot use 2PC in transactions involving multiple
-    # servers"; possibly OK for the transaction to be removed after row
-    # migration
-    $db->begin();
-
     # clean up so the next test has a clean slate
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: revert back to using native
-    # upsert after row move
-    if ( $BIG_SHARDED_TABLES->{ $map_table } ) {
-        # Sharded with semi-updatable view
-
-        $db->query( <<"SQL"
-            DELETE FROM unsharded_${map_table}
-            WHERE
-                $id_field IN ($row_ids_list) AND
-                tags_id IN (
-                    SELECT tags_id
-                    FROM tags
-                    WHERE tag_sets_id IN ($tag_sets_ids_list)
-                )
+    $db->query( <<"SQL"
+        DELETE FROM $map_table
+        WHERE
+            $id_field IN ($row_ids_list) AND
+            tags_id IN (
+                SELECT tags_id
+                FROM tags
+                WHERE tag_sets_id IN ($tag_sets_ids_list)
+            )
 SQL
-        );
-        $db->query( <<"SQL"
-            DELETE FROM sharded_${map_table}
-            WHERE
-                $id_field IN ($row_ids_list) AND
-                tags_id IN (
-                    SELECT tags_id
-                    FROM tags
-                    WHERE tag_sets_id IN ($tag_sets_ids_list)
-                )
-SQL
-        );
-
-    } else {
-        # Unsharded, or sharded and already moved
-
-        $db->query( <<"SQL"
-            DELETE FROM $map_table
-            WHERE
-                $id_field IN ($row_ids_list) AND
-                tags_id IN (
-                    SELECT tags_id
-                    FROM tags
-                    WHERE tag_sets_id IN ($tag_sets_ids_list)
-                )
-SQL
-        );
-    }
-
-    $db->commit();
+    );
 }
 
 # add all tags to the map, use the clear_tags= param, then make sure only added tags are associated

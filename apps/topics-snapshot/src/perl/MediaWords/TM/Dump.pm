@@ -276,8 +276,6 @@ sub store_timespan_file($$$$)
 
     my $url = MediaWords::Util::PublicStore::get_content_url( $db, $object_type, $object_id );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: rows have been moved
-    # in a migration so we should be fine INSERTing directly
     $db->query( <<SQL,
         INSERT INTO timespan_files (topics_id, timespans_id, name, url)
         VALUES (?, ?, ?, ?)
@@ -380,8 +378,6 @@ sub store_snapshot_file($$$$)
 
     my $url = MediaWords::Util::PublicStore::get_content_url( $db, $object_type, $object_id );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: rows have been moved
-    # in a migration so we should be fine INSERTing directly
     $db->query( <<SQL,
         INSERT INTO snapshot_files (topics_id, snapshots_id, name, url)
         VALUES (?, ?, ?, ?)

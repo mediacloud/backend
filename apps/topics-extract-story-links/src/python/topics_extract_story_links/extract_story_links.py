@@ -275,21 +275,8 @@ def extract_links_for_topic_story(
         log.error(f"Link mining error: {ex}")
         link_mine_error = traceback.format_exc()
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query("""
-        UPDATE unsharded_public.topic_stories SET
-            link_mined = 't',
-            link_mine_error = %(link_mine_error)s
-        WHERE
-            stories_id = %(stories_id)s AND
-            topics_id = %(topics_id)s
-    """, {
-        'stories_id': story['stories_id'],
-        'topics_id': topic['topics_id'],
-        'link_mine_error': link_mine_error,
-    })
-    db.query("""
-        UPDATE sharded_public.topic_stories SET
+        UPDATE topic_stories SET
             link_mined = 't',
             link_mine_error = %(link_mine_error)s
         WHERE

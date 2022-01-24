@@ -11,13 +11,8 @@ def create(db: DatabaseHandler, download: dict, extract: dict) -> dict:
     download = decode_object_from_bytes_if_needed(download)
     extract = decode_object_from_bytes_if_needed(extract)
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query("""
-        DELETE FROM unsharded_public.download_texts
-        WHERE downloads_id = %(downloads_id)s
-    """, {'downloads_id': download['downloads_id']})
-    db.query("""
-        DELETE FROM sharded_public.download_texts
+        DELETE FROM download_texts
         WHERE downloads_id = %(downloads_id)s
     """, {'downloads_id': download['downloads_id']})
 
@@ -30,14 +25,8 @@ def create(db: DatabaseHandler, download: dict, extract: dict) -> dict:
         'download_text': extract['extracted_text'],
     }).hash()
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query("""
-        UPDATE unsharded_public.downloads
-        SET extracted = 't'
-        WHERE downloads_id = %(downloads_id)s
-    """, {'downloads_id': download['downloads_id']})
-    db.query("""
-        UPDATE sharded_public.downloads
+        UPDATE downloads
         SET extracted = 't'
         WHERE downloads_id = %(downloads_id)s
     """, {'downloads_id': download['downloads_id']})

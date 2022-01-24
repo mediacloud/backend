@@ -44,15 +44,9 @@ around execute => sub {
         {
             my $db = $c->dbis;
 
-            # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
-            # updatable view, doing an INSERT-or-UPDATE here would be wonky,
-            # and duplicates are not terrible here as the worst that might
-            # happen is that a user gets more API calls than they should on a
-            # given day. This should be reverted back to a native upsert after
-            # the rows get moved.
             $db->query(
                 <<SQL,
-                INSERT INTO sharded_public.auth_user_request_daily_counts (email, day, requests_count, requested_items_count)
+                INSERT INTO auth_user_request_daily_counts (email, day, requests_count, requested_items_count)
                 VALUES (?, DATE_TRUNC('day', LOCALTIMESTAMP)::DATE, 1, ?)
                 ON CONFLICT (email, day) DO UPDATE
                     SET requests_count = auth_user_request_daily_counts.requests_count + 1,

@@ -137,9 +137,8 @@ SQL
     {
         # test that import grabs updated story
         my $story = pop( @{ $test_stories } );
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
         $db->query( <<SQL,
-            UPDATE sharded_public.stories SET
+            UPDATE stories SET
                 language = 'up'
             WHERE stories_id = ?
 SQL
@@ -155,25 +154,22 @@ SQL
         # test that processed_stories update queues import
         my $story = pop( @{ $test_stories } );
 
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
         $db->query( <<SQL,
-            DELETE FROM sharded_public.processed_stories
+            DELETE FROM processed_stories
             WHERE stories_id = ?
 SQL
             $story->{ stories_id }
         );
 
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
         $db->query( <<SQL,
-            DELETE FROM sharded_public.solr_import_stories
+            DELETE FROM solr_import_stories
             WHERE stories_id = ?
 SQL
             $story->{ stories_id }
         );
 
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: restore ON CONFLICT once the rows get moved
         $db->query( <<SQL,
-            INSERT INTO public.processed_stories (stories_id)
+            INSERT INTO processed_stories (stories_id)
             VALUES (?)
 SQL
             $story->{ stories_id }
@@ -194,24 +190,13 @@ SQL
         my $story = pop( @{ $test_stories } );
         my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'import:test' );
 
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: restore ON CONFLICT after rows get moved
-        my $row_exists = $db->query( <<SQL,
-            SELECT 1
-            FROM stories_tags_map
-            WHERE
-                stories_id = ? AND
-                tags_id = ?
+        $db->query( <<SQL,
+            INSERT INTO stories_tags_map (stories_id, tags_id)
+            VALUES (?, ?)
+            ON CONFLICT (stories_id, tags_id) DO NOTHING
 SQL
             $story->{ stories_id }, $tag->{ tags_id }
-        )->hash();
-        unless ( $row_exists ) {
-            $db->query( <<SQL,
-                INSERT INTO public.stories_tags_map (stories_id, tags_id)
-                VALUES (?, ?)
-SQL
-                $story->{ stories_id }, $tag->{ tags_id }
-            );
-        }
+        );
 
         my $solr_import_story = $db->query( <<SQL,
             SELECT *

@@ -62,21 +62,9 @@ def _timeout_stale_downloads(db: DatabaseHandler) -> None:
 
     date_stale_download_interval_ago = datetime.datetime.now() - datetime.timedelta(seconds=STALE_DOWNLOAD_INTERVAL)
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query(
         """
-        UPDATE unsharded_public.downloads SET
-            state = 'pending',
-            download_time = NOW()
-        WHERE
-            state = 'fetching' AND
-            download_time < %(date_stale_download_interval_ago)s
-        """,
-        {'date_stale_download_interval_ago': date_stale_download_interval_ago}
-    )
-    db.query(
-        """
-        UPDATE sharded_public.downloads SET
+        UPDATE downloads SET
             state = 'pending',
             download_time = NOW()
         WHERE
@@ -264,8 +252,6 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
                 for chunk_downloads_ids in __chunks(list_to_be_chunked=downloads_ids, chunk_size=1000):
                     log.info(f"Inserting chunk of downloads ({len(chunk_downloads_ids)} download IDs)...")
 
-                    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: rows have been moved
-                    # in a migration so we should be fine INSERTing directly
                     # noinspection SqlResolve,SqlSignature
                     db.query(
                         """

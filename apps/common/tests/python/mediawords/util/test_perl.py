@@ -158,17 +158,15 @@ def test_convert_dbd_pg_arguments_to_psycopg2_format_ignore_literals():
     actual_parameters = convert_dbd_pg_arguments_to_psycopg2_format(*input_parameters)
     assert expected_parameters == actual_parameters
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     input_parameters = ("""
-        UPDATE sharded_public.downloads
+        UPDATE downloads
         SET stories_id = ?,
             type = 'content'
         WHERE downloads_id = ?
     """.strip(), 1, 2,)
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     expected_parameters = ("""
-        UPDATE sharded_public.downloads
+        UPDATE downloads
         SET stories_id = %s,
             type = 'content'
         WHERE downloads_id = %s

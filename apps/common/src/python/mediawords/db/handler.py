@@ -36,52 +36,6 @@ class DatabaseHandler(object):
     # "Double percentage sign" marker (see handler's quote() for explanation)
     __DOUBLE_PERCENTAGE_SIGN_MARKER = "<DOUBLE PERCENTAGE SIGN: " + random_string(length=16) + ">"
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: list of huge sharded tables that have a somewhat-updatable
-    # view in front of them which only supports SELECTs and INSERTs but not UPDATEs and DELETEs, and
-    # therefore for which we need to manually run UPDATEs and DELETEs on both underlying (sharded and
-    # unsharded) tables: https://github.com/citusdata/citus/issues/2046
-    __BIG_SHARDED_TABLES_WITH_SOMEWHAT_UPDATABLE_VIEW = {
-        'public.auth_user_request_daily_counts',
-        'public.download_texts',
-        'public.downloads',
-        'public.feeds_stories_map',
-        'public.feeds_stories_map_p',
-        'public.media_coverage_gaps',
-        'public.media_stats',
-        'public.processed_stories',
-        'public.scraped_stories',
-        'public.solr_import_stories',
-        'public.solr_imported_stories',
-        'public.stories',
-        'public.stories_ap_syndicated',
-        'public.stories_tags_map',
-        'public.stories_tags_map_p',
-        'public.story_enclosures',
-        'public.story_sentences',
-        'public.story_sentences_p',
-        'public.story_statistics',
-        'public.story_urls',
-        'public.topic_fetch_urls',
-        'public.topic_links',
-        'public.topic_merged_stories_map',
-        'public.topic_post_urls',
-        'public.topic_posts',
-        'public.topic_seed_urls',
-        'public.topic_stories',
-        'snap.live_stories',
-        'snap.media',
-        'snap.media_tags_map',
-        'snap.medium_link_counts',
-        'snap.medium_links',
-        'snap.stories',
-        'snap.stories_tags_map',
-        'snap.story_link_counts',
-        'snap.story_links',
-        'snap.timespan_posts',
-        'snap.topic_links_cross_media',
-        'snap.topic_stories',
-    }
-
     __slots__ = [
 
         # Cache of table primary key columns ([schema][table])
@@ -374,25 +328,6 @@ class DatabaseHandler(object):
         if '.' not in table:
             table = f"public.{table}"
 
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK:
-        if table in self.__BIG_SHARDED_TABLES_WITH_SOMEWHAT_UPDATABLE_VIEW:
-
-            unsharded_result = self.update_by_id(
-                table=f"unsharded_{table}",
-                object_id=object_id,
-                update_hash=update_hash,
-            )
-            sharded_result = self.update_by_id(
-                table=f"sharded_{table}",
-                object_id=object_id,
-                update_hash=update_hash,
-            )
-
-            if unsharded_result:
-                return unsharded_result
-            else:
-                return sharded_result
-
         update_hash = update_hash.copy()  # To be able to safely modify it
 
         # MC_REWRITE_TO_PYTHON: remove after getting rid of Catalyst
@@ -453,13 +388,6 @@ class DatabaseHandler(object):
 
         if '.' not in table:
             table = f"public.{table}"
-
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK:
-        if table in self.__BIG_SHARDED_TABLES_WITH_SOMEWHAT_UPDATABLE_VIEW:
-            self.delete_by_id(table=f"unsharded_{table}", object_id=object_id)
-            self.delete_by_id(table=f"sharded_{table}", object_id=object_id)
-
-            return
 
         primary_key_column = self.primary_key_column(table)
         if not primary_key_column:

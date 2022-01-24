@@ -1723,8 +1723,6 @@ ALTER TABLE unsharded_public.topic_media_codes
     DROP CONSTRAINT IF EXISTS topic_media_codes_topics_id_fkey;
 ALTER TABLE unsharded_public.topic_permissions
     DROP CONSTRAINT topic_permissions_topics_id_fkey;
-ALTER TABLE unsharded_public.topic_query_story_searches_imported_stories_map
-    DROP CONSTRAINT IF EXISTS topic_query_story_searches_imported_stories_map_topics_id_fkey;
 ALTER TABLE unsharded_public.topic_seed_queries
     DROP CONSTRAINT topic_seed_queries_topics_id_fkey;
 ALTER TABLE unsharded_public.topic_seed_urls
@@ -3742,7 +3740,7 @@ FROM sharded_public.stories
     ALTER COLUMN stories_id
         SET DEFAULT nextval(pg_get_serial_sequence('sharded_public.stories', 'stories_id'));
 
--- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: in the workflow that's copying the
+-- In the workflow that's copying the
 -- rows from unsharded table to the sharded one, we can't really disable INSERT
 -- triggers before we move every individual chunk, so instead we remove INSERT
 -- triggers on the sharded table and re-add them on the semi-updatable view.
@@ -3785,7 +3783,7 @@ BEGIN
     -- Insert only into the sharded table
     INSERT INTO sharded_public.stories SELECT NEW.*;
 
-    -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: do the same as insert_solr_import_story()
+    -- Do the same as insert_solr_import_story()
     IF EXISTS(
             SELECT 1
             FROM public.processed_stories
@@ -3977,7 +3975,7 @@ SELECT setval(
                false
            );
 
--- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: in the workflow that's copying the
+-- In the workflow that's copying the
 -- rows from unsharded table to the sharded one, we can't really disable INSERT
 -- triggers before we move every individual chunk, so instead we remove INSERT
 -- triggers on the sharded table and re-add them on the semi-updatable view.
@@ -4029,7 +4027,7 @@ BEGIN
     SELECT NEW.*
     ON CONFLICT (stories_id, tags_id) DO NOTHING;
 
-    -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: do the same as insert_solr_import_story()
+    -- Do the same as insert_solr_import_story()
     IF EXISTS(
             SELECT 1
             FROM public.processed_stories
@@ -4340,7 +4338,7 @@ SELECT setval(
                false
            );
 
--- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: in the workflow that's copying the
+-- In the workflow that's copying the
 -- rows from unsharded table to the sharded one, we can't really disable INSERT
 -- triggers before we move every individual chunk, so instead we remove INSERT
 -- triggers on the sharded table and re-add them on the semi-updatable view.
@@ -4388,7 +4386,7 @@ BEGIN
     SELECT NEW.*
     ON CONFLICT (stories_id) DO NOTHING;
 
-    -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: do the same as insert_solr_import_story()
+    -- Do the same as insert_solr_import_story()
     INSERT INTO sharded_public.solr_import_stories (stories_id)
     VALUES (NEW.stories_id)
     ON CONFLICT (stories_id) DO NOTHING;
@@ -4731,7 +4729,7 @@ SELECT setval(
                false
            );
 
--- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: in the workflow that's copying the
+-- In the workflow that's copying the
 -- rows from unsharded table to the sharded one, we can't really disable INSERT
 -- triggers before we move every individual chunk, so instead we remove INSERT
 -- triggers on the sharded table and re-add them on the semi-updatable view.
@@ -4796,7 +4794,7 @@ BEGIN
     -- Insert only into the sharded table
     INSERT INTO sharded_public.topic_stories SELECT NEW.*;
 
-    -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: do the same as insert_live_story()
+    -- Do the same as insert_live_story()
     SELECT *
     INTO story
     FROM public.stories
@@ -6036,7 +6034,7 @@ CREATE TRIGGER stories_update_live_story
 EXECUTE PROCEDURE unsharded_public.update_live_story();
 
 
--- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: update update_live_story() on the
+-- Update update_live_story() on the
 -- sharded table too; later it's to be made to update only the sharded table
 -- again, just like it used to do in the previous migration
 CREATE OR REPLACE FUNCTION public.update_live_story() RETURNS TRIGGER AS
@@ -6295,7 +6293,7 @@ BEGIN
         RETURN return_value;
     END IF;
 
-    -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: don't test the old table anymore after moving rows
+    -- Don't test the old table anymore after moving rows
     IF NOT EXISTS(
             SELECT 1
             FROM unsharded_public.solr_import_stories

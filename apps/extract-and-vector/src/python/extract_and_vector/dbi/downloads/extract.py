@@ -60,9 +60,6 @@ def _set_extractor_results_cache(db, download: dict, results: dict) -> None:
     results = decode_object_from_bytes_if_needed(results)
 
     # Upsert cache entry
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: cache happens only on a
-    # sharded table with no updatable view in front of it so there's no
-    # need to do "INSERT ... WHERE NOT EXISTS" trick here
     db.query("""
         INSERT INTO cache.extractor_results_cache (
             extracted_html,

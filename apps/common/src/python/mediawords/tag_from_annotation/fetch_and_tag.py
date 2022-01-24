@@ -326,22 +326,8 @@ class TagsFromJSONAnnotation(metaclass=abc.ABCMeta):
             unique_tag_sets_names.add(tag_sets_name)
 
         # Delete old tags the story might have under a given tag set
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query("""
-            DELETE FROM unsharded_public.stories_tags_map
-            WHERE stories_id = %(stories_id)s
-              AND tags_id IN (
-                SELECT tags_id
-                FROM tags
-                WHERE tag_sets_id IN (
-                  SELECT tag_sets_id
-                  FROM tag_sets
-                  WHERE name = ANY(%(tag_sets_names)s)
-                )
-              )
-        """, {'stories_id': stories_id, 'tag_sets_names': list(unique_tag_sets_names)})
-        db.query("""
-            DELETE FROM sharded_public.stories_tags_map
+            DELETE FROM stories_tags_map
             WHERE stories_id = %(stories_id)s
               AND tags_id IN (
                 SELECT tags_id
@@ -365,8 +351,6 @@ class TagsFromJSONAnnotation(metaclass=abc.ABCMeta):
             db_tag_set = db.select(table='tag_sets', what_to_select='*', condition_hash={'name': tag_sets_name}).hash()
             if db_tag_set is None:
 
-                # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: rows have been moved
-                # in a migration so we should be fine INSERTing directly
                 db.query("""
                     INSERT INTO tag_sets (name, label, description)
                     VALUES (%(name)s, %(label)s, %(description)s)
@@ -389,8 +373,6 @@ class TagsFromJSONAnnotation(metaclass=abc.ABCMeta):
             }).hash()
             if db_tag is None:
 
-                # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: rows have been moved
-                # in a migration so we should be fine INSERTing directly
                 db.query("""
                     INSERT INTO tags (tag_sets_id, tag, label, description)
                     VALUES (%(tag_sets_id)s, %(tag)s, %(label)s, %(description)s)
@@ -412,29 +394,13 @@ class TagsFromJSONAnnotation(metaclass=abc.ABCMeta):
             #
             # Not using db.create() because it tests last_inserted_id, and on duplicates there would be no such
             # "last_inserted_id" set.
-            #
-            # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: restore ON CONFLICT after rows get moved
-
-            row_exists = db.query(
-                """
-                SELECT 1
-                FROM stories_tags_map
-                WHERE
-                    stories_id = %(stories_id)s AND
-                    tags_id = %(tags_id)s
-                """,
-                {
-                    'stories_id': stories_id,
-                    'tags_id': tags_id,
-                }
-            ).hash()
-            if not row_exists:
-                db.query("""
-                    INSERT INTO public.stories_tags_map (stories_id, tags_id)
-                    VALUES (%(stories_id)s, %(tags_id)s)
-                """, {
-                    'stories_id': stories_id,
-                    'tags_id': tags_id,
-                })
+            db.query("""
+                INSERT INTO public.stories_tags_map (stories_id, tags_id)
+                VALUES (%(stories_id)s, %(tags_id)s)
+                ON CONFLICT (stories_id, tags_id) DO NOTHING
+            """, {
+                'stories_id': stories_id,
+                'tags_id': tags_id,
+            })
 
         db.commit()

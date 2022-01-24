@@ -25,9 +25,8 @@ sub _add_story_sentences_and_language
     my ( $db, $story, $num ) = @_;
 
     my $language = MediaWords::Languages::Language::language_for_code( 'en' );
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
-        UPDATE sharded_public.stories
+        UPDATE stories
         SET language = 'en'
         WHERE stories_id = ?
 SQL
