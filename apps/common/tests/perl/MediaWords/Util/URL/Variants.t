@@ -147,12 +147,25 @@ sub test_get_topic_url_variants
     my $story_3 = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 3 };
     my $story_4 = $media->{ A }->{ feeds }->{ C }->{ stories }->{ 4 };
 
-    $db->query( <<END, $story_2->{ stories_id }, $story_1->{ stories_id } );
-insert into topic_merged_stories_map ( source_stories_id, target_stories_id ) values( ?, ? )
-END
-    $db->query( <<END, $story_3->{ stories_id }, $story_2->{ stories_id } );
-insert into topic_merged_stories_map ( source_stories_id, target_stories_id ) values( ?, ? )
-END
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: when copying rows from the
+    # unsharded table, we'll make sure to not copy duplicates
+    $db->query( <<SQL,
+        INSERT INTO sharded_public.topic_merged_stories_map (source_stories_id, target_stories_id)
+        VALUES (?, ?)
+        ON CONFLICT (source_stories_id, target_stories_id) DO NOTHING
+SQL
+        $story_2->{ stories_id }, $story_1->{ stories_id }
+    );
+
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: when copying rows from the
+    # unsharded table, we'll make sure to not copy duplicates
+    $db->query( <<SQL,
+        INSERT INTO sharded_public.topic_merged_stories_map (source_stories_id, target_stories_id)
+        VALUES (?, ?)
+        ON CONFLICT (source_stories_id, target_stories_id) DO NOTHING
+SQL
+        $story_3->{ stories_id }, $story_2->{ stories_id }
+    );
 
     my $tag_set = $db->create( 'tag_sets', { name => 'foo' } );
 

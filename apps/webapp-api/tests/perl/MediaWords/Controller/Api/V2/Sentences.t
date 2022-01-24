@@ -29,16 +29,26 @@ sub test_sentences_list($)
 
     my $label = "sentences/list";
 
-    my $stories     = $db->query( "select * from stories order by stories_id asc limit 10" )->hashes;
-    my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
-    my $expected_ss = $db->query( <<SQL, @{ $stories_ids } )->hashes;
-select * from story_sentences where stories_id in ( ?? )
+    my $stories     = $db->query( <<SQL
+        SELECT *
+        FROM stories
+        ORDER BY stories_id ASC
+        LIMIT 10
 SQL
+    )->hashes;
+    my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
+    my $expected_ss = $db->query( <<SQL,
+        SELECT *
+        FROM story_sentences
+        WHERE stories_id IN (??)
+SQL
+        @{ $stories_ids }
+    )->hashes;
 
     my $stories_ids_list = join( ' ', @{ $stories_ids } );
-    my $got_ss = MediaWords::Test::API::test_get( '/api/v2/sentences/list', { q => "stories_id:($stories_ids_list)" } );
+    my $got_ss = MediaWords::Test::API::test_get( '/api/v2/sentences/list', { 'q' => "stories_id:($stories_ids_list)" } );
 
-    WARN( MediaWords::Util::ParseJSON::encode_json( $got_ss ) );
+    # WARN( MediaWords::Util::ParseJSON::encode_json( $got_ss ) );
 
     my $fields = [ qw/stories_id media_id sentence language publish_date/ ];
     MediaWords::Test::Rows::rows_match( $label, $got_ss, $expected_ss, 'story_sentences_id', $fields );
@@ -48,15 +58,28 @@ sub main
 {
     my $db = MediaWords::DB::connect_to_db();
 
-    my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
-        $NUM_STORIES_PER_FEED );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated(
+        $db,
+        $NUM_MEDIA,
+        $NUM_FEEDS_PER_MEDIUM,
+        $NUM_STORIES_PER_FEED
+    );
 
     $media = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $db, $media );
 
     # Prepend some UTF-8 to every sentence to test out Unicode support
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
     $db->query(<<SQL,
-        UPDATE story_sentences
-        SET sentence = CONCAT(?, sentence)
+        WITH all_story_ids AS (
+            SELECT stories_id
+            FROM stories
+        )
+        UPDATE sharded_public.story_sentences
+        SET sentence = ? || sentence
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM all_story_ids
+        )
 SQL
         $UTF8_PREFIX . ''
     );

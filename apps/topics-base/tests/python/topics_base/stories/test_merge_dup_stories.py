@@ -21,19 +21,39 @@ def test_merge_dup_stories():
         stories.append(story)
         for j in range(i):
             # noinspection SqlInsertValues
-            db.query(
-                """
-                insert into story_sentences (stories_id, sentence_number, sentence, media_id, publish_date)
-                    select stories_id, %(b)s, 'foo bar', media_id, publish_date
-                        from stories where stories_id = %(a)s
-                """,
-                {'a': story['stories_id'], 'b': j})
+            db.query("""
+                INSERT INTO story_sentences (
+                    stories_id,
+                    sentence_number,
+                    sentence,
+                    media_id,
+                    publish_date
+                )
+                    SELECT
+                        stories_id,
+                        %(sentence_number)s AS sentence_number,
+                        'foo bar' AS sentence,
+                        media_id,
+                        publish_date
+                    FROM stories
+                    WHERE stories_id = %(stories_id)s
+            """, {
+                'stories_id': story['stories_id'],
+                'sentence_number': j,
+            })
 
     _merge_dup_stories(db, topic, stories)
 
     stories_ids = [s['stories_id'] for s in stories]
-    merged_stories = db.query(
-        "select stories_id from topic_stories where topics_id = %(a)s and stories_id = any(%(b)s)",
-        {'a': topic['topics_id'], 'b': stories_ids}).flat()
+    merged_stories = db.query("""
+        SELECT stories_id
+        FROM topic_stories
+        WHERE
+            topics_id = %(topics_id)s AND
+            stories_id = ANY(%(stories_ids)s)
+    """, {
+        'topics_id': topic['topics_id'],
+        'stories_ids': stories_ids,
+    }).flat()
 
     assert merged_stories == [stories_ids[-1]]

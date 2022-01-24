@@ -6,6 +6,10 @@ FROM gcr.io/mcback/postgresql-base:latest
 
 USER root
 RUN \
+    #
+    # FIXME
+    apt-get -y update && \
+    #
     apt-get -y --no-install-recommends install python3 python3-pip python3-setuptools && \
     #
     # Upgrade Pip
@@ -37,6 +41,29 @@ RUN \
     chmod ugo+rw /opt/postgresql-server/pgmigrate && \
     true
 
+# Install Citus Data
+RUN \
+    if [ "$(dpkg --print-architecture)" = "arm64" ]; then \
+        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-citus-aws-graviton2/releases/download/14.1-2.pgdg20.04%2B1/postgresql-14-citus-10.2_10.2.3.citus-1_arm64.deb" > /var/tmp/citus.deb && \
+        apt-get -y --no-install-recommends install \
+            libcurl4-gnutls-dev \
+        && \
+        dpkg -i /var/tmp/citus.deb && \
+        rm /var/tmp/*.deb && \
+        true; \
+    else \
+        curl -fsSL https://repos.citusdata.com/community/gpgkey | apt-key add - && \
+        echo "deb https://repos.citusdata.com/community/ubuntu/ focal main" \
+            > /etc/apt/sources.list.d/citusdata_community.list && \
+        apt-get -y update && \
+        sudo apt-get -y install postgresql-14-citus-10.2 && \
+        true; \
+    fi; \
+    true
+
+COPY etc/postgresql/14/extra/ /etc/postgresql/14/extra/
+
+# Copy helper scripts, schema, migrations
 COPY bin/* /opt/postgresql-server/bin/
 COPY pgmigrate/ /opt/postgresql-server/pgmigrate
 

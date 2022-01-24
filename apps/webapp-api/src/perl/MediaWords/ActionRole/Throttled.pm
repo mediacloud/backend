@@ -52,22 +52,35 @@ around execute => sub {
 
             # Fetch limits
             my $limits = $c->dbis->query(
-                <<EOF,
-                SELECT auth_users.auth_users_id,
-                       auth_users.email,
-                       weekly_requests_limit,
-                       weekly_requested_items_limit,
-                       weekly_requests_sum,
-                       weekly_requested_items_sum
+                <<SQL,
+                SELECT
+                    auth_users.auth_users_id,
+                    auth_users.email,
+                    weekly_requests_limit,
+                    weekly_requested_items_limit,
+                    COALESCE(
+                        SUM(auth_user_request_daily_counts.requests_count),
+                        0
+                    ) AS weekly_requests_sum,
+                    COALESCE(
+                        SUM(auth_user_request_daily_counts.requested_items_count),
+                        0
+                    ) AS weekly_requested_items_sum
 
                 FROM auth_users
                     INNER JOIN auth_user_limits
-                        ON auth_users.auth_users_id = auth_user_limits.auth_users_id,
-                    auth_user_limits_weekly_usage( \$1 )
+                        ON auth_users.auth_users_id = auth_user_limits.auth_users_id
+                    LEFT JOIN auth_user_request_daily_counts ON
+                        auth_users.email = auth_user_request_daily_counts.email AND
+                        auth_user_request_daily_counts.day > DATE_TRUNC('day', NOW())::date - INTERVAL '1 week'
 
                 WHERE auth_users.email = \$1
-                LIMIT 1
-EOF
+                GROUP BY
+                    auth_users.auth_users_id,
+                    auth_users.email,
+                    weekly_requests_limit,
+                    weekly_requested_items_limit
+SQL
                 $user_email
             )->hash;
 

@@ -46,8 +46,18 @@ class DownloadFeedWebPageHandler(DefaultFetchMixin, AbstractDownloadFeedHandler,
         if not story:
             raise McCrawlerFetcherSoftError(f"Failed to add story {new_story}")
 
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query("""
-            UPDATE downloads
+            UPDATE unsharded_public.downloads
+            SET stories_id = %(stories_id)s,
+                type = 'content'
+            WHERE downloads_id = %(downloads_id)s
+        """, {
+            'stories_id': story['stories_id'],
+            'downloads_id': download['downloads_id'],
+        })
+        db.query("""
+            UPDATE sharded_public.downloads
             SET stories_id = %(stories_id)s,
                 type = 'content'
             WHERE downloads_id = %(downloads_id)s

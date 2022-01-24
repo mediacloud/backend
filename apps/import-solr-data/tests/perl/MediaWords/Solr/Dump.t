@@ -38,7 +38,12 @@ sub test_import($)
         }
     );
 
-    my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
+    my $test_stories = $db->query( <<SQL
+        SELECT *
+        FROM stories
+        ORDER BY MD5(stories_id::TEXT)
+SQL
+    )->hashes;
 
     {
         my $got_num_solr_stories = MediaWords::Solr::get_solr_num_found( $db, { q => '*:*' } );
@@ -47,7 +52,11 @@ sub test_import($)
         my $solr_import = $db->query( "select * from solr_imports" )->hash;
         ok( $solr_import->{ full_import }, "solr_imports row created with full=true" );
 
-        my ( $num_solr_imported_stories ) = $db->query( "select count(*) from solr_imported_stories" )->flat;
+        my ( $num_solr_imported_stories ) = $db->query( <<SQL
+            SELECT COUNT(*)
+            FROM solr_imported_stories
+SQL
+        )->flat;
         is( $num_solr_imported_stories, scalar( @{ $test_stories } ), "number of rows in solr_imported_stories" );
     }
 
@@ -70,9 +79,13 @@ sub test_import($)
 
     {
         my $story = pop( @{ $test_stories } );
-        my ( $text ) = $db->query( <<SQL, $story->{ stories_id } )->flat;
-select string_agg( sentence, ' ' order by sentence_number ) from story_sentences where stories_id = ?
+        my ( $text ) = $db->query( <<SQL,
+            SELECT string_agg(sentence, ' ' ORDER BY sentence_number)
+            FROM story_sentences
+            WHERE stories_id = ?
 SQL
+            $story->{ stories_id }
+        )->flat;
 
         my $words = [ grep { $_ } ( split( /\W/, $text ) )[ 0 .. 10 ] ];
         my $text_clause = 'text: (' . join( ' and ', @{ $words } ) . ')';
@@ -87,25 +100,36 @@ SQL
 
     {
         my $story = pop( @{ $test_stories } );
-        my ( $tags_id ) = $db->query( <<SQL, $story->{ stories_id } )->flat;
-select tags_id from stories_tags_map where stories_id = ?
+        my ( $tags_id ) = $db->query( <<SQL,
+            SELECT tags_id
+            FROM stories_tags_map
+            WHERE stories_id = ?
 SQL
+            $story->{ stories_id }
+        )->flat;
 
         MediaWords::Test::Solr::test_story_query( $db, "tags_id_stories:$tags_id", $story, 'tags_id_stories' );
     }
 
     {
         my $story = pop( @{ $test_stories } );
-        my ( $processed_stories_id ) = $db->query( <<SQL, $story->{ stories_id } )->flat;
-select processed_stories_id from processed_stories where stories_id = ?
+        my ( $processed_stories_id ) = $db->query( <<SQL,
+            SELECT processed_stories_id
+            FROM processed_stories
+            WHERE stories_id = ?
 SQL
+            $story->{ stories_id }
+        )->flat;
         MediaWords::Test::Solr::test_story_query( $db, "processed_stories_id:$processed_stories_id", $story, 'processed_stories_id' );
     }
 
     {
         my $story = pop( @{ $test_stories } );
         my ( $timespans_id ) = $db->query( <<SQL, $story->{ stories_id } )->flat;
-select timespans_id from snap.story_link_counts where stories_id = ? limit 1
+            SELECT timespans_id
+            FROM snap.story_link_counts
+            WHERE stories_id = ?
+            LIMIT 1
 SQL
         MediaWords::Test::Solr::test_story_query( $db, "timespans_id:$timespans_id", $story, 'timespans_id' );
     }
@@ -113,7 +137,14 @@ SQL
     {
         # test that import grabs updated story
         my $story = pop( @{ $test_stories } );
-        $db->query( "update stories set language = 'up' where stories_id = ?", $story->{ stories_id } );
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
+        $db->query( <<SQL,
+            UPDATE sharded_public.stories SET
+                language = 'up'
+            WHERE stories_id = ?
+SQL
+            $story->{ stories_id }
+        );
         $db->commit();
 
         MediaWords::Solr::Dump::import_data( $db, { empty_queue => 1, throttle => 0 } );
@@ -123,10 +154,38 @@ SQL
     {
         # test that processed_stories update queues import
         my $story = pop( @{ $test_stories } );
-        $db->create( 'processed_stories', { stories_id => $story->{ stories_id } } );
-        my $solr_import_story = $db->query( <<SQL, $story->{ stories_id } )->hash();
-select * from solr_import_stories where stories_id = ?
+
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
+        $db->query( <<SQL,
+            DELETE FROM sharded_public.processed_stories
+            WHERE stories_id = ?
 SQL
+            $story->{ stories_id }
+        );
+
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
+        $db->query( <<SQL,
+            DELETE FROM sharded_public.solr_import_stories
+            WHERE stories_id = ?
+SQL
+            $story->{ stories_id }
+        );
+
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: restore ON CONFLICT once the rows get moved
+        $db->query( <<SQL,
+            INSERT INTO public.processed_stories (stories_id)
+            VALUES (?)
+SQL
+            $story->{ stories_id }
+        );
+
+        my $solr_import_story = $db->query( <<SQL,
+            SELECT *
+            FROM solr_import_stories
+            WHERE stories_id = ?
+SQL
+            $story->{ stories_id }
+        )->hash();
         ok( $solr_import_story, "queue story from processed_stories insert" );
     }
 
@@ -134,13 +193,33 @@ SQL
         # test that stories_tags_map update queues import
         my $story = pop( @{ $test_stories } );
         my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'import:test' );
-        $db->query( <<SQL, $story->{ stories_id }, $tag->{ tags_id } );
-insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )       
-SQL
 
-        my $solr_import_story = $db->query( <<SQL, $story->{ stories_id } )->hash();
-select * from solr_import_stories where stories_id = ?
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: restore ON CONFLICT after rows get moved
+        my $row_exists = $db->query( <<SQL,
+            SELECT 1
+            FROM stories_tags_map
+            WHERE
+                stories_id = ? AND
+                tags_id = ?
 SQL
+            $story->{ stories_id }, $tag->{ tags_id }
+        )->hash();
+        unless ( $row_exists ) {
+            $db->query( <<SQL,
+                INSERT INTO public.stories_tags_map (stories_id, tags_id)
+                VALUES (?, ?)
+SQL
+                $story->{ stories_id }, $tag->{ tags_id }
+            );
+        }
+
+        my $solr_import_story = $db->query( <<SQL,
+            SELECT *
+            FROM solr_import_stories
+            WHERE stories_id = ?
+SQL
+            $story->{ stories_id }
+        )->hash();
         ok( $solr_import_story, "queue story from stories_tags_map insert" );
     }
 }

@@ -20,9 +20,17 @@ class TestExtractLinksForTopicStory(TestExtractStoryLinksDB):
             topics_id=topic['topics_id'],
         )
 
-        got_topic_links = self.db.query(
-            "select topics_id, stories_id, url from topic_links where topics_id = %(a)s order by url",
-            {'a': topic['topics_id']}).hashes()
+        got_topic_links = self.db.query("""
+            SELECT
+                topics_id,
+                stories_id,
+                url
+            FROM topic_links
+            WHERE topics_id = %(topics_id)s
+            ORDER BY url
+        """, {
+            'topics_id': topic['topics_id'],
+        }).hashes()
 
         expected_topic_links = [
             {'topics_id': topic['topics_id'], 'stories_id': self.test_story['stories_id'], 'url': 'http://bar.com'},
@@ -30,9 +38,19 @@ class TestExtractLinksForTopicStory(TestExtractStoryLinksDB):
 
         assert got_topic_links == expected_topic_links
 
-        got_topic_story = self.db.query(
-            "select topics_id, stories_id, link_mined from topic_stories where topics_id =%(a)s and stories_id = %(b)s",
-            {'a': topic['topics_id'], 'b': self.test_story['stories_id']}).hash()
+        got_topic_story = self.db.query("""
+            SELECT
+                topics_id,
+                stories_id,
+                link_mined
+            FROM topic_stories
+            WHERE
+                topics_id = %(topics_id)s AND
+                stories_id = %(stories_id)s
+        """, {
+            'topics_id': topic['topics_id'],
+            'stories_id': self.test_story['stories_id'],
+        }).hash()
 
         expected_topic_story = {
             'topics_id': topic['topics_id'],
@@ -51,13 +69,20 @@ class TestExtractLinksForTopicStory(TestExtractStoryLinksDB):
             test_throw_exception=True,
         )
 
-        got_topic_story = self.db.query(
-            """
-            select topics_id, stories_id, link_mined, link_mine_error
-                from topic_stories
-                where topics_id =%(a)s and stories_id = %(b)s
-            """,
-            {'a': topic['topics_id'], 'b': self.test_story['stories_id']}).hash()
+        got_topic_story = self.db.query("""
+            SELECT
+                topics_id,
+                stories_id,
+                link_mined,
+                link_mine_error
+            FROM topic_stories
+            WHERE
+                topics_id = %(topics_id)s AND
+                stories_id = %(stories_id)s
+        """, {
+            'topics_id': topic['topics_id'],
+            'stories_id': self.test_story['stories_id'],
+        }).hash()
 
         assert "McExtractLinksForTopicStoryTestException" in got_topic_story['link_mine_error']
         assert got_topic_story['link_mined']

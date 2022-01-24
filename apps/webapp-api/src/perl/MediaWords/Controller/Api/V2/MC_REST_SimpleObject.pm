@@ -39,6 +39,19 @@ __PACKAGE__->config(    #
 
 Readonly my $ROWS_PER_PAGE => 20;
 
+# MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: huge sharded tables with
+# semi-updatable views in front of them and for which we need to do the "check
+# the unsharded table, INSERT into the sharded table" trick because atomic ON
+# CONFLICT upserts don't work of them. Revert back to atomic upserts after
+# moving the rows.
+Readonly my $BIG_SHARDED_TABLES => {
+    'public.feeds_stories_map' => 1,
+    'public.stories_tags_map' => 1,
+    'public.topic_merged_stories_map' => 1,
+    'snap.media_tags_map' => 1,
+    'snap.stories_tags_map' => 1,
+};
+
 sub _purge_extra_fields
 {
     my ( $self, $c, $obj ) = @_;
@@ -168,7 +181,7 @@ sub single_GET
 
     my $id_field = $table_name . "_id";
 
-    my $query = "select * from $table_name where $id_field = ? ";
+    my $query = "SELECT * FROM $table_name WHERE $id_field = ? ";
 
     my $all_fields = int( $c->req->param( 'all_fields' ) // 0 );
 
@@ -217,7 +230,7 @@ sub get_name_search_clause
 
     my $q_name_val = $c->dbis->quote( $name_val );
 
-    return "and to_tsvector( 'english', $name_field ) @@ phraseto_tsquery( 'english', $q_name_val )";
+    return "AND to_tsvector('english', $name_field) @@ phraseto_tsquery('english', $q_name_val)";
 }
 
 # list_query_filter_field or list_optional_query_field, add relevant clauses
@@ -360,9 +373,15 @@ sub _get_user_tag_set_permissions
 {
     my ( $api_auth, $tag_set, $dbis ) = @_;
 
-    my $permissions =
-      $dbis->query( "SELECT * from  auth_users_tag_sets_permissions where auth_users_id = ? and tag_sets_id = ? ",
-        $api_auth->user_id(), $tag_set->{ tag_sets_id } )->hashes()->[ 0 ];
+    my $permissions = $dbis->query( <<SQL,
+        SELECT *
+        FROM auth_users_tag_sets_permissions
+        WHERE
+            auth_users_id = ? AND
+            tag_sets_id = ?
+SQL
+        $api_auth->user_id(), $tag_set->{ tag_sets_id }
+    )->hashes()->[ 0 ];
 
     return $permissions;
 }
@@ -379,7 +398,9 @@ sub _die_unless_user_can_apply_tag_set_tags
 
     #TRACE Dumper( $permissions );
 
-    die "user does not have apply tag set tags permissions" unless defined( $permissions ) && $permissions->{ apply_tags };
+    unless (defined( $permissions ) && $permissions->{ apply_tags }) {
+        die "user does not have apply tag set tags permissions" ;    
+    }
 }
 
 sub _die_unless_user_can_create_tag_set_tags
@@ -444,13 +465,13 @@ sub _get_tags_id
         #TRACE Dumper( $c->stash );
         my $user_email = $c->stash->{ api_auth }->email();
 
-        my $tag_sets = $c->dbis->query( "SELECT * from tag_sets where name = ?", $tag_set_name )->hashes;
+        my $tag_sets = $c->dbis->query( "SELECT * FROM tag_sets WHERE name = ?", $tag_set_name )->hashes;
 
         if ( !scalar( @$tag_sets ) > 0 )
         {
             if ( $user_email ne $tag_set_name )
             {
-                die "Illegal tag_set name '" . $tag_set_name . "' tag_set must be user email ( '$user_email' ) ";
+                die "Illegal tag_set name '$tag_set_name' tag_set must be user email ($user_email)";
             }
 
             $tag_sets = [ $c->dbis->create( 'tag_sets', { 'name' => $tag_set_name } ) ];
@@ -466,8 +487,15 @@ sub _get_tags_id
 
         $self->_die_unless_user_can_apply_tag_set_tags( $c, $tag_set );
 
-        my $tags =
-          $c->dbis->query( "SELECT * from tags where tag_sets_id = ? and tag = ? ", $tag_sets_id, $tag_name )->hashes;
+        my $tags = $c->dbis->query( <<SQL,
+            SELECT *
+            FROM tags
+            WHERE
+                tag_sets_id = ? AND
+                tag = ?
+SQL
+            $tag_sets_id, $tag_name
+        )->hashes;
 
         # TRACE Dumper( $tags );
 
@@ -500,10 +528,16 @@ sub _clear_tags
 {
     my ( $self, $c, $tags_map ) = @_;
 
+    my $db = $c->dbis;
+
     my $tags_map_table = $self->get_table_name() . '_tags_map';
     my $table_id_name  = $self->get_table_name() . '_id';
 
-    my $table_name = $self->get_table_name();
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: add schema to be able to match
+    # with the big sharded table list
+    unless ( $tags_map_table =~ /\./ ) {
+        $tags_map_table = "public.$tags_map_table";
+    }
 
     while ( my ( $id, $tags_ids ) = each( %{ $tags_map } ) )
     {
@@ -511,16 +545,64 @@ sub _clear_tags
 
         $id = int( $id );
 
-        $c->dbis->query( <<END, $id );
-delete from $tags_map_table stm
-    using tags keep_tags, tags delete_tags
-    where
-        keep_tags.tags_id in ( $tags_ids_list ) and
-        keep_tags.tag_sets_id = delete_tags.tag_sets_id and
-        delete_tags.tags_id not in ( $tags_ids_list ) and
-        stm.tags_id = delete_tags.tags_id and
-        stm.$table_id_name = ?
-END
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: revert back to using native
+        # upsert after row move
+        if ( $BIG_SHARDED_TABLES->{ $tags_map_table } ) {
+            # Sharded with semi-updatable view
+
+            $db->query( <<SQL,
+                DELETE FROM unsharded_${tags_map_table}
+                WHERE
+                    $table_id_name = ? AND
+                    tags_id IN (
+                        SELECT delete_tags.tags_id
+                        FROM tags AS delete_tags
+                            INNER JOIN tags AS keep_tags
+                                ON delete_tags.tag_sets_id = keep_tags.tag_sets_id
+                        WHERE
+                            delete_tags.tags_id NOT IN ($tags_ids_list) AND
+                            keep_tags.tags_id IN ($tags_ids_list)
+                    )
+SQL
+                $id
+            );
+            $db->query( <<SQL,
+                DELETE FROM sharded_${tags_map_table}
+                WHERE
+                    $table_id_name = ? AND
+                    tags_id IN (
+                        SELECT delete_tags.tags_id
+                        FROM tags AS delete_tags
+                            INNER JOIN tags AS keep_tags
+                                ON delete_tags.tag_sets_id = keep_tags.tag_sets_id
+                        WHERE
+                            delete_tags.tags_id NOT IN ($tags_ids_list) AND
+                            keep_tags.tags_id IN ($tags_ids_list)
+                    )
+SQL
+                $id
+            );
+
+        } else {
+            # Unsharded, or sharded and already moved
+
+            $db->query( <<SQL,
+                DELETE FROM ${tags_map_table}
+                WHERE
+                    $table_id_name = ? AND
+                    tags_id IN (
+                        SELECT delete_tags.tags_id
+                        FROM tags AS delete_tags
+                            INNER JOIN tags AS keep_tags
+                                ON delete_tags.tag_sets_id = keep_tags.tag_sets_id
+                        WHERE
+                            delete_tags.tags_id NOT IN ($tags_ids_list) AND
+                            keep_tags.tags_id IN ($tags_ids_list)
+                    )
+SQL
+                $id
+            );
+        }
     }
 }
 
@@ -532,12 +614,20 @@ sub _add_tags
 {
     my ( $self, $c, $story_tags ) = @_;
 
+    my $db = $c->dbis;
+
     my $clear_tags_map = {};
 
     my $tags_map_table = $self->get_table_name() . '_tags_map';
     my $table_id_name  = $self->get_table_name() . '_id';
 
     my $table_name = $self->get_table_name();
+
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: add schema to be able to match
+    # with the big sharded table list
+    unless ( $table_name =~ /\./ ) {
+        $table_name = "public.$table_name";
+    }
 
     foreach my $story_tag ( @$story_tags )
     {
@@ -549,28 +639,55 @@ sub _add_tags
 
         my $tags_id = $self->_get_tags_id( $c, $tag );
 
-        my $tag_set = $c->dbis->query(
-            " SELECT * from tag_sets where tag_sets_id in ( select tag_sets_id from tags where tags_id = ? ) ", $tags_id )
-          ->hashes->[ 0 ];
+        my $tag_set = $db->query( <<SQL,
+            SELECT *
+            FROM tag_sets
+            WHERE tag_sets_id IN (
+                SELECT tag_sets_id
+                FROM tags
+                WHERE tags_id = ?
+            )
+SQL
+            $tags_id
+        )->hashes->[ 0 ];
 
         $self->_die_unless_user_can_apply_tag_set_tags( $c, $tag_set );
 
-        # TRACE "$id, $tags_id";
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: revert back to using native
+        # upsert after row move
+        if ( $BIG_SHARDED_TABLES->{ $tags_map_table } ) {
+            # Sharded with semi-updatable view
 
-        my $query = <<END;
-INSERT INTO $tags_map_table ( $table_id_name, tags_id)
-    select \$1, \$2
-        where not exists (
-            select 1
-                from $tags_map_table
-                where $table_id_name = \$1 and
-                    tags_id = \$2
-        )
-END
+            my $row_exists = $db->query( <<"SQL",
+                SELECT 1
+                FROM $tags_map_table
+                WHERE
+                    $table_id_name = ? AND
+                    tags_id = ?
+SQL
+                $id, $tags_id
+            )->hash();
+            unless ( $row_exists ) {
+                $db->query( <<SQL,
+                    INSERT INTO sharded_${tags_map_table} ($table_id_name, tags_id)
+                    VALUES (?, ?)
+                    ON CONFLICT ($table_id_name, tags_id) DO NOTHING
+SQL
+                    $id, $tags_id
+                );
+            }
 
-        # TRACE $query;
+        } else {
+            # Unsharded, or sharded and already moved
 
-        $c->dbis->query( $query, $id, $tags_id );
+            $db->query( <<SQL,
+                INSERT INTO $tags_map_table ($table_id_name, tags_id)
+                VALUES (\$1, \$2)
+                ON CONFLICT ($table_id_name, tags_id) DO NOTHING
+SQL
+                $id, $tags_id
+            );
+        }
 
         push( @{ $clear_tags_map->{ $id } }, $tags_id );
     }
@@ -592,6 +709,12 @@ sub _process_single_put_tag($$$)
     my $id_field  = "${ table }_id";
     my $map_table = "${ table }_tags_map";
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: add schema to be able to match
+    # with the big sharded table list
+    unless ( $map_table =~ /\./ ) {
+        $map_table = "public.$map_table";
+    }
+
     die( "input must be a list of records" ) unless ( ref( $put_tag ) eq ref( {} ) );
 
     die( "each record must include a '$id_field' field" ) unless ( $put_tag->{ $id_field } );
@@ -609,16 +732,81 @@ sub _process_single_put_tag($$$)
     my $action = $put_tag->{ action } || 'add';
     if ( $action eq 'add' )
     {
-        $db->query( <<SQL, $put_tag->{ $id_field }, $tag->{ tags_id } );
-insert into $map_table ( $id_field, tags_id )
-    select \$1, \$2 where not exists ( select 1 from $map_table where $id_field = \$1 and tags_id = \$2 )
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: revert back to using native
+        # upsert after row move
+        if ( $BIG_SHARDED_TABLES->{ $map_table } ) {
+            # Sharded with semi-updatable view
+
+            my $row_exists = $db->query( <<"SQL",
+                SELECT 1
+                FROM $map_table
+                WHERE
+                    $id_field = ? AND
+                    tags_id = ?
 SQL
+                $put_tag->{ $id_field }, $tag->{ tags_id }
+            )->hash();
+            unless ( $row_exists ) {
+                $db->query( <<SQL,
+                    INSERT INTO sharded_${map_table} ($id_field, tags_id)
+                    VALUES (?, ?)
+                    ON CONFLICT ($id_field, tags_id) DO NOTHING
+SQL
+                    $put_tag->{ $id_field }, $tag->{ tags_id }
+                );
+            }
+
+        } else {
+            # Unsharded, or sharded and already moved
+
+            $db->query( <<SQL,
+                INSERT INTO $map_table ($id_field, tags_id)
+                VALUES (?, ?)
+                ON CONFLICT ($id_field, tags_id) DO NOTHING
+SQL
+                $put_tag->{ $id_field }, $tag->{ tags_id }
+            );
+        }
+
     }
     elsif ( $action eq 'remove' )
     {
-        $db->query( <<SQL, $put_tag->{ $id_field }, $tag->{ tags_id } );
-delete from $map_table where $id_field = \$1 and tags_id = \$2
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: revert back to using native
+        # upsert after row move
+        if ( $BIG_SHARDED_TABLES->{ $map_table } ) {
+            # Sharded with semi-updatable view
+
+            $db->query( <<SQL,
+                DELETE FROM unsharded_${map_table}
+                WHERE
+                    $id_field = \$1 AND
+                    tags_id = \$2
 SQL
+                $put_tag->{ $id_field }, $tag->{ tags_id }
+            );
+            $db->query( <<SQL,
+                DELETE FROM sharded_${map_table}
+                WHERE
+                    $id_field = \$1 AND
+                    tags_id = \$2
+SQL
+                $put_tag->{ $id_field }, $tag->{ tags_id }
+            );
+
+        } else {
+            # Unsharded, or sharded and already moved
+
+            $db->query( <<SQL,
+                DELETE FROM $map_table
+                WHERE
+                    $id_field = \$1 AND
+                    tags_id = \$2
+SQL
+                $put_tag->{ $id_field }, $tag->{ tags_id }
+            );
+
+        }
+
     }
     else
     {
@@ -636,13 +824,15 @@ sub process_put_tags($$)
 {
     my ( $self, $c ) = @_;
 
+    my $db = $c->dbis;
+
     my $data = $c->req->data;
 
     die( "no JSON input" ) unless ( $data );
 
     die( "json must be a list" ) unless ( ref( $data ) eq ref( [] ) );
 
-    $c->dbis->begin;
+    $db->begin;
 
     my $put_tags = [ map { $self->_process_single_put_tag( $c, $_ ) } @{ $data } ];
 
@@ -658,7 +848,7 @@ sub process_put_tags($$)
 
         $self->_clear_tags( $c, $clear_tags_map );
     }
-    $c->dbis->commit;
+    $db->commit;
 }
 
 =head1 AUTHOR

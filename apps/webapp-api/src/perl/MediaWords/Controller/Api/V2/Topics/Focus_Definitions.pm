@@ -53,13 +53,16 @@ sub list_GET
     my $focal_set_definitions_id = int( $c->req->params->{ focal_set_definitions_id } // 0 )
       || die( "missing required param focal_set_definitions_id" );
 
-    my $fds = $db->query( <<SQL, $focal_set_definitions_id )->hashes;
-select $SQL_FIELD_LIST
-    from focus_definitions fd
-    where
-        focal_set_definitions_id = \$1
-    order by name
+    my $fds = $db->query( <<SQL,
+        SELECT $SQL_FIELD_LIST
+        FROM focus_definitions AS fd
+        WHERE
+            topics_id = \$1 AND
+            focal_set_definitions_id = \$2
+        ORDER BY name
 SQL
+        $topics_id, $focal_set_definitions_id
+    )->hashes;
 
     $self->status_ok( $c, entity => { focus_definitions => $fds } );
 }
@@ -82,12 +85,27 @@ sub create_GET
     eval { MediaWords::Solr::query_solr( $db, { q => $data->{ query }, rows => 0 } ) };
     die( "invalid solr query: $@" ) if ( $@ );
 
-    my $fd = $db->query(
-        <<SQL, $data->{ name }, $data->{ description }, $data->{ query }, $data->{ focal_set_definitions_id } )->hash;
-insert into focus_definitions ( name, description, arguments, focal_set_definitions_id )
-    select \$1, \$2, ( '{ "query": ' || to_json( \$3::text ) || ' }' )::json, \$4
-    returning $SQL_FIELD_LIST
+    my $fd = $db->query( <<SQL,
+        INSERT INTO focus_definitions (
+            topics_id,
+            name,
+            description,
+            arguments,
+            focal_set_definitions_id
+        )
+            SELECT
+                \$2 AS name,
+                \$3 AS description,
+                ('{ "query": ' || to_json( \$4::text ) || ' }')::JSONB AS arguments,
+                \$5 AS focal_set_definitions_id
+        RETURNING $SQL_FIELD_LIST
 SQL
+        $topics_id,
+        $data->{ name },
+        $data->{ description },
+        $data->{ query },
+        $data->{ focal_set_definitions_id }
+    )->hash;
 
     $self->status_ok( $c, entity => { focus_definitions => [ $fd ] } );
 }
@@ -103,9 +121,14 @@ sub delete_PUT
     my $topics_id            = $c->stash->{ topics_id };
     my $focus_definitions_id = $c->stash->{ path_id };
 
-    $c->dbis->query( <<SQL, $focus_definitions_id );
-delete from focus_definitions where focus_definitions_id = \$1
+    $c->dbis->query( <<SQL,
+        DELETE FROM focus_definitions
+        WHERE
+            topics_id = \$1 AND
+            focus_definitions_id = \$2
 SQL
+        $topics_id, $focus_definitions_id
+    );
 
     $self->status_ok( $c, entity => { success => 1 } );
 }

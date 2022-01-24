@@ -10,10 +10,17 @@ RUN \
     apt-get -y update && \
     if [ "$(dpkg --print-architecture)" = "arm64" ]; then \
         echo "Installing Graviton2-optimized PostgreSQL..." && \
-        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-aws-graviton2/releases/download/13.3-1.pgdg20.04%2B1/postgresql-13_13.3-1.pgdg20.04+1_arm64.deb" > /var/tmp/postgresql-13.deb && \
-        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-aws-graviton2/releases/download/13.3-1.pgdg20.04%2B1/postgresql-client-13_13.3-1.pgdg20.04+1_arm64.deb" > /var/tmp/postgresql-client-13.deb && \
-        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-aws-graviton2/releases/download/13.3-1.pgdg20.04%2B1/postgresql-plperl-13_13.3-1.pgdg20.04+1_arm64.deb" > /var/tmp/postgresql-plperl-13.deb && \
-        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-aws-graviton2/releases/download/13.3-1.pgdg20.04%2B1/libpq5_13.3-1.pgdg20.04+1_arm64.deb" > /var/tmp/libpq5.deb && \
+        #
+        # We might need newer libstdc++6 from PPA
+        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 60C317803A41BA51845E371A1E9377A2BA9EF27F && \
+        echo "deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu focal main" > /etc/apt/sources.list.d/ubuntu-toolchain-r-test.list && \
+        apt-get -y update && \
+        apt-get -y install libstdc++6 && \
+        #
+        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-citus-aws-graviton2/releases/download/14.1-2.pgdg20.04%2B1/postgresql-14_14.1-2.pgdg20.04+1_arm64.deb" > /var/tmp/postgresql-14.deb && \
+        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-citus-aws-graviton2/releases/download/14.1-2.pgdg20.04%2B1/postgresql-client-14_14.1-2.pgdg20.04+1_arm64.deb" > /var/tmp/postgresql-client-14.deb && \
+        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-citus-aws-graviton2/releases/download/14.1-2.pgdg20.04%2B1/postgresql-plperl-14_14.1-2.pgdg20.04+1_arm64.deb" > /var/tmp/postgresql-plperl-14.deb && \
+        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-citus-aws-graviton2/releases/download/14.1-2.pgdg20.04%2B1/libpq5_14.1-2.pgdg20.04+1_arm64.deb" > /var/tmp/libpq5.deb && \
         apt-get -y --no-install-recommends install \
             postgresql-client-common \
             postgresql-common \
@@ -25,17 +32,17 @@ RUN \
         && \
         # FIXME dpkg doesn't exit with non-zero status if dependencies are missing
         dpkg -i /var/tmp/libpq5.deb && \
-        dpkg -i /var/tmp/postgresql-client-13.deb && \
-        dpkg -i /var/tmp/postgresql-13.deb && \
-        dpkg -i /var/tmp/postgresql-plperl-13.deb && \
+        dpkg -i /var/tmp/postgresql-client-14.deb && \
+        dpkg -i /var/tmp/postgresql-14.deb && \
+        dpkg -i /var/tmp/postgresql-plperl-14.deb && \
         rm /var/tmp/*.deb && \
         true; \
     else \
         echo "Installing generic build of PostgreSQL..." && \
         apt-get -y --no-install-recommends install \
-            postgresql-13 \
-            postgresql-client-13 \
-            postgresql-plperl-13 \
+            postgresql-14 \
+            postgresql-client-14 \
+            postgresql-plperl-14 \
         && \
         true; \
     fi; \
@@ -44,18 +51,24 @@ RUN \
 # Install WAL-G for backing up PostgreSQL
 RUN \
     if [ "$(dpkg --print-architecture)" = "arm64" ]; then \
-        echo "Currently there's no official ARM64 build for WAL-G." && \
-        exit 1; \
+        sudo apt-get -y install xz-utils && \
+        /dl_to_stdout.sh https://github.com/mediacloud/wal-g-aws-graviton2/releases/download/v1.1/wal-g-pg-ubuntu-20.04-arm64-graviton2.xz > /var/tmp/wal-g.xz && \
+        cd /var/tmp/ && \
+        xz -d wal-g.xz && \
+        mv wal-g wal-g-pg-ubuntu-20.04-amd64 && \
+        apt-get remove xz-utils && \
+        true; \
+    else \
+        /dl_to_stdout.sh https://github.com/wal-g/wal-g/releases/download/v1.1/wal-g-pg-ubuntu-20.04-amd64.tar.gz > /var/tmp/wal-g.tar.gz && \
+        cd /var/tmp/ && \
+        #
+        # Verify SHA1 so that we're sure about what we're installing
+        echo "f7cc6bf4d3f8e36cf05ae7fdd03bd3a0906359a3 wal-g.tar.gz" > /var/tmp/wal-g.tar.gz.sha1 && \
+        sha1sum -c wal-g.tar.gz.sha1 && \
+        tar -zxf wal-g.tar.gz && \
+        rm /var/tmp/wal-g.tar.gz* && \
+        true; \
     fi; \
-    #
-    /dl_to_stdout.sh https://github.com/wal-g/wal-g/releases/download/v1.1/wal-g-pg-ubuntu-20.04-amd64.tar.gz > /var/tmp/wal-g.tar.gz && \
-    cd /var/tmp/ && \
-    #
-    # Verify SHA1 so that we're sure about what we're installing
-    echo "f7cc6bf4d3f8e36cf05ae7fdd03bd3a0906359a3 wal-g.tar.gz" > /var/tmp/wal-g.tar.gz.sha1 && \
-    sha1sum -c wal-g.tar.gz.sha1 && \
-    tar -zxf wal-g.tar.gz && \
-    rm /var/tmp/wal-g.tar.gz* && \
     #
     # Users are expected to use wal-g.sh wrapper instead of "wal-g" binary directly
     mv wal-g-pg-ubuntu-20.04-amd64 /usr/bin/_wal-g && \
@@ -64,13 +77,17 @@ RUN \
 
 # Make some run directories
 RUN \
-    mkdir -p /var/run/postgresql/13-main.pg_stat_tmp && \
-    chown -R postgres:postgres /var/run/postgresql/13-main.pg_stat_tmp && \
+    mkdir -p /var/run/postgresql/14-main.pg_stat_tmp && \
+    chown -R postgres:postgres /var/run/postgresql/14-main.pg_stat_tmp && \
     true
 
 # Write our own configuration
-RUN rm -rf /etc/postgresql/13/main/
-COPY etc/postgresql/13/main/ /etc/postgresql/13/main/
+RUN \
+    rm -rf /etc/postgresql/14/ && \
+    mkdir -p /etc/postgresql/14/extra/ && \
+    true
+
+COPY etc/postgresql/14/main/ /etc/postgresql/14/main/
 
 RUN \
     #
@@ -110,16 +127,16 @@ RUN \
     #
     # Remove APT-initialized data directory because it doesn't have the right
     # locale, doesn't use checksums etc.
-    rm -rf /var/lib/postgresql/13/main/ && \
+    rm -rf /var/lib/postgresql/14/main/ && \
     #
     # Generate memory configuration in case we decide to start PostgreSQL at
     # build time
     /opt/postgresql-base/bin/generate_runtime_config.sh && \
     #
     # Run initdb
-    mkdir -p /var/lib/postgresql/13/main/ && \
-    /usr/lib/postgresql/13/bin/initdb \
-        --pgdata=/var/lib/postgresql/13/main/ \
+    mkdir -p /var/lib/postgresql/14/main/ && \
+    /usr/lib/postgresql/14/bin/initdb \
+        --pgdata=/var/lib/postgresql/14/main/ \
         --data-checksums \
         --encoding=UTF-8 \
         --lc-collate='en_US.UTF-8' \

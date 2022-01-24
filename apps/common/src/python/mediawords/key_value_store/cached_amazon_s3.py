@@ -70,6 +70,9 @@ class CachedAmazonS3Store(AmazonS3Store):
         try:
             content = self._compress_data_for_method(data=content, compression_method=self.__cache_compression_method)
 
+            # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: cache happens only on a
+            # sharded table with no updatable view in front of it so there's no
+            # need to do "INSERT ... WHERE NOT EXISTS" trick here
             sql = "INSERT INTO %s " % self.__cache_table  # interpolated by Python
             sql += "(object_id, raw_data) "
             sql += "VALUES (%(object_id)s, %(raw_data)s) "  # interpolated by psycopg2
@@ -157,10 +160,10 @@ class CachedAmazonS3Store(AmazonS3Store):
         return content
 
     def store_content(self,
-            db: DatabaseHandler,
-            object_id: int,
-            content: Union[str, bytes],
-            content_type: str='binary/octet-stream') -> str:
+                      db: DatabaseHandler,
+                      object_id: int,
+                      content: Union[str, bytes],
+                      content_type: str = 'binary/octet-stream') -> str:
         """Write object to Amazon S3, cache it locally too."""
 
         object_id = self._prepare_object_id(object_id)

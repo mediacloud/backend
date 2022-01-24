@@ -748,7 +748,7 @@ class TestDatabaseHandler(TestCase):
         # Single
         self.__db.query("""
             CREATE TEMPORARY TABLE names (
-               id INT NOT NULL,
+               id BIGINT NOT NULL,
                name VARCHAR NOT NULL
             );
             INSERT INTO names (id, name)
@@ -789,7 +789,7 @@ class TestDatabaseHandler(TestCase):
         # Not single
         self.__db.query("""
             CREATE TEMPORARY TABLE dogs (
-               owner_id INT NOT NULL,
+               owner_id BIGINT NOT NULL,
                dog_name VARCHAR NOT NULL
             );
             INSERT INTO dogs (owner_id, dog_name)

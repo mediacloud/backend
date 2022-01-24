@@ -26,14 +26,22 @@ def test_find_and_merge_dup_stories():
 
     find_and_merge_dup_stories(db, topic)
 
-    num_topic_stories = db.query(
-        "select count(*) from topic_stories where topics_id = %(a)s",
-        {'a': topic['topics_id']}).flat()[0]
+    num_topic_stories = db.query("""
+        SELECT COUNT(*)
+        FROM topic_stories
+        WHERE topics_id = %(topics_id)s
+    """, {
+        'topics_id': topic['topics_id'],
+    }).flat()[0]
 
     assert num_topic_stories == 3
 
-    num_distinct_titles = db.query(
-        "select count(distinct normalized_title_hash) from snap.live_stories where topics_id = %(a)s",
-        {'a': topic['topics_id']}).flat()[0]
+    num_distinct_titles = db.query("""
+        SELECT COUNT(DISTINCT normalized_title_hash)
+        FROM snap.live_stories
+        WHERE topics_id = %(topics_id)s
+    """, {
+        'topics_id': topic['topics_id'],
+    }).flat()[0]
 
     assert num_distinct_titles == 3

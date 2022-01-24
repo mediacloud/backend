@@ -1265,11 +1265,6 @@ Output:
       "role": "stories-edit"
     },
     {
-      "auth_roles_id": 7,
-      "description": "Access to the stories api",
-      "role": "stories-api"
-    },
-    {
       "auth_roles_id": 6,
       "description": "Topic mapper; includes media and story editing",
       "role": "tm"

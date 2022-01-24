@@ -43,8 +43,12 @@ SQL
         );
     }
 
-    my $expected_auth_users =
-      $db->query( "select * from auth_users join auth_user_limits using ( auth_users_id )" )->hashes();
+    my $expected_auth_users = $db->query( <<SQL
+        SELECT *
+        FROM auth_users
+            INNER JOIN auth_user_limits USING (auth_users_id)
+SQL
+    )->hashes();
 
     my $label = "users/list";
 
@@ -87,12 +91,17 @@ SQL
     };
     $r = MediaWords::Test::API::test_put( '/api/v2/users/update', $input_data );
 
-    my $updated_user = $db->query( <<SQL, $search_user->{ auth_users_id } )->hash();
-select au.*, aul.max_topic_stories, aul.weekly_requests_limit
-    from auth_users au
-        join auth_user_limits aul using ( auth_users_id )
-    where au.auth_users_id = ?
+    my $updated_user = $db->query( <<SQL,
+        SELECT
+            au.*,
+            aul.max_topic_stories,
+            aul.weekly_requests_limit
+        FROM auth_users AS au
+            INNER JOIN auth_user_limits AS aul USING (auth_users_id)
+        WHERE au.auth_users_id = ?
 SQL
+        $search_user->{ auth_users_id }
+    )->hash();
 
     MediaWords::Test::Rows::rows_match( $label, [ $updated_user ], [ $input_data ], 'auth_users_id', [ keys( %{ $input_data } ) ] );
 
@@ -103,7 +112,7 @@ SQL
         $db->create( 'auth_roles', { role => "role_$i", description => "description $i" } );
     }
 
-    my $expected_auth_roles = $db->query( "select * from auth_roles" )->hashes();
+    my $expected_auth_roles = $db->query( "SELECT * FROM auth_roles" )->hashes();
 
     $r = MediaWords::Test::API::test_get( '/api/v2/users/list_roles', {} );
     MediaWords::Test::Rows::rows_match( $label, $r->{ roles }, $expected_auth_roles, 'auth_roles_id', [ qw/role description/ ] );
@@ -114,9 +123,15 @@ SQL
     my $update_input = { auth_users_id => $search_user->{ auth_users_id }, roles => [ $user_role->{ role } ] };
     $r = MediaWords::Test::API::test_put( '/api/v2/users/update', $update_input );
 
-    my $role_present = $db->query( <<SQL, $search_user->{ auth_users_id }, $user_role->{ auth_roles_id } )->hash();
-        select * from auth_users_roles_map where auth_users_id = \$1 and auth_roles_id = \$2
+    my $role_present = $db->query( <<SQL,
+        SELECT *
+        FROM auth_users_roles_map
+        WHERE
+            auth_users_id = \$1 AND
+            auth_roles_id = \$2
 SQL
+        $search_user->{ auth_users_id }, $user_role->{ auth_roles_id }
+    )->hash();
 
     ok( $role_present, $label );
 
@@ -125,9 +140,13 @@ SQL
     $update_input = { auth_users_id => $search_user->{ auth_users_id }, roles => [] };
     $r = MediaWords::Test::API::test_put( '/api/v2/users/update', $update_input );
 
-    $role_present = $db->query( <<SQL, $search_user->{ auth_users_id } )->hash();
-        select * from auth_users_roles_map where auth_users_id = \$1
+    $role_present = $db->query( <<SQL,
+        SELECT *
+        FROM auth_users_roles_map
+        WHERE auth_users_id = \$1
 SQL
+        $search_user->{ auth_users_id }
+    )->hash();
 
     ok( !$role_present, $label );
 

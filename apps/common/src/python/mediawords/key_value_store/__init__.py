@@ -31,10 +31,10 @@ class KeyValueStore(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def store_content(self,
-            db: DatabaseHandler,
-            object_id: int,
-            content: Union[str, bytes],
-            content_type: str='binary/octet-stream') -> str:
+                      db: DatabaseHandler,
+                      object_id: int,
+                      content: Union[str, bytes],
+                      content_type: str = 'binary/octet-stream') -> str:
         """Write object (str or bytes). Returns path to the object on success, raises on error."""
         raise NotImplementedError("Abstract method.")
 

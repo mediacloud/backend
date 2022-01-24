@@ -23,7 +23,7 @@ sub test_stats($)
 
     MediaWords::DBI::Stats::refresh_stats( $db );
 
-    my $ms = $db->query( "select * from mediacloud_stats" )->hash;
+    my $ms = $db->query( "SELECT * FROM mediacloud_stats" )->hash;
 
     my $r = MediaWords::Test::API::test_get( '/api/v2/stats/list', {} );
 

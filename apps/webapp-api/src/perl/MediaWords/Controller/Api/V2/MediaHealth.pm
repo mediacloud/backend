@@ -41,7 +41,15 @@ sub _add_nested_data
 
     my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ media_id } ) } @{ $media } ] );
 
-    my $gaps = $db > query( "select * from media_coverage_gaps where media_id in ( select id from $ids_table ) " )->hashes;
+    my $gaps = $db->query( <<SQL,
+        SELECT *
+        FROM media_coverage_gaps
+        WHERE media_id IN (
+            SELECT id
+            FROM $ids_table
+        )
+SQL
+    )->hashes;
 
     my $gaps_lookup = {};
     map { push( @{ $gaps_lookup->{ $_->{ media_id } } }, $_ ) } @{ $gaps };
@@ -67,9 +75,16 @@ sub list_GET
 
     my $ids_table = $db->get_temporary_ids_table( $media_ids );
 
-    my $media_health = $db->query( <<SQL )->hashes;
-select mh.* from media_health mh join $ids_table ids on ( mh.media_id = ids.id ) order by mh.media_id
+    my $media_health = $db->query( <<SQL
+        SELECT *
+        FROM media_health
+        WHERE media_id IN (
+            SELECT id
+            FROM $ids_table
+        )
+        ORDER BY media_id
 SQL
+    )->hashes;
 
     my $mh_numify_fields = [
         qw/num_stories num_stories_y num_stories_w num_stories_90 num_sentences num_sentences_y num_sentences_w/,
@@ -77,9 +92,16 @@ SQL
     ];
     MediaWords::Util::ParseJSON::numify_fields( $media_health, $mh_numify_fields );
 
-    my $gaps = $db->query( <<SQL )->hashes;
-select mcg.* from media_coverage_gaps mcg join $ids_table ids on ( mcg.media_id = ids.id ) order by mcg.stat_week
+    my $gaps = $db->query( <<SQL
+        SELECT *
+        FROM media_coverage_gaps
+        WHERE media_id IN (
+            SELECT id
+            FROM $ids_table
+        )
+        ORDER BY stat_week
 SQL
+    )->hashes;
 
     my $gap_numify_fields = [ qw/num_stories expected_stories num_sentences expected_sentences/ ];
     MediaWords::Util::ParseJSON::numify_fields( $gaps, $gap_numify_fields );

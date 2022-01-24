@@ -1,5 +1,4 @@
 import os
-import re
 import socket
 from typing import Union, List, Dict, Any
 
@@ -34,16 +33,54 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY, None)
 class DatabaseHandler(object):
     """PostgreSQL middleware (imitates DBIx::Simple's interface)."""
 
-    # Min. "deadlock_timeout" to not cause problems under load (in seconds)
-    __MIN_DEADLOCK_TIMEOUT = 5
-
     # "Double percentage sign" marker (see handler's quote() for explanation)
     __DOUBLE_PERCENTAGE_SIGN_MARKER = "<DOUBLE PERCENTAGE SIGN: " + random_string(length=16) + ">"
 
-    # Whether or not "deadlock_timeout" was checked
-    # * lowercase because it's not a constant
-    # * class variable because we don't need to do it on every connect_to_db())
-    __deadlock_timeout_checked = False
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: list of huge sharded tables that have a somewhat-updatable
+    # view in front of them which only supports SELECTs and INSERTs but not UPDATEs and DELETEs, and
+    # therefore for which we need to manually run UPDATEs and DELETEs on both underlying (sharded and
+    # unsharded) tables: https://github.com/citusdata/citus/issues/2046
+    __BIG_SHARDED_TABLES_WITH_SOMEWHAT_UPDATABLE_VIEW = {
+        'public.auth_user_request_daily_counts',
+        'public.download_texts',
+        'public.downloads',
+        'public.feeds_stories_map',
+        'public.feeds_stories_map_p',
+        'public.media_coverage_gaps',
+        'public.media_stats',
+        'public.processed_stories',
+        'public.scraped_stories',
+        'public.solr_import_stories',
+        'public.solr_imported_stories',
+        'public.stories',
+        'public.stories_ap_syndicated',
+        'public.stories_tags_map',
+        'public.stories_tags_map_p',
+        'public.story_enclosures',
+        'public.story_sentences',
+        'public.story_sentences_p',
+        'public.story_statistics',
+        'public.story_urls',
+        'public.topic_fetch_urls',
+        'public.topic_links',
+        'public.topic_merged_stories_map',
+        'public.topic_post_urls',
+        'public.topic_posts',
+        'public.topic_seed_urls',
+        'public.topic_stories',
+        'snap.live_stories',
+        'snap.media',
+        'snap.media_tags_map',
+        'snap.medium_link_counts',
+        'snap.medium_links',
+        'snap.stories',
+        'snap.stories_tags_map',
+        'snap.story_link_counts',
+        'snap.story_links',
+        'snap.timespan_posts',
+        'snap.topic_links_cross_media',
+        'snap.topic_stories',
+    }
 
     __slots__ = [
 
@@ -139,22 +176,6 @@ class DatabaseHandler(object):
 
         # Queries to have immediate effect by default
         self.__conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
-
-        # Check deadlock_timeout
-        if not DatabaseHandler.__deadlock_timeout_checked:
-            (deadlock_timeout,) = self.query("SHOW deadlock_timeout").flat()
-            deadlock_timeout = re.sub(r'\s*s$', '', deadlock_timeout, re.I)
-            deadlock_timeout = int(deadlock_timeout)
-            if deadlock_timeout == 0:
-                raise McConnectException("'deadlock_timeout' is 0, probably unable to read it")
-            if deadlock_timeout < DatabaseHandler.__MIN_DEADLOCK_TIMEOUT:
-                log.warning(
-                    '"deadlock_timeout" is less than "{}", expect deadlocks on high extractor load.'.format(
-                        DatabaseHandler.__MIN_DEADLOCK_TIMEOUT
-                    )
-                )
-
-            DatabaseHandler.__deadlock_timeout_checked = True
 
     def disconnect(self) -> None:
         """Disconnect from the database."""
@@ -350,6 +371,28 @@ class DatabaseHandler(object):
         table = decode_object_from_bytes_if_needed(table)
         update_hash = decode_object_from_bytes_if_needed(update_hash)
 
+        if '.' not in table:
+            table = f"public.{table}"
+
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK:
+        if table in self.__BIG_SHARDED_TABLES_WITH_SOMEWHAT_UPDATABLE_VIEW:
+
+            unsharded_result = self.update_by_id(
+                table=f"unsharded_{table}",
+                object_id=object_id,
+                update_hash=update_hash,
+            )
+            sharded_result = self.update_by_id(
+                table=f"sharded_{table}",
+                object_id=object_id,
+                update_hash=update_hash,
+            )
+
+            if unsharded_result:
+                return unsharded_result
+            else:
+                return sharded_result
+
         update_hash = update_hash.copy()  # To be able to safely modify it
 
         # MC_REWRITE_TO_PYTHON: remove after getting rid of Catalyst
@@ -358,12 +401,18 @@ class DatabaseHandler(object):
 
         update_hash = {k: v for k, v in update_hash.items() if not k.startswith("_")}
 
-        if len(update_hash) == 0:
-            raise McUpdateByIDException("Hash to UPDATE is empty.")
-
         primary_key_column = self.primary_key_column(table)
         if not primary_key_column:
             raise McUpdateByIDException("Primary key for table '%s' was not found" % table)
+
+        # Don't try to "update" the primary key value if it remains the
+        # same (which breaks sharding in some cases)
+        if primary_key_column in update_hash.keys():
+            if int(update_hash[primary_key_column]) == object_id:
+                del update_hash[primary_key_column]
+
+        if len(update_hash) == 0:
+            raise McUpdateByIDException("Hash to UPDATE is empty.")
 
         keys = []
         for key, value in update_hash.items():
@@ -401,6 +450,16 @@ class DatabaseHandler(object):
         object_id = int(object_id)
 
         table = decode_object_from_bytes_if_needed(table)
+
+        if '.' not in table:
+            table = f"public.{table}"
+
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK:
+        if table in self.__BIG_SHARDED_TABLES_WITH_SOMEWHAT_UPDATABLE_VIEW:
+            self.delete_by_id(table=f"unsharded_{table}", object_id=object_id)
+            self.delete_by_id(table=f"sharded_{table}", object_id=object_id)
+
+            return
 
         primary_key_column = self.primary_key_column(table)
         if not primary_key_column:
@@ -716,7 +775,7 @@ class DatabaseHandler(object):
 
         primary_key_clause = ""
         if ordered:
-            primary_key_clause = "%s_pkey SERIAL PRIMARY KEY," % table_name
+            primary_key_clause = "%s_pkey BIGSERIAL PRIMARY KEY," % table_name
 
         sql = """CREATE TEMPORARY TABLE %s (""" % table_name
         sql += primary_key_clause

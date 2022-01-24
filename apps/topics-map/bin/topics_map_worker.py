@@ -53,8 +53,23 @@ def run_job(snapshots_id: int = None, timespans_id: int = None) -> None:
         timespans_ids = [timespans_id]
 
     for timespans_id in timespans_ids:
-        log.info("generating maps for timespan %s" % timespans_id)
-        generate_and_store_maps(db=db, timespans_id=timespans_id, memory_limit_mb=_memory_limit_mb)
+
+        # FIXME could be passed as an argument
+        topics_id = db.query("""
+            SELECT topics_id
+            FROM timespans
+            WHERE timespans_id = %(timespans_id)s
+        """, {
+            'timespans_id': timespans_id,
+        }).flat()[0]
+
+        log.info(f"Generating maps for topic {topics_id}, timespan {timespans_id}")
+        generate_and_store_maps(
+            db=db,
+            topics_id=topics_id,
+            timespans_id=timespans_id,
+            memory_limit_mb=_memory_limit_mb,
+        )
 
 
 if __name__ == '__main__':

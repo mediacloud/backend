@@ -13,7 +13,12 @@ class TestWriteGEXF(TestMap):
     def test_write_gexf(self):
         db = self.db
 
-        graph = generate_and_layout_graph(db=db, timespans_id=self.timespan['timespans_id'], memory_limit_mb=512)
+        graph = generate_and_layout_graph(
+            db=db,
+            topics_id=self.timespan['topics_id'],
+            timespans_id=self.timespan['timespans_id'],
+            memory_limit_mb=512,
+        )
 
         gexf = write_gexf(graph)
 

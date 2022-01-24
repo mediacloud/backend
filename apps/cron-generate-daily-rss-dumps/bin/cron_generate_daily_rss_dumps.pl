@@ -31,14 +31,18 @@ sub generate_daily_dump($$$)
 
     INFO( "querying stories for $day ..." );
 
-    my $stories = $db->query( <<SQL, $day )->hashes;
-select url, guid
-    from stories
-        where
-            collect_date >= \$1::date and
-            collect_date < \$1::date + '1 day'::interval
-        order by collect_date desc
+    my $stories = $db->query( <<SQL,
+        SELECT
+            url,
+            guid
+        FROM stories
+        WHERE
+            collect_date >= \$1::DATE AND
+            collect_date < \$1::DATE + '1 day'::INTERVAL
+        ORDER BY collect_date DESC
 SQL
+        $day
+    )->hashes;
 
     INFO "exporting " . scalar( @{ $stories } ) . " urls ...";
 

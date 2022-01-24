@@ -53,6 +53,29 @@ class TestWord2vec(TestCase):
         """, {'topics_id': self.topics_id}).flat()[0]
 
         self.db.query("""
-            INSERT INTO snap.stories (snapshots_id, media_id, stories_id, url, guid, title, publish_date, collect_date)
-            SELECT %(snapshots_id)s, media_id, stories_id, url, guid, title, publish_date, collect_date FROM stories
-        """, {'snapshots_id': self.snapshots_id})
+            INSERT INTO snap.stories (
+                topics_id,
+                snapshots_id,
+                media_id,
+                stories_id,
+                url,
+                guid,
+                title,
+                publish_date,
+                collect_date
+            )
+                SELECT
+                    %(topics_id)s,
+                    %(snapshots_id)s,
+                    media_id,
+                    stories_id,
+                    url,
+                    guid,
+                    title,
+                    publish_date,
+                    collect_date
+                FROM stories
+        """, {
+            'topics_id': self.topics_id,
+            'snapshots_id': self.snapshots_id
+        })

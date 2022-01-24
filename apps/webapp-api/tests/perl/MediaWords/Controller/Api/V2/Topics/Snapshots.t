@@ -30,8 +30,7 @@ sub test_generate_fetch_word2vec_model($)
     my $topics_id = $topic->{ topics_id };
 
     # Allow test user to "write" to this topic
-    my $auth_user = $db->query(
-        <<SQL,
+    my $auth_user = $db->query( <<SQL,
         SELECT auth_users_id
         FROM auth_user_api_keys
         WHERE api_key = ?
@@ -49,16 +48,14 @@ SQL
     );
 
     # Add all test stories to the test topic
-    $db->query(
-        <<SQL,
+    $db->query( <<SQL,
         INSERT INTO topic_stories (topics_id, stories_id)
         SELECT ?, stories_id FROM stories
 SQL
         $topics_id
     );
 
-    my $snapshots_id = $db->query(
-        <<SQL,
+    my $snapshots_id = $db->query( <<SQL,
         INSERT INTO snapshots (topics_id, snapshot_date, start_date, end_date)
         VALUES (?, NOW(), NOW(), NOW())
         RETURNING snapshots_id
@@ -66,12 +63,31 @@ SQL
         $topics_id
     )->flat->[ 0 ];
 
-    $db->query(
-        <<SQL,
-        INSERT INTO snap.stories (snapshots_id, media_id, stories_id, url, guid, title, publish_date, collect_date)
-        SELECT ?, media_id, stories_id, url, guid, title, publish_date, collect_date FROM stories
+    $db->query( <<SQL,
+        INSERT INTO snap.stories (
+            topics_id,
+            snapshots_id,
+            media_id,
+            stories_id,
+            url,
+            guid,
+            title,
+            publish_date,
+            collect_date
+        )
+            SELECT
+                ? AS topics_id,
+                ? AS snapshots_id,
+                media_id,
+                stories_id,
+                url,
+                guid,
+                title,
+                publish_date,
+                collect_date
+            FROM stories
 SQL
-        $snapshots_id
+        $topics_id, $snapshots_id
     );
 
     # Test that no models exist for snapshot

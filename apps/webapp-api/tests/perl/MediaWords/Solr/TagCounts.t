@@ -36,9 +36,44 @@ sub run_solr_tests($)
     );
 
     # Delete test tags added by create_test_story_stack_for_indexing()
+    # (for whatever reason deleting from "tags" doesn't cascade into stories_tags_map)
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+    $db->query(<<SQL,
+        WITH tag_ids_to_delete AS (
+            SELECT tags_id
+            FROM tags
+            WHERE tag LIKE ?
+        )
+        DELETE FROM unsharded_public.stories_tags_map
+        WHERE tags_id IN (
+            SELECT tags_id
+            FROM tag_ids_to_delete
+        )
+SQL
+        'test_%'
+    );
+    $db->query(<<SQL,
+        WITH tag_ids_to_delete AS (
+            SELECT tags_id
+            FROM tags
+            WHERE tag LIKE ?
+        )
+        DELETE FROM sharded_public.stories_tags_map
+        WHERE tags_id IN (
+            SELECT tags_id
+            FROM tag_ids_to_delete
+        )
+SQL
+        'test_%'
+    );
     $db->query('DELETE FROM tags WHERE tag LIKE ?', 'test_%');
 
-    my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
+    my $test_stories = $db->query( <<SQL
+        SELECT *
+        FROM stories
+        ORDER BY MD5(stories_id::TEXT)
+SQL
+    )->hashes;
 
     my $num_tag_sets = 2;
     my $num_tags     = 5;
@@ -47,16 +82,24 @@ sub run_solr_tests($)
         my $tag_set = $db->create( 'tag_sets', { name => "tag_set_$tsi", label => "Tag Set $tsi" } );
         for my $ti ( 1 .. $num_tags )
         {
-            my $tag =
-              $db->create( 'tags', { tag => "tag_$ti", label => "Tag $ti", tag_sets_id => $tag_set->{ tag_sets_id } } );
+            my $tag = $db->create( 'tags', {
+                tag => "tag_$ti",
+                label => "Tag $ti",
+                tag_sets_id => $tag_set->{ tag_sets_id }
+            } );
             my $num_tag_stories = $tag->{ tags_id } * 2;
             for my $i ( 1 .. $num_tag_stories )
             {
                 my $tag_story = shift( @{ $test_stories } );
                 push( @{ $test_stories }, $tag_story );
-                $db->query( <<SQL, $tag->{ tags_id }, $tag_story->{ stories_id } );
-insert into stories_tags_map ( tags_id, stories_id ) values ( ?, ? ) on conflict do nothing
+
+                # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
+                $db->query( <<SQL,
+                    INSERT INTO public.stories_tags_map (stories_id, tags_id)
+                    VALUES (?, ?)
 SQL
+                    $tag_story->{ stories_id }, $tag->{ tags_id }
+                );
             }
         }
     }
@@ -64,24 +107,34 @@ SQL
     MediaWords::Test::Solr::setup_test_index( $db );
 
     my $query_media_id = $media->{ medium_1 }->{ media_id };
-    my $got_tag_counts = MediaWords::Solr::TagCounts::query_tag_counts( $db, { q => "media_id:$query_media_id" } );
+    my $got_tag_counts = MediaWords::Solr::TagCounts::query_tag_counts( $db, { 'q' => "media_id:$query_media_id" } );
 
-    my $expected_tag_counts = $db->query( <<SQL, $query_media_id )->hashes;
-with tag_counts as (
-    select count(*) c, stm.tags_id
-        from stories_tags_map stm
-            join stories s using ( stories_id )
-        where
-            s.media_id = ?
-        group by stm.tags_id
-)
+    my $expected_tag_counts = $db->query( <<SQL,
+        WITH tag_counts AS (
+            SELECT
+                COUNT(*) AS c,
+                stories_tags_map.tags_id
+            FROM stories_tags_map
+                INNER JOIN stories USING (stories_id)
+            WHERE stories.media_id = ?
+            GROUP BY stories_tags_map.tags_id
+        )
 
-select c count, t.*, ts.name tag_set_name, ts.label tag_set_label
-    from tags t
-        join tag_sets ts using ( tag_sets_id )
-        join tag_counts tc using ( tags_id )
-    order by c desc, t.tags_id asc limit 100
+        SELECT
+            tag_counts.c AS count,
+            tags.*,
+            tag_sets.name AS tag_set_name,
+            tag_sets.label AS tag_set_label
+        FROM tags
+            INNER JOIN tag_sets USING (tag_sets_id)
+            INNER JOIN tag_counts USING (tags_id)
+        ORDER BY
+            tag_counts.c DESC,
+            tags.tags_id ASC
+        LIMIT 100
 SQL
+        $query_media_id
+    )->hashes;
 
     my $num_tag_counts = scalar( @{ $got_tag_counts } );
     map { ok( $got_tag_counts->[ $_ ]->{ count } >= $got_tag_counts->[ $_ + 1 ]->{ count }, "Individual tag counts" ) }

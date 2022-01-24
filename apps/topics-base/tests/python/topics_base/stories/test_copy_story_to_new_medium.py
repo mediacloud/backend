@@ -33,20 +33,35 @@ def test_copy_story_to_new_medium():
     for field in 'title url guid publish_date'.split():
         assert old_story[field] == new_story[field]
 
-    topic_story_exists = db.query(
-        "select * from topic_stories where topics_id = %(a)s and stories_id = %(b)s",
-        {'a': topic['topics_id'], 'b': new_story['stories_id']}).hash()
+    topic_story_exists = db.query("""
+        SELECT *
+        FROM topic_stories
+        WHERE
+            topics_id = %(topics_id)s AND
+            stories_id = %(stories_id)s
+    """, {
+        'topics_id': topic['topics_id'],
+        'stories_id': new_story['stories_id'],
+    }).hash()
     assert topic_story_exists is not None
 
-    new_download = db.query(
-        "select * from downloads where stories_id = %(a)s",
-        {'a': new_story['stories_id']}).hash()
+    new_download = db.query("""
+        SELECT *
+        FROM downloads
+        WHERE stories_id = %(stories_id)s
+    """, {
+        'stories_id': new_story['stories_id'],
+    }).hash()
     assert new_download is not None
 
     content = fetch_content(db, new_download)
     assert content is not None and len(content) > 0
 
-    story_sentences = db.query(
-        "select * from story_sentences where stories_id = %(a)s",
-        {'a': new_story['stories_id']}).hashes()
+    story_sentences = db.query("""
+        SELECT *
+        FROM story_sentences
+        WHERE stories_id = %(stories_id)s
+    """, {
+        'stories_id': new_story['stories_id'],
+    }).hashes()
     assert len(story_sentences) > 0

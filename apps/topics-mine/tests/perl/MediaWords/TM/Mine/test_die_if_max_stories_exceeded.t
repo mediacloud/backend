@@ -29,7 +29,8 @@ sub test_die_if_max_stories_exceeded($)
     eval { MediaWords::TM::Mine::die_if_max_stories_exceeded( $db, $topic ); };
     ok( $@, "$label adding 101 stories to 0 max_stories topic generates error" );
 
-    $db->query( "delete from topic_stories where topics_id = ?", $topic->{ topics_id } );
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
+    $db->query( "DELETE FROM sharded_public.topic_stories WHERE topics_id = ?", $topic->{ topics_id } );
 
     $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { max_stories => 100 } );
 

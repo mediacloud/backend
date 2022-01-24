@@ -57,9 +57,6 @@ Readonly my @SOLR_FIELDS => qw/stories_id media_id publish_date publish_day publ
 # how many sentences to fetch at a time from the postgres query
 Readonly my $FETCH_BLOCK_SIZE => 100;
 
-# default stories queue table
-Readonly my $DEFAULT_STORIES_QUEUE_TABLE => 'solr_import_stories';
-
 # default time sleep when there are less than MIN_STORIES_TO_PROCESS:
 Readonly my $DEFAULT_THROTTLE => 60;
 
@@ -69,9 +66,6 @@ Readonly my $MIN_STORIES_TO_PROCESS => 1000;
 # mark date before generating dump for storing in solr_imports after successful import
 my $_import_date;
 
-# options
-my $_stories_queue_table;
-
 # keep track of the max stories_id from the last time we queried the queue table so that we don't have to
 # page through a ton of dead rows when importing a big queue table
 my $_last_max_queue_stories_id;
@@ -79,12 +73,6 @@ my $_last_max_queue_stories_id;
 =head2 FUNCTIONS
 
 =cut
-
-# return the $_stories_queue_table, which is set by the queue_table option of import_data()
-sub _get_stories_queue_table
-{
-    return $_stories_queue_table;
-}
 
 # add enough stories from the stories queue table to the delta_import_stories table that there are up to
 # _get_maxed_queued_stories in delta_import_stories for each solr_import
@@ -94,8 +82,6 @@ sub _add_stories_to_import
 
     my $max_queued_stories = MediaWords::Util::Config::SolrImport::max_queued_stories();
 
-    my $stories_queue_table = _get_stories_queue_table();
-
     # first import any stories from snapshotted topics so that those snapshots become searchable ASAP.
     # do this as a separate query because I couldn't figure out a single query that resulted in a reasonable
     # postgres query plan given a very large stories queue table
@@ -103,9 +89,15 @@ sub _add_stories_to_import
         <<"SQL",
         INSERT INTO delta_import_stories (stories_id)
             SELECT sies.stories_id
-            FROM $stories_queue_table sies
-                join snap.stories ss using ( stories_id )
-                join snapshots s on ( ss.snapshots_id = s.snapshots_id and not s.searchable )
+            FROM solr_import_stories AS sies
+            WHERE stories_id IN (
+                SELECT stories_id
+                FROM snap.stories
+                    INNER JOIN snapshots ON
+                        snap.stories.topics_id = snapshots.topics_id AND
+                        snap.stories.snapshots_id = snapshots.snapshots_id AND
+                        (NOT snapshots.searchable)
+            )
             ORDER BY sies.stories_id
             LIMIT ?
 SQL
@@ -131,16 +123,18 @@ SQL
         $sort_order     = 'asc';
     }
 
-    # order by stories_id so that we will tend to get story_sentences in chunked pages as much as possible; just using
-    # random stories_ids for collections of old stories (for instance queued to the stories queue table from a
-    # media tag update) can make this query a couple orders of magnitude slower
+    # order by stories_id so that we will tend to get story_sentences in
+    # chunked pages as much as possible; just using random stories_ids for
+    # collections of old stories (for instance queued to the stories queue
+    # table from a media tag update) can make this query a couple orders of
+    # magnitude slower
     $num_queued_stories += $db->query(
         <<"SQL",
         INSERT INTO delta_import_stories (stories_id)
             SELECT stories_id
-            FROM $stories_queue_table s
+            FROM solr_import_stories
             WHERE stories_id > ?
-            ORDER BY stories_id desc
+            ORDER BY stories_id DESC
             LIMIT ?
 SQL
         $min_stories_id,
@@ -149,25 +143,27 @@ SQL
 
     if ( $num_queued_stories > 0 )
     {
-        ( $_last_max_queue_stories_id ) = $db->query( "select max( stories_id ) from delta_import_stories" )->flat();
-
-        my $stories_queue_table = _get_stories_queue_table();
-
-        # remove the schema if present
-        my $relname = _get_stories_queue_table();
-        $relname =~ s/.*\.//;
+        ( $_last_max_queue_stories_id ) = $db->query( <<SQL
+            SELECT MAX(stories_id)
+            FROM delta_import_stories
+SQL
+        )->flat();
 
         # use pg_class estimate to avoid expensive count(*) query
-        my ( $total_queued_stories ) = $db->query( <<SQL, $relname )->flat;
-select reltuples::bigint from pg_class where relname = ?
+        my ( $total_queued_stories ) = $db->query( <<SQL,
+            SELECT reltuples::BIGINT
+            FROM pg_class
+            WHERE relname = 'solr_import_stories'
 SQL
+        )->flat;
 
         INFO "added $num_queued_stories out of about $total_queued_stories queued stories to the import";
     }
 
 }
 
-# query for stories to import, including concatenated sentences as story text and metadata joined in from other tables.
+# query for stories to import, including concatenated sentences as story text
+# and metadata joined in from other tables.
 # return a hash in the form { json => $json_of_stories, stories_ids => $list_of_stories_ids }
 sub _get_stories_json_from_db_single
 {
@@ -196,62 +192,82 @@ sub _get_stories_json_from_db_single
 
         TRACE( "fetching stories ids: $block_stories_ids_list" );
 
-        my $stories = $db->query( <<SQL )->hashes();
-with _block_processed_stories as (
-    select max( processed_stories_id ) processed_stories_id, stories_id
-        from processed_stories
-        where stories_id in ( $block_stories_ids_list )
-        group by stories_id
-),
+        my $stories = $db->query( <<SQL
 
-_timespan_stories as  (
-    select  stories_id, array_agg( distinct timespans_id ) timespans_id
-        from snap.story_link_counts slc
-            join _block_processed_stories using ( stories_id )
-        where
-            slc.stories_id in ( $block_stories_ids_list )
-        group by stories_id
-),
+            WITH _block_processed_stories AS (
+                SELECT
+                    MAX(processed_stories_id) AS processed_stories_id,
+                    stories_id
+                FROM processed_stories
+                WHERE stories_id IN ($block_stories_ids_list)
+                GROUP BY stories_id
+            ),
 
-_tag_stories as  (
-    select stories_id, array_agg( distinct tags_id ) tags_id_stories
-        from stories_tags_map stm
-            join _block_processed_stories bps using ( stories_id )
-        where
-            stm.stories_id in ( $block_stories_ids_list )
-        group by stories_id
-),
+            _timespan_stories AS (
+                SELECT
+                    stories_id,
+                    ARRAY_AGG(DISTINCT timespans_id) AS timespans_id
+                FROM snap.story_link_counts AS slc
+                    INNER JOIN _block_processed_stories USING (stories_id)
+                WHERE slc.stories_id IN ($block_stories_ids_list)
+                GROUP BY stories_id
+            ),
 
-_import_stories as (
-    select
-        s.stories_id,
-        s.media_id,
-        to_char( date_trunc( 'minute', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_date,
-        to_char( date_trunc( 'day', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_day,
-        to_char( date_trunc( 'week', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_week,
-        to_char( date_trunc( 'month', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_month,
-        to_char( date_trunc( 'year', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_year,
-        string_agg( ss.sentence, ' ' order by ss.sentence_number ) as text,
-        s.title,
-        s.language,
-        min( ps.processed_stories_id ) processed_stories_id,
-        min( stm.tags_id_stories ) tags_id_stories,
-        min( slc.timespans_id ) timespans_id
+            _tag_stories AS (
+                select
+                    stories_id,
+                    ARRAY_AGG(DISTINCT tags_id) AS tags_id_stories
+                FROM stories_tags_map AS stm
+                    INNER JOIN _block_processed_stories AS bps USING (stories_id)
+                WHERE stm.stories_id IN ($block_stories_ids_list)
+                GROUP BY stories_id
+            ),
 
-    from _block_processed_stories ps
-        join story_sentences ss using ( stories_id )
-        join stories s using ( stories_id )
-        left join _tag_stories stm using ( stories_id )
-        left join _timespan_stories slc using ( stories_id )
+            _import_stories AS (
+                SELECT
+                    s.stories_id,
+                    s.media_id,
+                    to_char(
+                        date_trunc('minute', s.publish_date), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+                    ) AS publish_date,
+                    to_char(
+                        date_trunc('day', s.publish_date), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+                    ) AS publish_day,
+                    to_char(
+                        date_trunc('week', s.publish_date), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+                    ) AS publish_week,
+                    to_char(
+                        date_trunc('month', s.publish_date), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+                    ) AS publish_month,
+                    to_char(
+                        date_trunc('year', s.publish_date), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+                    ) AS publish_year,
+                    string_agg(ss.sentence, ' ' ORDER BY ss.sentence_number ) AS text,
+                    s.title,
+                    s.language,
+                    MIN(ps.processed_stories_id) AS processed_stories_id,
+                    MIN(stm.tags_id_stories ) AS tags_id_stories,
+                    MIN(slc.timespans_id) AS timespans_id
 
-    where
-        s.stories_id in ( $block_stories_ids_list )
-    group by s.stories_id
-)
+                FROM _block_processed_stories AS ps
+                    JOIN story_sentences AS ss USING (stories_id)
+                    JOIN stories AS s USING (stories_id)
+                    LEFT JOIN _tag_stories AS stm USING (stories_id)
+                    LEFT JOIN _timespan_stories AS slc USING (stories_id)
 
+                WHERE s.stories_id IN ($block_stories_ids_list)
+                GROUP BY
+                    s.stories_id,
+                    s.media_id,
+                    s.publish_date,
+                    s.title,
+                    s.language
+            )
 
-select * from _import_stories
+            SELECT *
+            FROM _import_stories
 SQL
+        )->hashes();
 
         TRACE( "found " . scalar( @{ $stories } ) . " stories from " . scalar( @{ $block_stories_ids } ) . " ids" );
 
@@ -272,14 +288,25 @@ sub _import_stories($)
 {
     my ( $db ) = @_;
 
-    my $stories_ids = $db->query( "select distinct stories_id from delta_import_stories" )->flat;
+    my $stories_ids = $db->query( <<SQL
+        SELECT DISTINCT stories_id
+        FROM delta_import_stories
+SQL
+    )->flat;
 
     my $json = _get_stories_json_from_db_single( $db, $stories_ids );
 
     my ( $import_url, $import_params ) = _get_import_url_params();
 
     DEBUG "importing " . scalar( @{ $json->{ stories_ids } } ) . " stories into solr ...";
-    eval { MediaWords::Solr::Request::solr_request( $import_url, $import_params, $json->{ json }, 'application/json; charset=utf-8' ); };
+    eval {
+        MediaWords::Solr::Request::solr_request(
+            $import_url,
+            $import_params,
+            $json->{ json },
+            'application/json; charset=utf-8'
+        );
+    };
     die( "error importing to solr: $@" ) if ( $@ );
 
     TRACE( "committing solr index changes ..." );
@@ -290,18 +317,18 @@ sub _import_stories($)
     return $json->{ stories_ids };
 }
 
-# create the delta_import_stories temporary table and fill it from the stories_queue_table
+# create the delta_import_stories temporary table and fill it from the solr_import_stories
 sub _create_delta_import_stories($$)
 {
     my ( $db, $full ) = @_;
 
-    $db->query( "drop table if exists delta_import_stories" );
+    $db->query( "DROP TABLE IF EXISTS delta_import_stories" );
 
-    $db->query( "create temporary table delta_import_stories ( stories_id int )" );
+    $db->query( "CREATE TEMPORARY TABLE delta_import_stories (stories_id BIGINT)" );
 
     _add_stories_to_import( $db, $full );
 
-    my $stories_ids = $db->query( "select stories_id from delta_import_stories" )->flat();
+    my $stories_ids = $db->query( "SELECT stories_id FROM delta_import_stories" )->flat();
 
     return $stories_ids;
 }
@@ -333,9 +360,12 @@ sub _save_import_date
     die( "import date has not been marked" ) unless ( $_import_date );
 
     my $full_import = $delta ? 'f' : 't';
-    $db->query( <<SQL, $_import_date, $full_import, scalar( @{ $stories_ids } ) );
-insert into solr_imports( import_date, full_import, num_stories ) values ( ?, ?, ? )
+    $db->query( <<SQL,
+        INSERT INTO solr_imports (import_date, full_import, num_stories)
+        VALUES (?, ?, ?)
 SQL
+        $_import_date, $full_import, scalar( @{ $stories_ids } )
+    );
 
 }
 
@@ -349,9 +379,17 @@ sub _save_import_log
     $db->begin;
     for my $stories_id ( @{ $stories_ids } )
     {
-        $db->query( <<SQL, $stories_id, $_import_date );
-insert into solr_imported_stories ( stories_id, import_date ) values ( ?, ? )
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: insert directly into the
+        # sharded table; when moving rows, we'll simply stories that already
+        # exist in the sharded table as they'll have a newer import_date
+        $db->query( <<SQL,
+            INSERT INTO sharded_public.solr_imported_stories (stories_id, import_date)
+            VALUES (?, ?)
+            ON CONFLICT (stories_id) DO UPDATE SET
+                import_date = EXCLUDED.import_date
 SQL
+            $stories_id, $_import_date
+        );
     }
     $db->commit;
 }
@@ -419,21 +457,24 @@ sub _delete_queued_stories($)
 
     return 1 unless ( $stories_ids && scalar @{ $stories_ids } );
 
-    my $stories_queue_table = _get_stories_queue_table();
-
     my $max_chunk_size = 5000;
 
     my $stories_ids_list = join(',', map { int( $_ ) } @{ $stories_ids } );
 
     # only delete stories that no longer exist in postgres, because we import with overwrite=true
-    $stories_ids = $db->query( <<SQL )->flat();
-select stories_id
-    from $stories_queue_table q
-    where
-        q.stories_id in ( $stories_ids_list ) and not exists
-        ( select 1 from stories s where s.stories_id = q.stories_id )
-    order by q.stories_id
+    $stories_ids = $db->query( <<SQL
+        SELECT stories_id
+        FROM solr_import_stories
+        WHERE
+            solr_import_stories.stories_id IN ($stories_ids_list) AND
+            NOT EXISTS (
+                SELECT 1
+                FROM stories
+                WHERE stories.stories_id = solr_import_stories.stories_id
+            )
+        ORDER BY stories_id
 SQL
+    )->flat();
 
     DEBUG( "deleting " . scalar( @{ $stories_ids } ) . " stories_ids" );
 
@@ -468,16 +509,25 @@ sub _delete_stories_from_import_queue
 
     TRACE( "deleting " . scalar( @{ $stories_ids } ) . " stories from import queue ..." );
 
-    my $stories_queue_table = _get_stories_queue_table();
-
     return unless ( @{ $stories_ids } );
 
     my $id_table = $db->get_temporary_ids_table( $stories_ids );
 
-    $db->query(
-        <<SQL
-        DELETE FROM $stories_queue_table
-        WHERE stories_id IN ( select id from $id_table )
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+    $db->query( <<SQL
+        DELETE FROM unsharded_public.solr_import_stories
+        WHERE stories_id IN (
+            SELECT id
+            FROM $id_table
+        )
+SQL
+    );
+    $db->query( <<SQL
+        DELETE FROM sharded_public.solr_import_stories
+        WHERE stories_id IN (
+            SELECT id
+            FROM $id_table
+        )
 SQL
     );
 }
@@ -501,22 +551,56 @@ sub _update_snapshot_solr_status
 {
     my ( $db ) = @_;
 
-    my $stories_queue_table = _get_stories_queue_table();
-
     # the combination the searchable clause and the not exists which stops after the first hit should
     # make this quite fast
-    $db->query( <<SQL );
-update snapshots s set searchable = true
-    where
-        searchable = false and
-        not exists (
-            select 1
-                from timespans t
-                    join snap.story_link_counts slc using ( timespans_id )
-                    join $stories_queue_table sies using ( stories_id )
-                where t.snapshots_id = s.snapshots_id
+    my $snapshots_to_update = $db->query( <<SQL
+
+        WITH stories_from_unsearchable_snapshots AS (
+            SELECT
+                snap.stories.topics_id,
+                snap.stories.snapshots_id,
+                snap.stories.stories_id
+            FROM snapshots
+                INNER JOIN snap.stories ON
+                    snapshots.topics_id = snap.stories.topics_id AND
+                    snapshots.snapshots_id = snap.stories.snapshots_id
+            WHERE NOT snapshots.searchable
         )
+
+        SELECT
+            topics_id,
+            snapshots_id
+        FROM snapshots
+        WHERE (NOT searchable) AND
+        NOT EXISTS (
+            SELECT 1
+            FROM stories_from_unsearchable_snapshots
+            WHERE
+                stories_from_unsearchable_snapshots.topics_id = snapshots.topics_id AND
+                stories_from_unsearchable_snapshots.snapshots_id = snapshots.snapshots_id AND
+                stories_from_unsearchable_snapshots.stories_id IN (
+                    SELECT stories_id
+                    FROM solr_import_stories
+            )
+        )
+
 SQL
+    )->hashes();
+
+    for my $snapshot_to_update ( @{ $snapshots_to_update } ) {
+
+        $db->query(<<SQL,
+
+            UPDATE snapshots
+            SET searchable = 't'
+            WHERE topics_id = ?
+              AND snapshots_id = ?
+
+SQL
+            $snapshot_to_update->{ topics_id }, $snapshot_to_update->{ snapshots_id }
+        );
+
+    }
 }
 
 =head2 import_data( $options )
@@ -528,7 +612,6 @@ Options:
 * empty_queue -- keep running until stories queue table is entirely empty (default false)
 * throttle -- sleep this number of seconds between each block of stories (default 60)
 * full -- shortcut for: update=false, empty_queue=true, throttle=1; assume and optimize for static queue
-* stories_queue_table -- table from which to pull stories to import (default solr_import_stories)
 * skip_logging -- skip logging the import into the solr_import_stories or solr_imports tables (default=false)
 
 The import will run in blocks of "max_queued_stories" at a time. The function
@@ -544,7 +627,6 @@ sub import_data($;$)
     $options //= {};
 
     my $full = $options->{ full } // 0;
-    my $stories_queue_table = $options->{ stories_queue_table } // $DEFAULT_STORIES_QUEUE_TABLE;
 
     if ( $full )
     {
@@ -553,20 +635,12 @@ sub import_data($;$)
         $options->{ throttle }    //= 1;
     }
 
-    if ( $stories_queue_table ne $DEFAULT_STORIES_QUEUE_TABLE )
-    {
-        $options->{ skip_logging } //= 1;
-        $options->{ empty_queue }  //= 1;
-        $options->{ update }       //= 0;
-    }
-
     my $update       = $options->{ update }       // 1;
     my $empty_queue  = $options->{ empty_queue }  // 0;
     my $throttle     = $options->{ throttle }     // $DEFAULT_THROTTLE;
     my $skip_logging = $options->{ skip_logging } // 0;
     my $daemon = $options->{ daemon } // 0;
 
-    $_stories_queue_table       = $stories_queue_table;
     $_last_max_queue_stories_id = 0;
 
     my $i = 0;

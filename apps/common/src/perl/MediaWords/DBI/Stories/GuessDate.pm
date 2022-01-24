@@ -14,19 +14,43 @@ sub confirm_date
 {
     my ( $db, $story ) = @_;
 
-    $db->query( <<END, $story->{ stories_id } );
-delete from stories_tags_map stm
-    using tags t, tag_sets ts
-    where t.tag_sets_id = ts.tag_sets_id and
-        stm.tags_id = t.tags_id and
-        ts.name = 'date_guess_method' and
-        stm.stories_id = ?
-END
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+    $db->query( <<SQL,
+        DELETE FROM unsharded_public.stories_tags_map
+        WHERE
+            stories_id = ? AND
+            tags_id IN (
+                SELECT tags.tags_id
+                FROM tag_sets
+                    INNER JOIN tags
+                        ON tag_sets.tag_sets_id = tags.tag_sets_id
+                WHERE tag_sets.name = 'date_guess_method'
+            )
+SQL
+        $story->{ stories_id }
+    );
+    $db->query( <<SQL,
+        DELETE FROM sharded_public.stories_tags_map
+        WHERE
+            stories_id = ? AND
+            tags_id IN (
+                SELECT tags.tags_id
+                FROM tag_sets
+                    INNER JOIN tags
+                        ON tag_sets.tag_sets_id = tags.tag_sets_id
+                WHERE tag_sets.name = 'date_guess_method'
+            )
+SQL
+        $story->{ stories_id }
+    );
 
     my $t = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:manual' );
-    $db->query( <<END, $story->{ stories_id }, $t->{ tags_id } );
-insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
-END
+    $db->query( <<SQL,
+        INSERT INTO stories_tags_map (stories_id, tags_id)
+        VALUES (?, ?)
+SQL
+        $story->{ stories_id }, $t->{ tags_id }
+    );
 }
 
 # if the date guess method is manual, remove and replace with an ;unconfirmed' method tag
@@ -43,13 +67,30 @@ sub unconfirm_date
     my $manual      = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:manual' );
     my $unconfirmed = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:unconfirmed' );
 
-    $db->query( <<END, $story->{ stories_id }, $manual->{ tags_id } );
-delete from stories_tags_map where stories_id = ? and tags_id = ?
-END
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+    $db->query( <<SQL,
+        DELETE FROM unsharded_public.stories_tags_map
+        WHERE
+            stories_id = ? AND
+            tags_id = ?
+SQL
+        $story->{ stories_id }, $manual->{ tags_id }
+    );
+    $db->query( <<SQL,
+        DELETE FROM sharded_public.stories_tags_map
+        WHERE
+            stories_id = ? AND
+            tags_id = ?
+SQL
+        $story->{ stories_id }, $manual->{ tags_id }
+    );
 
-    $db->query( <<END, $story->{ stories_id }, $unconfirmed->{ tags_id } );
-insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
-END
+    $db->query( <<SQL,
+        INSERT INTO stories_tags_map (stories_id, tags_id)
+        VALUES (?, ?)
+SQL
+        $story->{ stories_id }, $unconfirmed->{ tags_id }
+    );
 
 }
 
@@ -58,14 +99,21 @@ sub date_is_confirmed
 {
     my ( $db, $story ) = @_;
 
-    my $r = $db->query( <<END, $story->{ stories_id } )->hash;
-select 1 from stories_tags_map stm, tags t, tag_sets ts
-    where stm.tags_id = t.tags_id and
-        ts.tag_sets_id = t.tag_sets_id and
-        t.tag = 'manual' and
-        ts.name = 'date_guess_method' and
-        stm.stories_id = ?
-END
+    my $r = $db->query( <<SQL,
+        SELECT 1
+        FROM
+            stories_tags_map AS stm,
+            tags AS t,
+            tag_sets AS ts
+        WHERE
+            stm.tags_id = t.tags_id AND
+            ts.tag_sets_id = t.tag_sets_id AND
+            t.tag = 'manual' AND
+            ts.name = 'date_guess_method' AND
+            stm.stories_id = ?
+SQL
+        $story->{ stories_id }
+    )->hash;
 
     return $r ? 1 : 0;
 }
@@ -87,60 +135,75 @@ sub add_date_is_reliable_to_stories
       [ qw/guess_by_og_article_published_time guess_by_url guess_by_url_and_date_text merged_story_rss manual/ ];
     my $quoted_reliable_methods_list = join( ',', map { $db->quote( $_ ) } @{ $reliable_methods } );
 
-    my $date_tag_sets_ids = $db->query( <<SQL )->flat();
-select tag_sets_id from tag_sets where name in ( 'date_guess_method', 'date_invalid' )
+    my $date_tag_sets_ids = $db->query( <<SQL
+        SELECT tag_sets_id
+        FROM tag_sets
+        WHERE name IN ('date_guess_method', 'date_invalid')
 SQL
+    )->flat();
 
     # the query below errors in tests if date_tag_sets_ids is empty
     push( @{ $date_tag_sets_ids }, -1 );
 
     my $date_tag_sets_ids_list = join( ',', map { int( $_ ) } @{ $date_tag_sets_ids } );
 
-    $db->query( <<SQL );
-create temporary table _date_tags as
-    select t.*, ts.name tag_set_name
-        from tags t
-            join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-        where
-            t.tag_sets_id in ( $date_tag_sets_ids_list )
+    $db->query( <<SQL
+        CREATE TEMPORARY TABLE _date_tags AS
+            SELECT
+                t.*,
+                ts.name AS tag_set_name
+            FROM tags AS t
+                JOIN tag_sets AS ts
+                    ON t.tag_sets_id = ts.tag_sets_id
+            WHERE t.tag_sets_id IN ($date_tag_sets_ids_list)
 SQL
+    );
 
-    $db->query( <<SQL );
-create temporary table _story_date_tags as
-    select stories_id, t.tag, t.tag_set_name
-        from stories_tags_map stm
-            left join _date_tags t on ( t.tags_id = stm.tags_id )
-        where stm.stories_id in ( select id from $ids_table )
-SQL
-
-    my $reliable_stories_ids = $db->query( <<SQL )->flat;
-select id stories_id
-    from $ids_table ids
-    where
-        exists (
-            select 1
-                from _story_date_tags d
-                where
-                    d.stories_id = ids.id and
-                    d.tag in ( $quoted_reliable_methods_list )
-        ) or
-        (
-            exists (
-                select 1
-                    from _story_date_tags d
-                    where
-                        d.stories_id = ids.id and
-                        d.tag = 'undateable'
-            ) and
-            not exists (
-                select 1
-                    from _story_date_tags d
-                    where
-                        d.stories_id = ids.id and
-                        d.tag_set_name = 'date_guess_method'
+    $db->query( <<SQL
+        CREATE TEMPORARY TABLE _story_date_tags AS
+            SELECT
+                stories_id,
+                t.tag,
+                t.tag_set_name
+            FROM stories_tags_map AS stm
+                LEFT JOIN _date_tags AS t
+                    ON t.tags_id = stm.tags_id
+            WHERE stm.stories_id IN (
+                SELECT id
+                FROM $ids_table
             )
-        )
 SQL
+    );
+
+    my $reliable_stories_ids = $db->query( <<SQL
+        SELECT id AS stories_id
+        FROM $ids_table AS ids
+        WHERE
+            EXISTS (
+                SELECT 1
+                FROM _story_date_tags AS d
+                WHERE
+                    d.stories_id = ids.id AND
+                    d.tag IN ($quoted_reliable_methods_list)
+            ) OR
+            (
+                EXISTS (
+                    SELECT 1
+                    FROM _story_date_tags AS d
+                    WHERE
+                        d.stories_id = ids.id AND
+                        d.tag = 'undateable'
+                ) AND
+                NOT EXISTS (
+                    SELECT 1
+                    FROM _story_date_tags AS d
+                    WHERE
+                        d.stories_id = ids.id AND
+                        d.tag_set_name = 'date_guess_method'
+                )
+            )
+SQL
+    )->flat;
 
     my $reliable_stories_lookup = {};
     map { $reliable_stories_lookup->{ $_ } = 1 } @{ $reliable_stories_ids };
@@ -155,21 +218,44 @@ sub mark_undateable
 
     my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_invalid:undateable' );
 
-    $db->query( <<END, $story->{ stories_id } );
-delete from stories_tags_map stm
-    using tags t
-        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-    where
-        t.tags_id = stm.tags_id and
-        ts.name = 'date_invalid' and
-        stories_id = ?
-END
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+    $db->query( <<SQL,
+        DELETE FROM unsharded_public.stories_tags_map
+        WHERE
+            stories_id = ? AND
+            tags_id IN (
+                SELECT tags.tags_id
+                FROM tag_sets
+                    INNER JOIN tags
+                        ON tag_sets.tag_sets_id = tags.tag_sets_id
+                WHERE tag_sets.name = 'date_invalid'
+            )
+SQL
+        $story->{ stories_id }
+    );
+    $db->query( <<SQL,
+        DELETE FROM sharded_public.stories_tags_map
+        WHERE
+            stories_id = ? AND
+            tags_id IN (
+                SELECT tags.tags_id
+                FROM tag_sets
+                    INNER JOIN tags
+                        ON tag_sets.tag_sets_id = tags.tag_sets_id
+                WHERE tag_sets.name = 'date_invalid'
+            )
+SQL
+        $story->{ stories_id }
+    );
 
     if ( $undateable )
     {
-        $db->query( <<END, $story->{ stories_id }, $tag->{ tags_id } );
-insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
-END
+        $db->query( <<SQL,
+            INSERT INTO stories_tags_map (stories_id, tags_id)
+            VALUES (?, ?)
+SQL
+        $story->{ stories_id }, $tag->{ tags_id }
+    );
     }
 }
 
@@ -177,16 +263,20 @@ sub is_undateable
 {
     my ( $db, $story ) = @_;
 
-    my $tag = $db->query( <<END, $story->{ stories_id } )->hash;
-select 1
-    from stories_tags_map stm
-        join tags t on ( stm.tags_id = t.tags_id )
-        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-    where
-        stm.stories_id = ? and
-        ts.name = 'date_invalid' and
-        t.tag = 'undateable'
-END
+    my $tag = $db->query( <<SQL,
+        SELECT 1
+        FROM stories_tags_map AS stm
+            JOIN tags AS t
+                ON stm.tags_id = t.tags_id
+            JOIN tag_sets AS ts
+                ON t.tag_sets_id = ts.tag_sets_id
+        WHERE
+            stm.stories_id = ? AND
+            ts.name = 'date_invalid' AND
+            t.tag = 'undateable'
+SQL
+        $story->{ stories_id }
+    )->hash;
 
     return $tag ? 1 : 0;
 }
@@ -198,22 +288,31 @@ sub add_undateable_to_stories($$)
 
     my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
 
-    $db->query( <<SQL );
-create temporary table _stm as
-    select stories_id, tags_id
-        from stories_tags_map
-        where stories_id in ( select id from $ids_table )
+    $db->query( <<SQL
+        CREATE TEMPORARY TABLE _stm AS
+            SELECT
+                stories_id,
+                tags_id
+            FROM stories_tags_map
+            WHERE stories_id IN (
+                SELECT id
+                FROM $ids_table
+            )
 SQL
+    );
 
-    my $undateable_stories_ids = $db->query( <<SQL )->flat;
-select stories_id
-    from _stm stm
-        join tags t on ( stm.tags_id = t.tags_id )
-        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-    where
-        ts.name = 'date_invalid' and
-        t.tag = 'undateable'
+    my $undateable_stories_ids = $db->query( <<SQL
+        SELECT stories_id
+        FROM _stm AS stm
+            JOIN tags AS t
+                ON stm.tags_id = t.tags_id
+            JOIN tag_sets AS ts
+                ON t.tag_sets_id = ts.tag_sets_id
+        WHERE
+            ts.name = 'date_invalid' AND
+            t.tag = 'undateable'
 SQL
+    )->flat;
 
     my $undateable_stories_id_lookup = {};
     map { $undateable_stories_id_lookup->{ $_ } = 1 } @{ $undateable_stories_ids };
@@ -246,15 +345,35 @@ sub assign_date_guess_method
     {
         for my $tag_set_name ( 'date_guess_method', 'date_invalid' )
         {
-            $db->query( <<END, $tag_set_name, $story->{ stories_id } );
-delete from stories_tags_map stm
-    using tags t
-        join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
-    where
-        t.tags_id = stm.tags_id and
-        ts.name = ? and
-        stm.stories_id = ?
-END
+            # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+            $db->query( <<SQL,
+                DELETE FROM unsharded_public.stories_tags_map
+                WHERE
+                    stories_id = ? AND
+                    tags_id IN (
+                        SELECT tags.tags_id
+                        FROM tag_sets
+                            INNER JOIN tags
+                                ON tag_sets.tag_sets_id = tags.tag_sets_id
+                        WHERE tag_sets.name = ?
+                    )
+SQL
+                $story->{ stories_id }, $tag_set_name
+            );
+            $db->query( <<SQL,
+                DELETE FROM sharded_public.stories_tags_map
+                WHERE
+                    stories_id = ? AND
+                    tags_id IN (
+                        SELECT tags.tags_id
+                        FROM tag_sets
+                            INNER JOIN tags
+                                ON tag_sets.tag_sets_id = tags.tag_sets_id
+                        WHERE tag_sets.name = ?
+                    )
+SQL
+                $story->{ stories_id }, $tag_set_name
+            );
         }
     }
 
@@ -267,9 +386,12 @@ END
         $_date_guess_method_tag_lookup->{ $tag_name } = $date_guess_method_tag;
     }
 
-    $db->query( <<END, $story->{ stories_id }, $date_guess_method_tag->{ tags_id } );
-insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
-END
+    $db->query( <<SQL,
+        INSERT INTO stories_tags_map (stories_id, tags_id)
+        VALUES (?, ?)
+SQL
+        $story->{ stories_id }, $date_guess_method_tag->{ tags_id }
+    );
 
 }
 

@@ -29,7 +29,11 @@ class TestSolr(TestCase):
                 'medium_3': {'feed_3': [f"story_{_}" for _ in range(26, 50 + 1)]},
             },
         )
-        cls.TEST_STORIES = cls.DB.query("SELECT * FROM stories ORDER BY md5(stories_id::text)").hashes()
+        cls.TEST_STORIES = cls.DB.query("""
+            SELECT *
+            FROM stories
+            ORDER BY MD5(stories_id::TEXT)
+        """).hashes()
 
     def test_basic(self):
         """Basic query."""
@@ -38,7 +42,10 @@ class TestSolr(TestCase):
 
     def test_get_solr_num_found(self):
         """get_solr_num_found()."""
-        expected_num_stories = self.DB.query("SELECT COUNT(*) FROM stories").flat()[0]
+        expected_num_stories = self.DB.query("""
+            SELECT COUNT(*)
+            FROM stories
+        """).flat()[0]
         got_num_stories = get_solr_num_found(db=self.DB, params={'q': '*:*'})
         assert expected_num_stories == got_num_stories, 'get_solr_num_found()'
 

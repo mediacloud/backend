@@ -51,19 +51,38 @@ sub main
     {
         print STDERR "printing block " . $i++ . "\n";
         my $ids_table = $db->get_temporary_ids_table( \@chunk_stories_ids );
-        my $stories   = $db->query( <<SQL )->hashes;
-select s.stories_id, s.title, s.url, s.publish_date, s.media_id, m.name media_name, m.url media_url
-    from stories s
-        join media m using ( media_id )
-        join $ids_table i on ( i.id = s.stories_id )
+        my $stories   = $db->query( <<SQL
+            SELECT
+                s.stories_id,
+                s.title,
+                s.url,
+                s.publish_date,
+                s.media_id,
+                m.name AS media_name,
+                m.url AS media_url
+            FROM stories AS s
+                INNER JOIN media AS m ON
+                    s.media_id = m.media_id
+                INNER JOIN $ids_table AS i ON
+                    i.id = s.stories_id
 SQL
+        )->hashes;
         if ( $q =~ /timespans_id:(\d+)/ ) 
         { 
 			my $timespans_id = $1;
-            my $slc = $db->query( <<SQL, $timespans_id )->hashes; 
-select slc.* from snap.story_link_counts slc
-    where timespans_id = ? and stories_id in ( select id from $ids_table ) 
+            my $slc = $db->query( <<SQL,
+                SELECT slc.*
+                FROM snap.story_link_counts slc
+                WHERE
+                    timespans_id = ? AND
+                    stories_id IN (
+                        SELECT id
+                        FROM $ids_table
+                    ) 
 SQL
+                $timespans_id
+            )->hashes();
+
             MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $slc ); 
         } 
 

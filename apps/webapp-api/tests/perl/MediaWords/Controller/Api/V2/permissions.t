@@ -395,7 +395,7 @@ sub find_or_add_test_user($$)
         return $user;
     }
 
-    my $roles = $db->query( "select auth_roles_id from auth_roles where role = ?", $role )->flat;
+    my $roles = $db->query( "SELECT auth_roles_id FROM auth_roles WHERE role = ?", $role )->flat;
 
     eval {
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(

@@ -53,7 +53,7 @@ SQL
                 email,
                 MAX(day) AS latest_day
             FROM auth_user_request_daily_counts
-                WHERE day > date_trunc('week', NOW() - interval '$new_user_interval days')
+                WHERE day > date_trunc('week', NOW() - INTERVAL '$new_user_interval days')
             GROUP BY email
             ORDER BY SUM(requests_count) DESC
 SQL

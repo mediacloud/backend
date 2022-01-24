@@ -141,18 +141,43 @@ class DownloadFeedSyndicatedHandler(DefaultFetchMixin, AbstractDownloadFeedHandl
                     for enclosure in story['enclosures']:
                         # ...provided that the URL is set
                         if enclosure['url']:
-                            db.query("""
-                                INSERT INTO story_enclosures (stories_id, url, mime_type, length)
-                                VALUES (%(stories_id)s, %(url)s, %(mime_type)s, %(length)s)
-                                
-                                -- Some stories have multiple enclosures pointing to the same URL
-                                ON CONFLICT (stories_id, url) DO NOTHING
-                            """, {
-                                'stories_id': stories_id,
-                                'url': enclosure['url'],
-                                'mime_type': enclosure['mime_type'],
-                                'length': enclosure['length'],
-                            })
+
+                            # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
+                            # updatable view, and we can't upsert directly into the sharded table
+                            # as the duplicate row might already exist in the unsharded one;
+                            # therefore, we test the unsharded table once for whether the row
+                            # exists and do an upsert to a sharded table -- the row won't start
+                            # suddenly existing in an essentially read-only unsharded table so this
+                            # should be safe from race conditions. After migrating rows, one can
+                            # reset this statement to use a native upsert
+
+                            row_exists = db.query(
+                                """
+                                SELECT 1
+                                FROM story_enclosures
+                                WHERE
+                                    stories_id = %(stories_id)s AND
+                                    url = %(url)s
+                                """,
+                                {
+                                    'stories_id': stories_id,
+                                    'url': enclosure['url'],
+                                }
+                            ).hash()
+                            if not row_exists:
+
+                                db.query("""
+                                    INSERT INTO sharded_public.story_enclosures (stories_id, url, mime_type, length)
+                                    VALUES (%(stories_id)s, %(url)s, %(mime_type)s, %(length)s)
+                                    
+                                    -- Some stories have multiple enclosures pointing to the same URL
+                                    ON CONFLICT (stories_id, url) DO NOTHING
+                                """, {
+                                    'stories_id': stories_id,
+                                    'url': enclosure['url'],
+                                    'mime_type': enclosure['mime_type'],
+                                    'length': enclosure['length'],
+                                })
 
                     # Append to the list of newly added storyes
                     new_story_ids.append(stories_id)

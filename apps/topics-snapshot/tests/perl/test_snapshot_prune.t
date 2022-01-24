@@ -58,12 +58,26 @@ sub test_snapshot($)
 
     my $expected_seed_query = add_test_seed_query( $db, $topic );
 
-    my $tag_set = $db->query( "insert into tag_sets ( name ) values ( 'foo' ) returning *" )->hash;
-    my $tag = $db->query( <<SQL, $tag_set->{ tag_sets_id } )->hash;
-insert into tags ( tag, tag_sets_id ) values ( 'foo', ? ) returning *
+    my $tag_set = $db->query( <<SQL
+        INSERT INTO tag_sets (name)
+        VALUES ('foo')
+        RETURNING *
 SQL
+    )->hash;
+    my $tag = $db->query( <<SQL,
+        INSERT INTO tags (tag, tag_sets_id)
+        VALUES ('foo', ?)
+        RETURNING *
+SQL
+        $tag_set->{ tag_sets_id }
+    )->hash;
 
-    my $stories = $db->query( "select * from stories order by stories_id" )->hashes;
+    my $stories = $db->query( <<SQL
+        SELECT *
+        FROM stories
+        ORDER BY stories_id
+SQL
+    )->hashes;
 
     my ( $outlink_story, $inlink_story, $post_story) = @{ $stories };
 
@@ -83,6 +97,7 @@ SQL
 
 
     my $post_timespan = {
+        topics_id => $topics_id,
         snapshots_id => $post_snapshot->{ snapshots_id },
         start_date => '2020-01-01',
         end_date => '2020-01-01',
@@ -103,6 +118,7 @@ SQL
     $tsq = $db->create( 'topic_seed_queries', $tsq );
 
     my $tpd = {
+        topics_id => $topics_id,
         topic_seed_queries_id => $tsq->{ topic_seed_queries_id },
         day => $post_story->{ publish_date },
         num_posts_stored => 0,
@@ -113,6 +129,7 @@ SQL
     for my $i ( 1 .. 10 )
     {
         my $tp = {
+            topics_id => $topics_id,
             topic_post_days_id => $tpd->{ topic_post_days_id },
             content => 'foo',
             author => 'foo', 
@@ -124,6 +141,7 @@ SQL
         $tp = $db->create( 'topic_posts', $tp );
 
         my $tpu = {
+            topics_id => $tp->{ topics_id },
             topic_posts_id => $tp->{ topic_posts_id },
             url => $post_story->{ url }
         };
@@ -141,13 +159,27 @@ SQL
 
     my $new_snapshots_id = MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id );
 
-    my $got_snapshot = $db->query( "select * from snapshots where snapshots_id = ?", $new_snapshots_id )->hash;
+    my $got_snapshot = $db->query( <<SQL,
+        SELECT *
+        FROM snapshots
+        WHERE
+            topics_id = ? AND
+            snapshots_id = ?
+SQL
+        $topics_id, $new_snapshots_id
+    )->hash;
 
     ok( $got_snapshot, "snapshot exists" );
 
-    my $got_stories = $db->query( <<SQL, $new_snapshots_id )->hashes;
-select * from snap.stories where snapshots_id = ?
+    my $got_stories = $db->query( <<SQL,
+        SELECT *
+        FROM snap.stories
+        WHERE
+            topics_id = ? AND
+            snapshots_id = ?
 SQL
+        $got_snapshot->{ topics_id }, $new_snapshots_id
+    )->hashes;
 
     is( scalar( @{ $got_stories } ), 2, "number of pruned stories" );
 }

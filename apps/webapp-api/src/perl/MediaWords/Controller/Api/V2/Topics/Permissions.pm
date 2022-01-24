@@ -32,11 +32,17 @@ sub user_list_GET
 {
     my ( $self, $c ) = @_;
 
-    my $permissions = $c->dbis->query( <<SQL, $c->stash->{ api_auth }->user_id() )->hashes;
-select u.email, tp.topics_id, tp.permission
-    from topic_permissions tp join auth_users u using ( auth_users_id )
-    where u.auth_users_id = ?
+    my $permissions = $c->dbis->query( <<SQL,
+        SELECT
+            u.email,
+            tp.topics_id,
+            tp.permission
+        FROM topic_permissions AS tp
+            INNER JOIN auth_users AS u USING (auth_users_id)
+        WHERE u.auth_users_id = ?
 SQL
+        $c->stash->{ api_auth }->user_id()
+    )->hashes;
 
     $self->status_ok( $c, entity => { permissions => $permissions } );
 }
@@ -61,11 +67,17 @@ sub list_GET
 {
     my ( $self, $c ) = @_;
 
-    my $permissions = $c->dbis->query( <<SQL, $c->stash->{ topics_id } )->hashes;
-select u.email, tp.topics_id, tp.permission
-    from topic_permissions tp join auth_users u using ( auth_users_id )
-    where tp.topics_id = ?
+    my $permissions = $c->dbis->query( <<SQL,
+        SELECT
+            u.email,
+            tp.topics_id,
+            tp.permission
+        FROM topic_permissions AS tp
+            JOIN auth_users AS u USING (auth_users_id)
+        WHERE tp.topics_id = ?
 SQL
+        $c->stash->{ topics_id }
+    )->hashes;
 
     $self->status_ok( $c, entity => { permissions => $permissions } );
 }
@@ -103,9 +115,14 @@ sub update_PUT
         die( "Unknown email '$email'" );
     }
 
-    $db->query( <<SQL, $auth_user->user_id(), $topics_id );
-delete from topic_permissions tp where tp.topics_id = \$2 and tp.auth_users_id = \$1
+    $db->query( <<SQL,
+        DELETE FROM topic_permissions
+        WHERE
+            topics_id = ? AND
+            auth_users_id = ?
 SQL
+        $topics_id, $auth_user->user_id()
+    );
 
     my $permissions = [];
     if ( grep { $permission eq $_ } qw(read write admin) )

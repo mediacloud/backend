@@ -22,11 +22,11 @@ sub _get_story_word_matrix_rows($$$)
 
     my $ids_table = $db->get_temporary_ids_table( $stories_ids );
     my $rows = $db->query( <<SQL, $sentence_separator )->hashes;
-select stories_id, language, string_agg( sentence, \$1 ) story_text
-    from story_sentences
-    where stories_id in ( $stories_ids_list )
-    group by stories_id, language
-    order by stories_id, language
+        SELECT stories_id, language, STRING_AGG(sentence, \$1 ) AS story_text
+        FROM story_sentences
+        WHERE stories_id IN ($stories_ids_list)
+        GROUP BY stories_id, language
+        ORDER BY stories_id, language
 SQL
 
     return $rows;

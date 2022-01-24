@@ -29,7 +29,7 @@ def validate_remote_integration(db: DatabaseHandler, source: str, query: str, da
 
     fetch_topic_posts(db, tsq)
 
-    got_tts = db.query("select * from topic_posts").hashes()
+    got_tts = db.query("SELECT * FROM topic_posts").hashes()
 
     # for old ch monitors, lots of the posts may be deleted
     assert len(got_tts) > 20

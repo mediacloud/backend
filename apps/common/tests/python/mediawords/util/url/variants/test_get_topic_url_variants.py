@@ -25,17 +25,23 @@ class TestGetTopicURLVariants(TestURLVariantsTestCase):
         story_3 = media['A']['feeds']['B']['stories']['3']
         story_4 = media['A']['feeds']['C']['stories']['4']
 
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: when copying rows from the
+        # unsharded table, we'll make sure to not copy duplicates
         self.db.query("""
-            INSERT INTO topic_merged_stories_map (source_stories_id, target_stories_id)
+            INSERT INTO sharded_public.topic_merged_stories_map (source_stories_id, target_stories_id)
             VALUES (%(source_stories_id)s, %(target_stories_id)s)
+            ON CONFLICT (source_stories_id, target_stories_id) DO NOTHING
         """, {
             'source_stories_id': story_2['stories_id'],
             'target_stories_id': story_1['stories_id'],
         })
 
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: when copying rows from the
+        # unsharded table, we'll make sure to not copy duplicates
         self.db.query("""
-            INSERT INTO topic_merged_stories_map (source_stories_id, target_stories_id)
+            INSERT INTO sharded_public.topic_merged_stories_map (source_stories_id, target_stories_id)
             VALUES (%(source_stories_id)s, %(target_stories_id)s)
+            ON CONFLICT (source_stories_id, target_stories_id) DO NOTHING
         """, {
             'source_stories_id': story_3['stories_id'],
             'target_stories_id': story_2['stories_id'],

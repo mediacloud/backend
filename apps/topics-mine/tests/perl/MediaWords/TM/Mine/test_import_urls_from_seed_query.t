@@ -59,17 +59,23 @@ CSV
 
     MediaWords::TM::Mine::import_urls_from_seed_queries( $db, $topic );
 
-    my $topic_posts = $db->query( <<SQL, $topic->{ topics_id } )->hashes();
-select * 
-    from topic_posts tp
-        join topic_post_days tpd using ( topic_post_days_id )
-        join topic_seed_queries tsq using ( topic_seed_queries_id )
-    where topics_id = ?
+    my $topic_posts = $db->query( <<SQL,
+        SELECT * 
+        FROM topic_posts
+            INNER JOIN topic_post_days ON
+                topic_posts.topics_id = topic_post_days.topics_id AND
+                topic_posts.topic_post_days_id = topic_post_days.topic_post_days_id
+            INNER JOIN topic_seed_queries ON
+                topic_post_days.topics_id = topic_seed_queries.topics_id AND
+                topic_post_days.topic_seed_queries_id = topic_seed_queries.topic_seed_queries_id
+        WHERE topic_posts.topics_id = ?
 SQL
+        $topic->{ topics_id }
+    )->hashes();
 
     is ( scalar( @{ $topic_posts } ), 2, "number of topic posts" );
 
-    my $tsus = $db->query( "select * from topic_seed_urls where topics_id = ?", $topic->{ topics_id } )->hashes();
+    my $tsus = $db->query( "SELECT * FROM topic_seed_urls WHERE topics_id = ?", $topic->{ topics_id } )->hashes();
 
     is( scalar( @{ $tsus } ), 2, "number of seed urls" );
 

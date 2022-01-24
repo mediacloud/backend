@@ -10,7 +10,7 @@ class TestRunFa2Layout(TestMap):
     def test_run_fa2_layout(self):
         db = self.db
 
-        graph = generate_graph(db=db, timespans_id=self.timespan['timespans_id'])
+        graph = generate_graph(db=db, topics_id=self.timespan['topics_id'], timespans_id=self.timespan['timespans_id'])
 
         run_fa2_layout(graph=graph, memory_limit_mb=512)
 

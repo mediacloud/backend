@@ -23,8 +23,21 @@ def test_merge_dup_media_stories():
     merge_dup_media_stories(db, topic)
 
     got_stories = db.query(
-        "select s.* from stories s join topic_stories ts using (stories_id) where topics_id = %(a)s",
-        {'a': topic['topics_id']}).hashes()
+        """
+        WITH found_topic_stories AS (
+            SELECT stories_id
+            FROM topic_stories
+            WHERE topics_id = %(topics_id)s
+        )
+
+        SELECT *
+        FROM stories
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM found_topic_stories
+        )
+        """,
+        {'topics_id': topic['topics_id']}).hashes()
 
     assert len(got_stories) == num_stories
 

@@ -165,7 +165,17 @@ class StateUpdater(object):
         job_state = decode_object_from_bytes_if_needed(job_state)
 
         try:
-            args = decode_json(job_state.get('args', ''))
+
+            # job_states.args got changed from JSON to JSONB while sharding the
+            # database, and there's no way to disable decoding JSONB (as
+            # opposed to JSON) in psycopg2, so "args" might be a JSON string or
+            # a pre-decoded dictionary
+            maybe_json_args = job_state.get('args', '')
+            if isinstance(maybe_json_args, dict):
+                args = maybe_json_args
+            else:
+                args = decode_json(maybe_json_args)
+
         except Exception as ex:
             log.error(f"Unable to decode args from job state {job_state}: {ex}")
             return
@@ -218,7 +228,17 @@ class StateUpdater(object):
         job_state = db.require_by_id(table='job_states', object_id=self.__job_states_id)
 
         try:
-            db_args = decode_json(job_state.get('args', '{}'))
+
+            # job_states.args got changed from JSON to JSONB while sharding the
+            # database, and there's no way to disable decoding JSONB (as
+            # opposed to JSON) in psycopg2, so "args" might be a JSON string or
+            # a pre-decoded dictionary
+            maybe_json_db_args = job_state.get('args', '')
+            if isinstance(maybe_json_db_args, dict):
+                db_args = maybe_json_db_args
+            else:
+                db_args = decode_json(maybe_json_db_args)
+
         except Exception as ex:
             log.error(f"Unable to decode args from job state {job_state}: {ex}")
             db_args = {}

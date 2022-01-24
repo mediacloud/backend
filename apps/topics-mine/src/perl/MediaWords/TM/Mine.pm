@@ -133,13 +133,33 @@ sub generate_topic_links
 
     my $stories_ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
 
-    $db->query( <<SQL, $topic->{ topics_id } );
-update topic_stories set link_mined = 'f'
-        where
-            stories_id in ( select id from $stories_ids_table ) and
-            topics_id = ? and
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+    $db->query( <<"SQL",
+        UPDATE unsharded_public.topic_stories SET
+            link_mined = 'f'
+        WHERE
+            stories_id IN (
+                SELECT id
+                FROM $stories_ids_table
+            ) AND
+            topics_id = ? AND
             link_mined = 't'
 SQL
+        $topic->{ topics_id }
+    );
+    $db->query( <<"SQL",
+        UPDATE sharded_public.topic_stories SET
+            link_mined = 'f'
+        WHERE
+            stories_id IN (
+                SELECT id
+                FROM $stories_ids_table
+            ) AND
+            topics_id = ? AND
+            link_mined = 't'
+SQL
+        $topic->{ topics_id }
+    );
 
     my $queued_stories_ids = [];
     for my $story ( @{ $stories } )
@@ -165,10 +185,19 @@ SQL
     my $last_change_time        = time();
     while ( 1 )
     {
-        my $queued_stories = $db->query( <<SQL, $topic->{ topics_id } )->flat();
-select stories_id from topic_stories
-    where stories_id in ( select id from $queued_ids_table ) and topics_id = ? and link_mined = 'f'
+        my $queued_stories = $db->query( <<"SQL",
+            SELECT stories_id
+            FROM topic_stories
+            WHERE
+                stories_id IN (
+                    SELECT id
+                    FROM $queued_ids_table
+                ) AND
+                topics_id = ? AND
+                link_mined = 'f'
 SQL
+            $topic->{ topics_id }
+        )->flat();
 
         my $num_queued_stories = scalar( @{ $queued_stories } );
 
@@ -183,9 +212,26 @@ SQL
                 LOGDIE( "Timed out waiting for story link extraction ($ids_list)." );
             }
 
-            $db->query( <<SQL, $topic->{ topics_id } );
-update topic_stories set link_mine_error = 'time out' where stories_id in ( $ids_list ) and topics_id = ?
+            # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+            $db->query( <<SQL,
+                UPDATE unsharded_public.topic_stories SET
+                    link_mine_error = 'time out'
+                WHERE
+                    stories_id IN ($ids_list) AND
+                    topics_id = ?
 SQL
+                $topic->{ topics_id }
+            );
+            $db->query( <<SQL,
+                UPDATE sharded_public.topic_stories SET
+                    link_mine_error = 'time out'
+                WHERE
+                    stories_id IN ($ids_list) AND
+                    topics_id = ?
+SQL
+                $topic->{ topics_id }
+            );
+
             last;
         }
 
@@ -195,11 +241,35 @@ SQL
         sleep( $JOB_POLL_WAIT );
     }
 
-    $db->query( <<SQL, $topic->{ topics_id } );
-update topic_stories set link_mined = 't'
-    where stories_id in ( select id from $stories_ids_table ) and topics_id = ? and link_mined = 'f'
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+    $db->query( <<SQL,
+        UPDATE unsharded_public.topic_stories SET
+            link_mined = 't'
+        WHERE
+            stories_id IN (
+                SELECT id
+                FROM $stories_ids_table
+            ) AND
+            topics_id = ? AND
+            link_mined = 'f'
 SQL
-    $db->query( "drop table $stories_ids_table" );
+        $topic->{ topics_id }
+    );
+    $db->query( <<SQL,
+        UPDATE sharded_public.topic_stories SET
+            link_mined = 't'
+        WHERE
+            stories_id IN (
+                SELECT id
+                FROM $stories_ids_table
+            ) AND
+            topics_id = ? AND
+            link_mined = 'f'
+SQL
+        $topic->{ topics_id }
+    );
+
+    $db->query( "DROP TABLE $stories_ids_table" );
 }
 
 # die() with an appropriate error if topic_stories > topics.max_stories; because this check is expensive and we don't
@@ -208,9 +278,13 @@ sub die_if_max_stories_exceeded($$)
 {
     my ( $db, $topic ) = @_;
 
-    my ( $num_topic_stories ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
-select count(*) from topic_stories where topics_id = ?
+    my ( $num_topic_stories ) = $db->query( <<SQL,
+        SELECT COUNT(*)
+        FROM topic_stories
+        WHERE topics_id = ?
 SQL
+        $topic->{ topics_id }
+    )->flat;
 
     if ( $num_topic_stories > $topic->{ max_stories } )
     {
@@ -270,21 +344,25 @@ sub _fetch_twitter_urls($$$)
     # we run into quota limitations with twitter sometimes and need a longer timeout
     my $twitter_poll_timeout = $JOB_POLL_TIMEOUT * 5;
 
-    my $twitter_tfu_ids = $db->query( <<SQL )->flat();
-select topic_fetch_urls_id
-    from topic_fetch_urls tfu
-    where
-        tfu.state = 'tweet pending' and
-        tfu.topic_fetch_urls_id in ( $tfu_ids_list )
+    my $twitter_tfu_ids = $db->query( <<"SQL",
+        SELECT topic_fetch_urls_id
+        FROM topic_fetch_urls
+        WHERE
+            topics_id = ? AND
+            state = 'tweet pending' AND
+            topic_fetch_urls_id IN ($tfu_ids_list)
 SQL
+        $topic->{ topics_id }
+    )->flat();
 
     return unless ( scalar( @{ $twitter_tfu_ids } ) > 0 );
 
     my $tfu_ids_table = $db->get_temporary_ids_table( $twitter_tfu_ids );
 
-    MediaWords::Job::Broker->new( 'MediaWords::Job::TM::FetchTwitterUrls' )->add_to_queue(
-        { topic_fetch_urls_ids => $twitter_tfu_ids }
-    );
+    MediaWords::Job::Broker->new( 'MediaWords::Job::TM::FetchTwitterUrls' )->add_to_queue({
+        topics_id => $topic->{ topics_id },
+        topic_fetch_urls_ids => $twitter_tfu_ids
+    });
 
     INFO( "waiting for fetch twitter urls job for " . scalar( @{ $twitter_tfu_ids } ) . " urls" );
 
@@ -296,13 +374,19 @@ SQL
     my $last_change_time     = time();
     while ( 1 )
     {
-        my $queued_tfus = $db->query( <<SQL )->hashes();
-select tfu.*
-    from topic_fetch_urls tfu
-        join $tfu_ids_table ids on ( tfu.topic_fetch_urls_id = ids.id )
-    where
-        state in ('tweet pending')
+        my $queued_tfus = $db->query( <<"SQL",
+            SELECT tfu
+            FROM topic_fetch_urls
+            WHERE
+                topics_id = ? AND
+                topic_fetch_urls_id IN (
+                    SELECT id
+                    IN $tfu_ids_table
+                ) AND
+                state = 'tweet pending'
 SQL
+            $topic->{ topics_id }
+        )->hashes();
 
         my $num_queued_urls = scalar( @{ $queued_tfus } );
 
@@ -370,13 +454,18 @@ sub fetch_links
     my $last_num_pending_urls = 0;
     while ( 1 )
     {
-        my $pending_urls = $db->query( <<SQL )->hashes();
-select *, coalesce( fetch_date::text, 'null' ) fetch_date
-    from topic_fetch_urls
-    where
-        topic_fetch_urls_id in ( $tfu_ids_list ) and
-        state in ( 'pending', 'requeued' )
+        my $pending_urls = $db->query( <<"SQL",
+            SELECT
+                *,
+                COALESCE(fetch_date::text, 'null') AS fetch_date
+            FROM topic_fetch_urls
+            WHERE
+                topics_id = ? AND
+                topic_fetch_urls_id IN ($tfu_ids_list) AND
+                state IN ('pending', 'requeued')
 SQL
+            $topic->{ topics_id }
+        )->hashes();
 
         my $pending_url_ids = [ map { $_->{ topic_fetch_urls_id } } @{ $pending_urls } ];
 
@@ -444,20 +533,46 @@ SQL
     _fetch_twitter_urls( $db, $topic, $tfu_ids_list );
 
     INFO( "fetch_links: update topic seed urls" );
-    $db->query( <<SQL );
-update topic_seed_urls tsu
-    set stories_id = tfu.stories_id, processed = 't'
-    from topic_fetch_urls tfu
-    where
-        tfu.url = tsu.url and
-        tfu.stories_id is not null and
-        tfu.topic_fetch_urls_id in ( $tfu_ids_list ) and
-        tfu.topics_id = tsu.topics_id
-SQL
 
-    my $completed_tfus = $db->query( <<SQL )->hashes();
-select * from topic_fetch_urls where topic_fetch_urls_id in ( $tfu_ids_list )
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+    $db->query( <<SQL,
+        UPDATE unsharded_public.topic_seed_urls AS tsu SET
+            stories_id = tfu.stories_id,
+            processed = 't'
+        FROM unsharded_public.topic_fetch_urls AS tfu
+        WHERE
+            tfu.topics_id = ? AND
+            tfu.url = tsu.url AND
+            tfu.stories_id IS NOT NULL AND
+            tfu.topic_fetch_urls_id IN ($tfu_ids_list) AND
+            tfu.topics_id = tsu.topics_id
 SQL
+        $topic->{ topics_id }
+    );
+    $db->query( <<SQL,
+        UPDATE sharded_public.topic_seed_urls AS tsu SET
+            stories_id = tfu.stories_id,
+            processed = 't'
+        FROM sharded_public.topic_fetch_urls AS tfu
+        WHERE
+            tfu.topics_id = ? AND
+            tfu.url = tsu.url AND
+            tfu.stories_id IS NOT NULL AND
+            tfu.topic_fetch_urls_id IN ($tfu_ids_list) AND
+            tfu.topics_id = tsu.topics_id
+SQL
+        $topic->{ topics_id }
+    );
+
+    my $completed_tfus = $db->query( <<SQL,
+        SELECT *
+        FROM topic_fetch_urls
+        WHERE
+            topics_id = ? AND
+            topic_fetch_urls_id IN ($tfu_ids_list)
+SQL
+        $topic->{ topics_id }
+    )->hashes();
 
     INFO( "completed fetch link queue" );
 
@@ -479,9 +594,26 @@ sub add_new_links_chunk($$$$)
 
     INFO( "add_new_links_chunk: mark topic links spidered" );
     my $link_ids = [ grep { $_ } map { $_->{ topic_links_id } } @{ $new_links } ];
-    $db->query( <<SQL, $link_ids );
-update topic_links set link_spidered  = 't' where topic_links_id = any( ? )
+
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+    $db->query( <<SQL,
+        UPDATE unsharded_public.topic_links SET
+            link_spidered  = 't'
+        WHERE
+            topic_links_id = ANY(?) AND
+            topics_id = ?
 SQL
+        $link_ids, $topic->{ topics_id }
+    );
+    $db->query( <<SQL,
+        UPDATE sharded_public.topic_links SET
+            link_spidered  = 't'
+        WHERE
+            topic_links_id = ANY(?) AND
+            topics_id = ?
+SQL
+        $link_ids, $topic->{ topics_id }
+    );
 }
 
 # save a row in the topic_spider_metrics table to track performance of spider
@@ -543,22 +675,26 @@ sub spider_new_links($$$;$)
     {
         INFO( "querying new links ..." );
 
-        $db->query( "drop table if exists _new_links" );
+        $db->query( "DROP TABLE IF EXISTS _new_links" );
 
-        my $num_new_links = $db->query( <<END, $iteration, $topic->{ topics_id } )->rows();
-create temporary table _new_links as 
-    select tl.* 
-        from topic_links tl, topic_stories ts
-        where
-            tl.link_spidered = 'f' and
-            tl.stories_id = ts.stories_id and
-            ( ts.iteration <= \$1 or ts.iteration = 1000 ) and
-            ts.topics_id = \$2 and
-            tl.topics_id = \$2
-        order by random()
-END
+        my $num_new_links = $db->query( <<SQL,
+            CREATE TEMPORARY TABLE _new_links AS
+                SELECT tl.*
+                FROM
+                    topic_links AS tl,
+                    topic_stories AS ts
+                WHERE
+                    tl.link_spidered = 'f' AND
+                    tl.stories_id = ts.stories_id AND
+                    (ts.iteration <= \$1 OR ts.iteration = 1000) AND
+                    ts.topics_id = \$2 AND
+                    tl.topics_id = \$2
+                ORDER BY RANDOM()
+SQL
+            $iteration, $topic->{ topics_id }
+        )->rows();
 
-        $db->query( "create index _new_links_tl on _new_links ( topic_links_id )" );
+        $db->query( "CREATE INDEX _new_links_tl ON _new_links (topic_links_id)" );
 
         last if ( $num_new_links < 1 );
 
@@ -566,12 +702,12 @@ END
 
         while ( 1 )
         {
-            my $new_links = $db->query( "select * from _new_links limit ?", $SPIDER_LINKS_CHUNK_SIZE )->hashes();
+            my $new_links = $db->query( "SELECT * FROM _new_links LIMIT ?", $SPIDER_LINKS_CHUNK_SIZE )->hashes();
 
             last unless ( @{ $new_links } );
 
             my $tl_ids_list = join( ',', map { $_->{ topic_links_id } } @{ $new_links } );
-            $db->query( "delete from _new_links where topic_links_id in ($tl_ids_list)" );
+            $db->query( "DELETE FROM _new_links WHERE topic_links_id IN ($tl_ids_list)" );
             add_new_links( $db, $topic, $iteration, $new_links, $state_updater );
         }   
     }
@@ -586,17 +722,33 @@ sub get_spider_progress_description($$$$)
 
     my $cid = $topic->{ topics_id };
 
-    my ( $total_stories ) = $db->query( <<SQL, $cid )->flat;
-select count(*) from topic_stories where topics_id = ?
+    my ( $total_stories ) = $db->query( <<SQL,
+        SELECT COUNT(*)
+        FROM topic_stories
+        WHERE topics_id = ?
 SQL
+        $cid
+    )->flat;
 
-    my ( $stories_last_iteration ) = $db->query( <<SQL, $cid, $iteration )->flat;
-select count(*) from topic_stories where topics_id = ? and iteration = ? - 1
+    my ( $stories_last_iteration ) = $db->query( <<SQL,
+        SELECT COUNT(*)
+        FROM topic_stories
+        WHERE
+            topics_id = ? AND
+            iteration = ? - 1
 SQL
+        $cid, $iteration
+    )->flat;
 
-    my ( $queued_links ) = $db->query( <<SQL, $cid )->flat;
-select count(*) from topic_links where topics_id = ? and link_spidered = 'f'
+    my ( $queued_links ) = $db->query( <<SQL,
+        SELECT COUNT(*)
+        FROM topic_links
+        WHERE
+            topics_id = ? AND
+            link_spidered = 'f'
 SQL
+        $cid
+    )->flat;
 
     return "spidering iteration: $iteration; stories last iteration / total: " .
       "$stories_last_iteration / $total_stories; links queued: $queued_links; iteration links: $total_links";
@@ -635,15 +787,22 @@ sub mine_topic_stories
     {
         $i += $EXTRACT_STORY_LINKS_CHUNK_SIZE;
         INFO( "mine topic stories: chunked $i ..." );
-        my $stories = $db->query( <<SQL, $topic->{ topics_id }, $EXTRACT_STORY_LINKS_CHUNK_SIZE )->hashes;
-    select s.*, ts.link_mined, ts.redirect_url
-        from snap.live_stories s
-            join topic_stories ts on ( s.stories_id = ts.stories_id and s.topics_id = ts.topics_id )
-        where
-            ts.link_mined = false and
-            ts.topics_id = ?
-        limit ?
+        my $stories = $db->query( <<SQL,
+            SELECT
+                s.*,
+                ts.link_mined,
+                ts.redirect_url
+            FROM snap.live_stories AS s
+                INNER JOIN topic_stories AS ts ON
+                    s.stories_id = ts.stories_id AND
+                    s.topics_id = ts.topics_id
+            WHERE
+                ts.link_mined = false AND
+                s.topics_id = ?
+            LIMIT ?
 SQL
+            $topic->{ topics_id }, $EXTRACT_STORY_LINKS_CHUNK_SIZE
+        )->hashes;
 
         my $num_stories = scalar( @{ $stories } );
 
@@ -666,19 +825,49 @@ sub import_seed_urls($$;$)
     my $topics_id = $topic->{ topics_id };
 
     # take care of any seed urls with urls that we have already processed for this topic
-    $db->query( <<END, $topics_id );
-update topic_seed_urls a set stories_id = b.stories_id, processed = 't'
-    from topic_seed_urls b
-    where a.url = b.url and
-        a.topics_id = ? and b.topics_id = a.topics_id and
-        a.stories_id is null and b.stories_id is not null
-END
+
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+    $db->query( <<SQL,
+        UPDATE unsharded_public.topic_seed_urls AS a SET
+            stories_id = b.stories_id,
+            processed = 't'
+        FROM unsharded_public.topic_seed_urls AS b
+        WHERE
+            a.url = b.url AND
+            a.topics_id = ? AND
+            b.topics_id = a.topics_id AND
+            a.stories_id IS NULL AND
+            b.stories_id IS NOT NULL
+SQL
+        $topics_id
+    );
+    $db->query( <<SQL,
+        UPDATE sharded_public.topic_seed_urls AS a SET
+            stories_id = b.stories_id,
+            processed = 't'
+        FROM sharded_public.topic_seed_urls AS b
+        WHERE
+            a.url = b.url AND
+            a.topics_id = ? AND
+            b.topics_id = a.topics_id AND
+            a.stories_id IS NULL AND
+            b.stories_id IS NOT NULL
+SQL
+        $topics_id
+    );
 
     # randomly shuffle this query so that we don't block the extractor pool by throwing it all
     # stories from a single media_id at once
-    my $seed_urls = $db->query( <<END, $topics_id )->hashes;
-select * from topic_seed_urls where topics_id = ? and processed = 'f' order by random()
-END
+    my $seed_urls = $db->query( <<SQL,
+        SELECT *
+        FROM topic_seed_urls
+        WHERE
+            topics_id = ? AND
+            processed = 'f'
+        ORDER BY RANDOM()
+SQL
+        $topics_id
+    )->hashes;
 
     return 0 unless ( @{ $seed_urls } );
 
@@ -694,49 +883,117 @@ END
 
         # verify that the seed urls are still there and not processed, in case we have mucked with them while spidering
         my $urls_ids_list = join( ',', map { int( $_->{ topic_seed_urls_id } ) } @{ $seed_urls }[ $i .. $end] );
-        my $seed_urls_chunk = $db->query( <<SQL )->hashes();
-select * from topic_seed_urls where topic_seed_urls_id in ( $urls_ids_list ) and not processed
+        my $seed_urls_chunk = $db->query( <<SQL
+            SELECT *
+            FROM topic_seed_urls
+            WHERE
+                topic_seed_urls_id IN ($urls_ids_list) AND
+                NOT processed
 SQL
+        )->hashes();
 
         add_new_links_chunk( $db, $topic, 0, $seed_urls_chunk );
 
         my $ids_list = join( ',', map { int( $_->{ topic_seed_urls_id } ) } @{ $seed_urls_chunk } );
 
         # update topic_seed_urls that were actually fetched
-        $db->query( <<SQL );
-update topic_seed_urls tsu
-    set stories_id = tfu.stories_id
-    from topic_fetch_urls tfu
-    where
-        tsu.topics_id = tfu.topics_id and
-        md5(tsu.url) = md5(tfu.url) and
-        tsu.topic_seed_urls_id in ( $ids_list )
+
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+        $db->query( <<SQL,
+            UPDATE unsharded_public.topic_seed_urls AS tsu
+            SET stories_id = tfu.stories_id
+            FROM unsharded_public.topic_fetch_urls AS tfu
+            WHERE
+                tsu.topics_id = ? AND
+                tsu.topics_id = tfu.topics_id AND
+                tsu.url = tfu.url AND
+                tsu.topic_seed_urls_id IN ($ids_list)
 SQL
+            $topics_id
+        );
+        $db->query( <<SQL,
+            UPDATE sharded_public.topic_seed_urls AS tsu
+            SET stories_id = tfu.stories_id
+            FROM sharded_public.topic_fetch_urls AS tfu
+            WHERE
+                tsu.topics_id = ? AND
+                tsu.topics_id = tfu.topics_id AND
+                tsu.url = tfu.url AND
+                tsu.topic_seed_urls_id IN ($ids_list)
+SQL
+            $topics_id
+        );
 
         # now update the topic_seed_urls that were matched
-        $db->query( <<SQL );
-update topic_seed_urls tsu
-    set processed = 't'
-    where
-        tsu.topic_seed_urls_id in ( $ids_list ) and
-        processed = 'f'
+
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+        $db->query( <<"SQL",
+            UPDATE unsharded_public.topic_seed_urls SET
+                processed = 't'
+            WHERE
+                topics_id = ? AND
+                topic_seed_urls_id IN ($ids_list) AND
+                processed = 'f'
 SQL
+            $topics_id
+        );
+        $db->query( <<"SQL",
+            UPDATE sharded_public.topic_seed_urls SET
+                processed = 't'
+            WHERE
+                topics_id = ? AND
+                topic_seed_urls_id IN ($ids_list) AND
+                processed = 'f'
+SQL
+            $topics_id
+        );
 
         my $elapsed_time = time - $start_time;
         save_metrics( $db, $topic, 1, $end - $i, $elapsed_time );
     }
 
     # cleanup any topic_seed_urls pointing to a merged story
-    $db->query(
-        <<SQL,
-        UPDATE topic_seed_urls AS tsu
-        SET stories_id = tms.target_stories_id, processed = 't'
-        FROM topic_merged_stories_map AS tms,
-             topic_stories ts
-        WHERE tsu.stories_id = tms.source_stories_id
-          AND ts.stories_id = tms.target_stories_id
-          AND tsu.topics_id = ts.topics_id
-          AND ts.topics_id = \$1
+
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+    $db->query( <<SQL,
+        UPDATE unsharded_public.topic_seed_urls SET
+            stories_id = merged_stories_for_update.target_stories_id,
+            processed = 't'
+        FROM (
+            SELECT
+                source_stories_id,
+                target_stories_id
+            FROM unsharded_public.topic_merged_stories_map
+            WHERE target_stories_id IN (
+                SELECT stories_id
+                FROM unsharded_public.topic_stories
+                WHERE topics_id = \$1
+            )
+        ) AS merged_stories_for_update
+        WHERE
+            topics_id = \$1 AND
+            topic_seed_urls.stories_id = merged_stories_for_update.source_stories_id
+SQL
+        $topic->{ topics_id }
+    );
+    $db->query( <<SQL,
+        UPDATE sharded_public.topic_seed_urls SET
+            stories_id = merged_stories_for_update.target_stories_id,
+            processed = 't'
+        FROM (
+            SELECT
+                source_stories_id,
+                target_stories_id
+            FROM sharded_public.topic_merged_stories_map
+            WHERE target_stories_id IN (
+                SELECT stories_id
+                FROM sharded_public.topic_stories
+                WHERE topics_id = \$1
+            )
+        ) AS merged_stories_for_update
+        WHERE
+            topics_id = \$1 AND
+            topic_seed_urls.stories_id = merged_stories_for_update.source_stories_id
 SQL
         $topic->{ topics_id }
     );
@@ -870,7 +1127,13 @@ sub import_solr_seed_query
     my $month_offset = 0;
     while ( import_solr_seed_query_month( $db, $topic, $month_offset++ ) ) { }
 
-    $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topic->{ topics_id } );
+    $db->query( <<SQL,
+        UPDATE topics SET
+            solr_seed_query_run = 't'
+        WHERE topics_id = ?
+SQL
+        $topic->{ topics_id }
+    );
 }
 
 # return true if there are no stories without facebook data
@@ -878,21 +1141,26 @@ sub all_facebook_data_fetched
 {
     my ( $db, $topic ) = @_;
 
-    my $null_facebook_story = $db->query( <<SQL, $topic->{ topics_id } )->hash;
-select 1
-    from topic_stories cs
-        left join story_statistics ss on ( cs.stories_id = ss.stories_id )
-    where
-        cs.topics_id = ? and
-        ss.facebook_api_error is null and
-        (
-            ss.stories_id is null or
-            ss.facebook_share_count is null or
-            ss.facebook_comment_count is null or
-            ss.facebook_api_collect_date is null
-        )
-    limit 1
+    my $null_facebook_story = $db->query( <<SQL,
+        SELECT 1
+        FROM story_statistics
+        WHERE
+            stories_id IN (
+                SELECT stories_id
+                FROM topic_stories
+                WHERE topics_id = ?
+            ) AND
+            facebook_api_error IS NULL AND
+            (
+                stories_id IS NULL OR
+                facebook_share_count IS NULL OR
+                facebook_comment_count IS NULL OR
+                facebook_api_collect_date IS NULL
+            )
+        LIMIT 1
 SQL
+        $topic->{ topics_id }
+    )->hash;
 
     return !$null_facebook_story;
 }
@@ -904,13 +1172,18 @@ sub __add_topic_stories_to_facebook_queue($$)
 
     my $topics_id = $topic->{ topics_id };
 
-    my $stories = $db->query( <<END, $topics_id )->hashes;
-SELECT ss.*, cs.stories_id
-    FROM topic_stories cs
-        left join story_statistics ss on ( cs.stories_id = ss.stories_id )
-    WHERE cs.topics_id = ?
-    ORDER BY cs.stories_id
-END
+    my $stories = $db->query( <<SQL,
+        SELECT *
+        FROM story_statistics
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM topic_stories
+            WHERE topics_id = ?
+        )
+        ORDER BY stories_id
+SQL
+        $topics_id
+    )->hashes;
 
     unless ( scalar @{ $stories } )
     {
@@ -966,12 +1239,16 @@ sub check_job_error_rate($$)
 
     INFO( "check job error rate" );
 
-    my $fetch_stats = $db->query( <<SQL, $topic->{ topics_id } )->hashes();
-select count(*) num, ( state = 'python error' ) as error
-    from topic_fetch_urls
-        where topics_id = ?
-        group by ( state = 'python error' )
+    my $fetch_stats = $db->query( <<SQL,
+        SELECT
+            COUNT(*) AS num,
+            (state = 'python error') AS error
+        FROM topic_fetch_urls
+        WHERE topics_id = ?
+        GROUP BY (state = 'python error')
 SQL
+        $topic->{ topics_id }
+    )->hashes();
 
     my ( $num_fetch_errors, $num_fetch_successes ) = ( 0, 0 );
     for my $s ( @{ $fetch_stats } )
@@ -989,12 +1266,16 @@ SQL
         die( "Fetch error rate of $fetch_error_rate is greater than max of $MAX_JOB_ERROR_RATE" );
     }
 
-    my $link_stats = $db->query( <<SQL, $topic->{ topics_id } )->hashes();
-select count(*) num, ( length( link_mine_error) > 0 ) as error
-    from topic_stories
-        where topics_id = ?
-        group by ( length( link_mine_error ) > 0 )
+    my $link_stats = $db->query( <<SQL,
+        SELECT
+            count(*) AS num,
+            (LENGTH(link_mine_error) > 0) AS error
+        FROM topic_stories
+        WHERE topics_id = ?
+        GROUP BY (LENGTH(link_mine_error ) > 0)
 SQL
+        $topic->{ topics_id }
+    )->hashes();
 
     my ( $num_link_errors, $num_link_successes ) = ( 0, 0 );
     for my $s ( @{ $link_stats } )
@@ -1018,8 +1299,13 @@ sub import_urls_from_seed_queries($$;$)
 {
     my ( $db, $topic, $state_updater ) = @_;
     
-    my $topic_seed_queries = $db->query(
-        "select * from topic_seed_queries where topics_id = ?", $topic->{ topics_id } )->hashes();
+    my $topic_seed_queries = $db->query(<<SQL,
+        SELECT *
+        FROM topic_seed_queries
+        WHERE topics_id = ?
+SQL
+        $topic->{ topics_id }
+    )->hashes();
 
     my $num_queries = scalar( @{ $topic_seed_queries } );
 
@@ -1045,24 +1331,96 @@ sub import_urls_from_seed_queries($$;$)
         MediaWords::TM::FetchTopicPosts::fetch_topic_posts( $db, $tsq );
     }
 
-    $db->query( <<SQL, $topic->{ topics_id } );
-insert into topic_seed_urls ( url, topics_id, assume_match, source, topic_seed_queries_id, topic_post_urls_id )
-    select distinct
-            tpu.url,
-            tsq.topics_id,
-            false,
-            'topic_seed_queries', 
-            tsq.topic_seed_queries_id,
-            tpu.topic_post_urls_id
-        from
-            topic_post_urls tpu
-            join topic_posts tp using ( topic_posts_id )
-            join topic_post_days tpd using ( topic_post_days_id )
-            join topic_seed_queries tsq using ( topic_seed_queries_id )
-        where
-            tsq.topics_id = ? 
-        on conflict ( topic_post_urls_id ) do nothing
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
+    # updatable view, and we can't upsert directly into the sharded table
+    # as the duplicate row might already exist in the unsharded one;
+    # therefore, we test the unsharded table once for whether the row
+    # exists and do an upsert to a sharded table -- the row won't start
+    # suddenly existing in an essentially read-only unsharded table so this
+    # should be safe from race conditions. After migrating rows, one can
+    # reset this statement to use a native upsert
+    $db->query( <<SQL,
+        CREATE TEMPORARY TABLE temp_topic_seed_urls AS
+            SELECT DISTINCT
+                topic_post_urls.url,
+                topic_seed_queries.topics_id,
+                false AS assume_match,
+                'topic_seed_queries' AS source, 
+                topic_seed_queries.topic_seed_queries_id,
+                topic_post_urls.topic_post_urls_id
+            FROM topic_post_urls
+                INNER JOIN topic_posts ON
+                    topic_post_urls.topics_id = topic_posts.topics_id AND
+                    topic_post_urls.topic_posts_id = topic_posts.topic_posts_id
+                INNER JOIN topic_post_days ON
+                    topic_posts.topics_id = topic_post_days.topics_id AND
+                    topic_posts.topic_post_days_id = topic_post_days.topic_post_days_id
+                INNER JOIN topic_seed_queries ON
+                    topic_post_days.topics_id = topic_seed_queries.topics_id AND
+                    topic_post_days.topic_seed_queries_id = topic_seed_queries.topic_seed_queries_id
+            WHERE topic_post_urls.topics_id = ? 
 SQL
+        $topic->{ topics_id }
+    );
+
+    $db->query( <<SQL
+        CREATE INDEX temp_topic_seed_urls_topic_post_urls_id
+            ON temp_topic_seed_urls (topic_post_urls_id)
+SQL
+    );
+
+    my $temp_topic_seed_urls_chunk = [];
+    my $temp_topic_seed_urls_offset = 0;
+    my $temp_topic_seed_urls_limit = 1000;
+
+    do {
+        $temp_topic_seed_urls_chunk = $db->query( <<SQL,
+            SELECT *
+            FROM temp_topic_seed_urls
+            ORDER BY topic_post_urls_id
+            LIMIT ?
+            OFFSET ?
+SQL
+            $temp_topic_seed_urls_limit, $temp_topic_seed_urls_offset
+        )->hashes();
+
+        for my $row ( @{ $temp_topic_seed_urls_chunk } ) {
+            my $row_exists = $db->query( <<SQL,
+                SELECT 1
+                FROM topic_seed_urls
+                WHERE
+                    topics_id = ? AND
+                    topic_post_urls_id = ?
+SQL
+                $row->{ topics_id }, $row->{ topic_post_urls_id }
+            )->hash();
+            unless ( $row_exists ) {
+                $db->query( <<SQL,
+                    INSERT INTO sharded_public.topic_seed_urls (
+                        url,
+                        topics_id,
+                        assume_match,
+                        source,
+                        topic_seed_queries_id,
+                        topic_post_urls_id
+                    ) VALUES (?, ?, ?, ?, ?, ?)
+                    ON CONFLICT (topics_id, topic_post_urls_id) DO NOTHING
+SQL
+                    $row->{ url },
+                    $row->{ topics_id },
+                    $row->{ assume_match },
+                    $row->{ source },
+                    $row->{ topic_seed_queries_id },
+                    $row->{ topic_post_urls_id },
+                );
+            }
+        }
+
+        $temp_topic_seed_urls_offset += $temp_topic_seed_urls_limit;
+
+    } until ( scalar( @{ $temp_topic_seed_urls_chunk } ) == 0 );
+
+    $db->query( 'DROP TABLE temp_topic_seed_urls' );
 }
 
 # if the query or dates have changed, set topic_stories.link_mined to false for the impacted stories so that
@@ -1078,50 +1436,116 @@ sub set_stories_respidering($$$)
 
     if ( !$respider_start_date && !$respider_end_date )
     {
-        $db->query( "update topic_stories set link_mined = 'f' where topics_id = ?", $topic->{ topics_id } );
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+        $db->query( <<SQL,
+            UPDATE unsharded_public.topic_stories SET
+                link_mined = 'f'
+            WHERE topics_id = ?
+SQL
+            $topic->{ topics_id }
+        );
+        $db->query( <<SQL,
+            UPDATE sharded_public.topic_stories SET
+                link_mined = 'f'
+            WHERE topics_id = ?
+SQL
+            $topic->{ topics_id }
+        );
+
         return;
     }
 
     if ( $respider_start_date )
     {
-        $db->query( <<SQL, $respider_start_date, $topic->{ start_date }, $topic->{ topics_id } );
-update topic_stories ts set link_mined = 'f'
-    from stories s
-    where
-        ts.stories_id = s.stories_id and
-        s.publish_date >= \$2 and 
-        s.publish_date <= \$1 and
-        ts.topics_id = \$3
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+        $db->query( <<SQL,
+            UPDATE unsharded_public.topic_stories SET
+                link_mined = 'f'
+            WHERE
+                topics_id = \$3 AND
+                stories_id IN (
+                    SELECT stories_id
+                    FROM stories
+                    WHERE publish_date BETWEEN \$2 AND \$1
+                )
 SQL
+            $respider_start_date, $topic->{ start_date }, $topic->{ topics_id }
+        );
+        $db->query( <<SQL,
+            UPDATE sharded_public.topic_stories SET
+                link_mined = 'f'
+            WHERE
+                topics_id = \$3 AND
+                stories_id IN (
+                    SELECT stories_id
+                    FROM stories
+                    WHERE publish_date BETWEEN \$2 AND \$1
+                )
+SQL
+            $respider_start_date, $topic->{ start_date }, $topic->{ topics_id }
+        );
+
         if ( $snapshots_id )
         {
             $db->update_by_id( 'snapshots', $snapshots_id, { start_date => $topic->{ start_date } } );
-            $db->query( <<SQL, $snapshots_id, $respider_start_date );
-update timespans set archive_snapshots_id = snapshots_id, snapshots_id = null
-    where snapshots_id = ? and start_date < ?
+            $db->query( <<SQL,
+                UPDATE timespans SET
+                    archive_snapshots_id = snapshots_id,
+                    snapshots_id = NULL
+                WHERE
+                    topics_id = ? AND
+                    snapshots_id = ? AND
+                    start_date < ?
 SQL
+                $topic->{ topics_id }, $snapshots_id, $respider_start_date
+            );
         }
     }
 
     if ( $respider_end_date )
     {
-        $db->query( <<SQL, $respider_end_date, $topic->{ end_date }, $topic->{ topics_id } );
-update topic_stories ts set link_mined = 'f'
-    from stories s
-    where
-        ts.stories_id = s.stories_id and
-        s.publish_date >= \$1 and 
-        s.publish_date <= \$2 and
-        ts.topics_id = \$3
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+        $db->query( <<SQL,
+            UPDATE unsharded_public.topic_stories SET
+                link_mined = 'f'
+            WHERE
+                topics_id = \$3 AND
+                stories_id IN (
+                    SELECT stories_id
+                    FROM stories
+                    WHERE publish_date BETWEEN \$1 AND \$2
+                )
 SQL
+            $respider_end_date, $topic->{ end_date }, $topic->{ topics_id }
+        );
+        $db->query( <<SQL,
+            UPDATE sharded_public.topic_stories SET
+                link_mined = 'f'
+            WHERE
+                topics_id = \$3 AND
+                stories_id IN (
+                    SELECT stories_id
+                    FROM stories
+                    WHERE publish_date BETWEEN \$1 AND \$2
+                )
+SQL
+            $respider_end_date, $topic->{ end_date }, $topic->{ topics_id }
+        );
 
         if ( $snapshots_id )
         {
             $db->update_by_id( 'snapshots', $snapshots_id, { end_date => $topic->{ end_date } } );
-            $db->query( <<SQL, $snapshots_id, $respider_end_date );
-update timespans set archive_snapshots_id = snapshots_id, snapshots_id = null
-    where snapshots_id = ? and end_date > ?
+            $db->query( <<SQL,
+                UPDATE timespans SET
+                    archive_snapshots_id = snapshots_id,
+                    snapshots_id = NULL
+                WHERE
+                    topics_id = ? AND
+                    snapshots_id = ? AND
+                    end_date > ?
 SQL
+                $topic->{ topics_id }, $snapshots_id, $respider_end_date
+            );
         }
     }
 

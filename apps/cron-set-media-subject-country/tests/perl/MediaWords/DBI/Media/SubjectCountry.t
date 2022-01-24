@@ -20,14 +20,16 @@ sub test_medium_country_tag($$$$)
 
     my $tag_set = MediaWords::DBI::Media::SubjectCountry::get_subject_country_tag_set( $db );
 
-    my $tags = $db->query( <<SQL, $medium->{ media_id }, $tag_set->{ tag_sets_id } )->hashes;
-select t.*
-    from media_tags_map mtm
-        join tags t using ( tags_id )
-    where
-        mtm.media_id = \$1 and
-        t.tag_sets_id = \$2
+    my $tags = $db->query( <<SQL,
+        SELECT t.*
+        FROM media_tags_map AS mtm
+            JOIN tags AS t USING (tags_id)
+        WHERE
+            mtm.media_id = \$1 AND
+            t.tag_sets_id = \$2
 SQL
+        $medium->{ media_id }, $tag_set->{ tag_sets_id }
+    )->hashes;
 
     if ( !$country )
     {
@@ -51,7 +53,13 @@ sub add_country_geo_tags($$$$)
     my $tag_sets_id = $tag_set->{ tag_sets_id };
     my $tag = $db->find_or_create( 'tags', { tag => $country, label => $country, tag_sets_id => $tag_sets_id } );
 
-    my $stories = $db->query( "select * from stories where media_id = \$1", $medium->{ media_id } )->hashes;
+    my $stories = $db->query( <<SQL,
+        SELECT *
+        FROM stories
+        WHERE media_id = \$1
+SQL
+        $medium->{ media_id }
+    )->hashes;
 
     my $i = 0;
     for my $story ( @{ $stories } )

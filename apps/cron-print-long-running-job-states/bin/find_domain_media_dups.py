@@ -50,12 +50,12 @@ def print_long_running_job_states(db: DatabaseHandler, limit: int):
             medium['medium_domain'] = dup_domain
             medium['dup_domain_matches'] = domain == dup_domain
 
-    db.query("drop table if exists media_dups")
+    db.query("DROP TABLE IF EXISTS media_dups")
     db.query(
         """
-        create table media_dups (
-            domain text,
-            media_id int
+        CREATE TABLE media_dups (
+            domain TEXT,
+            media_id BIGINT
             )
         """)
 

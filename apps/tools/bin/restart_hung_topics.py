@@ -25,7 +25,7 @@ def main():
         with 
 
         topic_jobs as ( 
-            select *, ( args->>'topics_id' )::int topics_id 
+            select *, ( args->>'topics_id' )::bigint topics_id 
                 from job_states 
                 where 
                     class like '%Topic%' and 
@@ -40,7 +40,7 @@ def main():
                 j.args->>'snapshots_id' snapshots_id,
                 now() n, rank r
             from ranked_jobs j
-                join topics t on ( t.topics_id = ( j.args->>'topics_id' )::int )
+                join topics t on ( t.topics_id = ( j.args->>'topics_id' )::bigint )
             where 
                 last_updated < now() - '1 day'::interval and 
                 rank = 1 and 
@@ -85,9 +85,15 @@ def main():
                 # delete all topic_fetch_url python errors -- do this if we know the cause of the errors
                 # and want the topic to succeed any way rather than triggering a 'fetch error rate ... is greater' err
                 print('deleting topic_fetch_url errors...')
+
+                # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
                 db.query(
-                    "delete from topic_fetch_urls where topics_id = %(a)s and state = 'python error'",
+                    "DELETE FROM unsharded_public.topic_fetch_urls WHERE topics_id = %(a)s AND state = 'python error'",
                     {'a': topics_id})
+                db.query(
+                    "DELETE FROM sharded_public.topic_fetch_urls WHERE topics_id = %(a)s AND state = 'python error'",
+                    {'a': topics_id})
+
             elif action == 'c':
                 # prepend the 'canceled: ' string to the start of the error message so that topic job will be
                 # ignored by future runs of this script
@@ -101,12 +107,13 @@ def main():
             elif action == 'f':
                 jobs = db.query(
                     """
-                    select * 
-                        from job_states 
-                        where class like '%Topic%' and args->>'topics_id' = %(a)s::text 
-                        order by job_states_id
+                    SELECT * 
+                        FROM job_states 
+                        WHERE class LIKE '%Topic%' AND args->>'topics_id' = %(a)s::TEXT
+                        ORDER BY job_states_id
                     """,
-                    {'a': topics_id}).hashes()
+                    {'a': topics_id}
+                ).hashes()
                 [print(f"{job['last_updated']} {job['class']}\n{job['message']}\n****") for job in jobs]
                 # print out the whole error message and then reprompt for an action
                 #print(topic['message'])

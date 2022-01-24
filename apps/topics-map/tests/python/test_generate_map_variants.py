@@ -19,11 +19,13 @@ class TestGenerateMapVariants(TestMap):
         sizes = ['author_count', 'post_count']
 
         maps = generate_map_variants(
-            db=db, 
+            db=db,
+            topics_id=self.timespan['topics_id'],
             timespans_id=self.timespan['timespans_id'], 
             memory_limit_mb=512,
             size_bys=sizes,
-            color_bys=colors)
+            color_bys=colors,
+        )
 
         maps = list(maps)
 

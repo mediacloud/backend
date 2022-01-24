@@ -25,10 +25,12 @@ MediaWords::Munin::plugin({
                 my $db = shift;
 
                 my ( $count ) = $db->query( <<SQL )->flat();
-select ((reltuples/relpages) *
-			(pg_relation_size('solr_import_stories') / (current_setting('block_size')::integer))
-		)::bigint
-	from pg_class where relname = 'solr_import_stories'
+                    SELECT (
+                        (reltuples / relpages) *
+                        (pg_relation_size('solr_import_stories') / (current_setting('block_size')::INTEGER))
+                    )::BIGINT
+                    FROM pg_class
+                    WHERE relname = 'solr_import_stories'
 SQL
 
                 return $count;
