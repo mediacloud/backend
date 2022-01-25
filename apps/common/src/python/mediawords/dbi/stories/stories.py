@@ -96,6 +96,8 @@ def _find_dup_stories(db: DatabaseHandler, story: dict) -> List[Dict[str, Any]]:
 
     urls = _get_story_url_variants(story)
 
+    db.query('SET citus.max_adaptive_executor_pool_size TO 2')
+
     db_stories = db.query("""
         SELECT *
         FROM stories
