@@ -193,6 +193,39 @@ DROP TYPE unsharded_public.retweeter_scores_match_type;
 -- Forgot to move this one in the previous migration
 ALTER TYPE unsharded_public.schema_version_type SET SCHEMA public;
 
+-- The following only exist in production
+DROP FUNCTION IF EXISTS unsharded_public.create_views();
+DROP FUNCTION IF EXISTS unsharded_public.downloads_after_update_delete_trigger();
+DROP FUNCTION IF EXISTS unsharded_public.emm_remove_story_from_story_subsets();
+DROP FUNCTION IF EXISTS unsharded_public.foobar();
+DROP FUNCTION IF EXISTS unsharded_public.get_and_set_last_solr_import_date();
+DROP FUNCTION IF EXISTS unsharded_public.get_domain_web_requests_lock(TEXT, INTEGER);
+DROP FUNCTION IF EXISTS unsharded_public.get_normalized_title();
+DROP FUNCTION IF EXISTS unsharded_public.get_primary_key_max_values();
+DROP FUNCTION IF EXISTS unsharded_public.get_random_gridfs_downloads_id(INTEGER);
+DROP FUNCTION IF EXISTS unsharded_public.get_random_gridfs_downloads_id(INTEGER, INTEGER);
+DROP FUNCTION IF EXISTS unsharded_public.emm_remove_story_from_story_subsets(BIGINT);
+DROP FUNCTION IF EXISTS unsharded_public.get_normalized_title(TEXT);
+DROP FUNCTION IF EXISTS unsharded_public.hex_to_bigint(CHARACTER VARYING);
+DROP FUNCTION IF EXISTS unsharded_public.is_stop_stem(TEXT, TEXT);
+DROP FUNCTION IF EXISTS unsharded_public.purge_story_sentence_counts(DATE, DATE);
+DROP FUNCTION IF EXISTS unsharded_public.snapshot_stories_tags_map(INTEGER);
+DROP FUNCTION IF EXISTS unsharded_public.ss_insert_story_media_stats();
+DROP FUNCTION IF EXISTS unsharded_public.ss_update_story_media_stats();
+DROP FUNCTION IF EXISTS unsharded_public.story_delete_ss_media_stats();
+DROP FUNCTION IF EXISTS unsharded_public.story_is_annotatable_with_corenlp_new(INTEGER);
+DROP FUNCTION IF EXISTS unsharded_public.temp_bitly_get_partition_name(INTEGER, TEXT);
+DROP FUNCTION IF EXISTS unsharded_public.temp_bitly_partition_chunk_size();
+DROP FUNCTION IF EXISTS unsharded_public.test_get_downloads_for_queue();
+DROP FUNCTION IF EXISTS unsharded_public.update_media_last_updated();
+DROP FUNCTION IF EXISTS unsharded_public.upsert_bitly_clicks_total_foo(INTEGER, INTEGER);
+DROP FUNCTION IF EXISTS unsharded_public.url_domain(TEXT);
+DROP OPERATOR FAMILY IF EXISTS unsharded_public.gin_hstore_ops USING GIN;
+DROP OPERATOR FAMILY IF EXISTS unsharded_public.gist_hstore_ops USING GIST;
+DROP SEQUENCE IF EXISTS unsharded_public.sopa_stories_sopa_stories_id_seq;
+DROP SEQUENCE IF EXISTS unsharded_public.taskset_id_sequence;
+DROP TYPE IF EXISTS unsharded_public.media_stats_period_type;
+
 -- Remove unsharded schemas
 DROP SCHEMA unsharded_public;
 DROP SCHEMA unsharded_snap;
