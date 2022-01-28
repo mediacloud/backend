@@ -173,7 +173,7 @@ def _insert_story_sentences(
     idle_timeout = db.query("SHOW idle_in_transaction_session_timeout").flat()[0]
     db.query("SET idle_in_transaction_session_timeout = 5000")
     
-    db.query('SET citus.max_adaptive_executor_pool_size TO 2')
+    db.query('SET citus.max_adaptive_executor_pool_size TO 64')
 
     log.debug(f"Adding advisory lock on media ID {media_id}...")
     db.query("SELECT pg_advisory_lock(%(media_id)s)", {'media_id': media_id})
