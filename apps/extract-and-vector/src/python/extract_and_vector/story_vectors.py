@@ -175,9 +175,6 @@ def _insert_story_sentences(
     
     db.query('SET citus.max_adaptive_executor_pool_size TO 64')
 
-    log.debug(f"Adding advisory lock on media ID {media_id}...")
-    db.query("SELECT pg_advisory_lock(%(media_id)s)", {'media_id': media_id})
-
     sql = f"""
         -- noinspection SqlType,SqlResolve
         WITH new_sentences ({str_story_sentences_columns}) AS (VALUES
@@ -218,9 +215,6 @@ def _insert_story_sentences(
     """
     log.debug(f"Running 'INSERT INTO story_sentences' query:\n{sql}")
     inserted_sentences = db.query(sql).flat()
-
-    log.debug(f"Removing advisory lock on media ID {media_id}...")
-    db.query("SELECT pg_advisory_unlock(%(media_id)s)", {'media_id': media_id})
 
     db.query("SET idle_in_transaction_session_timeout = %(a)s", {'a': idle_timeout})
 
