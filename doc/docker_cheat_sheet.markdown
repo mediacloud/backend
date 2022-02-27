@@ -75,7 +75,8 @@ Given that behind the scenes a container is just a fancy chroot, it wouldn't mak
 
 ## Run `psql`
 
-To access PostgreSQL directly, you can either run `psql` in a `postgresql-server` container, or map the port from a PostgreSQL container to your host machine and access it from there:
+To access PostgreSQL directly, you can either run `psql` in a `postgresql-server` container, or map the port from a PostgreSQL container to your host machine and access it from there. At present, Media Cloud
+runs our PostgreSQL server [on `woodward`](https://github.com/mediacloud/production-docker-config/blob/master/hosts.yml#L69-L70); you can also access PostgreSQL data by `ssh`ing to `bd-postgresql.srv.mediacloud.org`.
 
 * To run **`psql` in PostgreSQL container**:
 
@@ -152,3 +153,25 @@ To access PostgreSQL directly, you can either run `psql` in a `postgresql-server
      
      mediacloud=# 
      ```
+
+* To **dump PostgreSQL tables to your host machine**:
+
+   1. `ssh` to the server running PostgreSQL and find its container ID, as described above.
+   
+   2. Choose the table you want and dump it as a `.sql` file with the following syntax:
+
+      ```docker exec 123somecontainer456 pg_dump --table=media > media.sql`
+
+      Note that there are certain tables (e.g. `story_sentences`) that are so large as to be infeasible
+      to work with locally. You can check that by running `du` on the dumped `.sql` file while `ssh`ed
+      into the server, e.g. `du media.sql --block-size=1MB`.
+
+   3. Copy the `.sql` file to a directory on your host machine via `scp`, e.g.
+
+      ```scp james@bd-postgresql.srv.mediacloud.org:/nfs/home/james/media.sql ./```
+
+   4. Load the `.sql` file to the local database of your choice. For example, if you want to use
+      PostgreSQL, create a database, connect to it via `psql` and load the table with a
+      command along the lines of 
+      
+      ```mediacloud=# \i '/home/james/mediacloud/sql_dumps/media.sql'```
