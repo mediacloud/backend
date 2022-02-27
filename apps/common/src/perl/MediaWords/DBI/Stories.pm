@@ -35,7 +35,21 @@ sub attach_story_data_to_stories
 {
     my ( $stories, $story_data, $list_field ) = @_;
 
-    map { $_->{ $list_field } = [] } @{ $stories } if ( $list_field );
+    if ( $list_field ) {
+        for my $story ( @{ $stories } ) {
+            # This subroutine could be called for multiple "story_data" chunks
+            # with the same "stories" list to attach the chunks to, so the list
+            # with "list_field" key might already exist
+            if ( defined $story->{ $list_field } ) {
+                # Validate that it's actually an arrayref
+                unless ( ref( $story->{ $list_field } ) eq ref( [] ) )  {
+                    die "One or more stories already have '$list_field' set which is not an arrayref";
+                }
+            } else {
+                $story->{ $list_field } = [];
+            }
+        }
+    }
 
     unless ( scalar @{ $story_data } )
     {
@@ -65,7 +79,17 @@ sub attach_story_data_to_stories
         my $sid = $story->{ stories_id };
         if ( my $sd = $story_data_lookup->{ $sid } )
         {
-            map { $story->{ $_ } = $sd->{ $_ } } keys( %{ $sd } );
+            foreach my $story_key ( keys( %{ $sd } ) ) {
+                if ( defined $list_field and $story_key eq $list_field ) {
+                    $story->{ $story_key } //= [];
+                    foreach my $story_field_value ( @{ $sd->{ $story_key } } ) {
+                        push( @{ $story->{ $story_key } }, $story_field_value );
+                    }
+                } else {
+                    $story->{ $story_key } = $sd->{ $story_key };
+                }
+            }
+
             TRACE "story matched: " . Dumper( $story );
         }
     }
