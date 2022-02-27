@@ -139,11 +139,13 @@ RUN \
     done
 
 # Prebuild Jieba dictionary cache
+USER mediacloud
 COPY bin/build_jieba_dict_cache.py /
-RUN \
-    /build_jieba_dict_cache.py && \
-    rm /build_jieba_dict_cache.py && \
-    true
+RUN /build_jieba_dict_cache.py
+
+USER root
+RUN rm /build_jieba_dict_cache.py
 
 # Symlink Log::Log4perl configuration to where it's going to be found
+
 RUN ln -s /opt/mediacloud/src/common/perl/log4perl.conf /etc/log4perl.conf
