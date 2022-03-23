@@ -24,6 +24,8 @@ __SOLR_STARTUP_TIMEOUT = 2 * 60
 __QUERY_HTTP_TIMEOUT = 15 * 60
 """Timeout of a single HTTP query."""
 
+# Testing alias!!
+SOLR_COLLECTION = 'mediacloud2'
 
 class _AbstractSolrRequestException(Exception, metaclass=abc.ABCMeta):
     """Abstract .solr.request exception."""
@@ -59,7 +61,7 @@ def __wait_for_solr_to_start(config: Optional[CommonConfig]) -> None:
     """Wait for Solr to start and collections to become available, if needed."""
 
     # search for an empty or rare term here because searching for *:* sometimes causes a timeout for some reason
-    sample_select_url = f"{config.solr_url()}/mediacloud/select?q=BOGUSQUERYTHATRETURNSNOTHINGNADA&rows=1&wt=json"
+    sample_select_url = f"{config.solr_url()}/{SOLR_COLLECTION}/select?q=BOGUSQUERYTHATRETURNSNOTHINGNADA&rows=1&wt=json"
 
     connected = False
 
@@ -191,7 +193,7 @@ def solr_request(path: str,
     if not params:
         params = {}
 
-    abs_uri = furl(f"{solr_url}/mediacloud/{path}")
+    abs_uri = furl(f"{solr_url}/{SOLR_COLLECTION}/{path}")
     abs_uri = abs_uri.set(params)
     abs_url = str(abs_uri)
 
