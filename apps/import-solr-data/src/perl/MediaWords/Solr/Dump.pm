@@ -55,7 +55,7 @@ Readonly my @SOLR_FIELDS => qw/stories_id media_id publish_date publish_day publ
   text title language processed_stories_id tags_id_stories timespans_id/;
 
 # how many sentences to fetch at a time from the postgres query
-Readonly my $FETCH_BLOCK_SIZE => 100;
+Readonly my $FETCH_BLOCK_SIZE => 200;
 
 # default time sleep when there are less than MIN_STORIES_TO_PROCESS:
 Readonly my $DEFAULT_THROTTLE => 60;
@@ -601,6 +601,7 @@ Options:
 * throttle -- sleep this number of seconds between each block of stories (default 60)
 * full -- shortcut for: update=false, empty_queue=true, throttle=1; assume and optimize for static queue
 * skip_logging -- skip logging the import into the solr_import_stories or solr_imports tables (default=false)
+* skip_update_snapshot -- skip setting snapshots.searchable=true (default=true)
 
 The import will run in blocks of "max_queued_stories" at a time. The function
 will keep trying to find stories to import.  If there are less than
@@ -627,6 +628,7 @@ sub import_data($;$)
     my $empty_queue  = $options->{ empty_queue }  // 0;
     my $throttle     = $options->{ throttle }     // $DEFAULT_THROTTLE;
     my $skip_logging = $options->{ skip_logging } // 0;
+    my $skip_update_snapshot = $options->{ skip_update_snapshot } // 1;
     my $daemon = $options->{ daemon } // 0;
 
     $_last_max_queue_stories_id = 0;
@@ -669,7 +671,7 @@ sub import_data($;$)
             _save_import_log( $db, $stories_ids );
         }
 
-        if ( !$skip_logging )
+        if ( !$skip_logging && !$skip_update_snapshot )
         {
             _update_snapshot_solr_status( $db );
         }
