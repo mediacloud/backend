@@ -139,13 +139,13 @@ RUN \
     done
 
 # Prebuild Jieba dictionary cache
-# PLB 2022-03-18: was creating empty, root owned file
-
-#COPY bin/build_jieba_dict_cache.py /
-#RUN \
-#    /build_jieba_dict_cache.py && \
-#    rm /build_jieba_dict_cache.py && \
-#    true
+COPY bin/build_jieba_dict_cache.py /
+RUN \
+    /build_jieba_dict_cache.py && \
+    rm /build_jieba_dict_cache.py && \
+    chown mediacloud:mediacloud /var/tmp/jieba.cache && \
+    ls -l /var/tmp/jieba.cache && \
+    true
 
 # Symlink Log::Log4perl configuration to where it's going to be found
 RUN ln -s /opt/mediacloud/src/common/perl/log4perl.conf /etc/log4perl.conf
