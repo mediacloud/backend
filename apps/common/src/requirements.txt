@@ -43,6 +43,10 @@ furl==2.1.0
 # Chinese language tokenizer, stemmer, etc.
 jieba==0.42.1
 
+# For Jinja2 2.11.3, which requests MarkupSafe>=0.23 and is now
+# getting version 2.1.1, which removed a deprecated function.
+MarkupSafe==2.0.1
+
 # Parsing email templates
 Jinja2==2.11.3
 
