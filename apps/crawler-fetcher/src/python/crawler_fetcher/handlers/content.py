@@ -15,7 +15,7 @@ log = create_logger(__name__)
 
 class DownloadContentHandler(DefaultFetchMixin, DefaultStoreMixin, AbstractDownloadHandler):
 
-    def store_download(self, db: DatabaseHandler, download: dict, content: str) -> List[int]:
+    def store_download(self, db: DatabaseHandler, download: dict, content: str, store: bool = True) -> List[int]:
         download = decode_object_from_bytes_if_needed(download)
         content = decode_object_from_bytes_if_needed(content)
 
@@ -36,6 +36,10 @@ class DownloadContentHandler(DefaultFetchMixin, DefaultStoreMixin, AbstractDownl
 
         if len(content) == 0:
             log.warning(f"Content for download {downloads_id}, story {stories_id} is empty.")
+
+        # XXX honor store here??? just shriek for closer examination
+        if not store:
+            log.warning("DownloadContentHandler.store_download w/ store=False")
 
         download = store_content(db=db, download=download, content=content)
 

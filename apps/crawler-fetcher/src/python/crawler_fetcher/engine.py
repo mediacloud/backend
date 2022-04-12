@@ -65,7 +65,7 @@ def handler_for_download(db: DatabaseHandler, download: dict) -> AbstractDownloa
     return handler
 
 
-def _fetch_and_handle_download(db: DatabaseHandler, download: dict, handler: AbstractDownloadHandler) -> None:
+def _fetch_and_handle_download(db: DatabaseHandler, download: dict, handler: AbstractDownloadHandler, queue: Optional[str] = None) -> None:
     download = decode_object_from_bytes_if_needed(download)
     if not download:
         raise McCrawlerFetcherHardError("Download is unset.")
@@ -82,10 +82,9 @@ def _fetch_and_handle_download(db: DatabaseHandler, download: dict, handler: Abs
     fetch_timer.stop()
 
     if response:
-
         store_timer = Timer('store').start()
         try:
-            handler.store_response(db=db, download=download, response=response)
+            handler.store_response(db=db, download=download, response=response, queue=queue)
         except Exception as ex:
             log.error(f"Error in handle_response() for downloads_id {downloads_id} {url}: {ex}")
             raise ex
@@ -119,8 +118,11 @@ def _log_download_error(db: DatabaseHandler, download: Optional[dict], error_mes
             ))
 
 
-def run_fetcher(no_daemon: bool = False) -> None:
-    """Poll queued_downloads for new downloads and call fetch_and_handle_download()."""
+def run_fetcher(no_daemon: bool = False, queue: Optional[str] = None) -> None:
+    """Poll queued_downloads for new downloads and call fetch_and_handle_download().
+
+    If queue not None, save download, and queue downloads_id instead of processing
+    """
 
     idle_timer = Timer('idle').start()
 
@@ -143,7 +145,7 @@ def run_fetcher(no_daemon: bool = False) -> None:
 
                 handler = handler_for_download(db=db, download=download)
 
-                _fetch_and_handle_download(db=db, download=download, handler=handler)
+                _fetch_and_handle_download(db=db, download=download, handler=handler, queue=queue)
 
                 idle_timer.start()
             else:

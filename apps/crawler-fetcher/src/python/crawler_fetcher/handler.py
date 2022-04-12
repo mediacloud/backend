@@ -28,7 +28,12 @@ class AbstractDownloadHandler(object, metaclass=abc.ABCMeta):
         """
         raise NotImplementedError("Abstract method.")
 
-    def store_response(self, db: DatabaseHandler, download: dict, response: Response) -> None:
+    def store_response(self, db: DatabaseHandler, download: dict, response: Response, store: bool = True, queue: Optional[str] = None) -> None:
         """Store the download (response object) somehow, e.g. store it, parse if it is a feed, add new stories derived
-        from it, etc."""
+        from it, etc.
+
+        store: if False, do not save response (in S3); used when processing queue
+        queue: if not None, store response (in S3), and queue downloads_id to named queue
+        (default is to store to S3, and process now)
+        """
         raise NotImplementedError("Abstract method.")

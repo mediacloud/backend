@@ -159,6 +159,7 @@ class DownloadFeedSyndicatedHandler(DefaultFetchMixin, AbstractDownloadFeedHandl
                     new_story_ids.append(stories_id)
 
         log.info(f"add_stories_from_feed: new stories: {len(new_story_ids)} / {len(stories)}")
+        log.info(f"new stories_ids: {new_story_ids}") # PLB TEMP for tracing
 
         return new_story_ids
 

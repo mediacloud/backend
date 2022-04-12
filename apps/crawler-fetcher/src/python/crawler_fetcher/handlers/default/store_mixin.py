@@ -1,6 +1,6 @@
 import abc
 import re
-from typing import List
+from typing import List, Optional
 
 from mediawords.db import DatabaseHandler
 from mediawords.job import JobBroker
@@ -27,7 +27,7 @@ class DefaultStoreMixin(AbstractDownloadHandler, metaclass=abc.ABCMeta):
     """Max. number of times to try a page after a 5xx error."""
 
     @abc.abstractmethod
-    def store_download(self, db: DatabaseHandler, download: dict, content: str) -> List[int]:
+    def store_download(self, db: DatabaseHandler, download: dict, content: str, store: bool = True, queue: Optional[str] = None) -> List[int]:
         """
         Postprocess and store a download that was just fetched.
 
@@ -37,6 +37,9 @@ class DefaultStoreMixin(AbstractDownloadHandler, metaclass=abc.ABCMeta):
         * 'feed/syndicated' downloads return an empty list because there's nothing to be extracted from a syndicated
           feed;
         * 'feed/web_page' downloads return a list with a single 'web_page' story to be extracted.
+
+        Setting store=False disable saving the download (for processing historical records,
+        or possibly splitting ALL downloading & processing).
         """
         raise NotImplementedError("Abstract method")
 
@@ -96,7 +99,7 @@ class DefaultStoreMixin(AbstractDownloadHandler, metaclass=abc.ABCMeta):
                 'downloads_id': downloads_id,
             })
 
-    def store_response(self, db: DatabaseHandler, download: dict, response: Response) -> None:
+    def store_response(self, db: DatabaseHandler, download: dict, response: Response, store: bool = True, queue: Optional[str] = None) -> None:
 
         download = decode_object_from_bytes_if_needed(download)
 
@@ -127,7 +130,8 @@ class DefaultStoreMixin(AbstractDownloadHandler, metaclass=abc.ABCMeta):
             'download_url': download_url,
         })
 
-        story_ids_to_extract = self.store_download(db=db, download=download, content=content)
+        # Maybe split into calling self.process_download & self.store_download
+        story_ids_to_extract = self.store_download(db=db, download=download, content=content, store=store, queue=queue)
 
         for stories_id in story_ids_to_extract:
             log.debug(f"Adding story {stories_id} for download {downloads_id} to extraction queue...")

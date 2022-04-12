@@ -1,5 +1,5 @@
 import abc
-from typing import List
+from typing import List, Optional
 
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.downloads.store import store_content
@@ -44,7 +44,7 @@ class AbstractDownloadFeedHandler(DefaultStoreMixin, AbstractDownloadHandler, me
         """
         raise NotImplementedError("Abstract method")
 
-    def store_download(self, db: DatabaseHandler, download: dict, content: str) -> List[int]:
+    def store_download(self, db: DatabaseHandler, download: dict, content: str, store: bool = True, queue: Optional[str] = None) -> List[int]:
         download = decode_object_from_bytes_if_needed(download)
         content = decode_object_from_bytes_if_needed(content)
 
@@ -57,7 +57,6 @@ class AbstractDownloadFeedHandler(DefaultStoreMixin, AbstractDownloadHandler, me
             story_ids_to_extract = self.return_stories_to_be_extracted_from_feed(
                 db=db, download=download, content=content,
             )
-
         except Exception as ex:
 
             error_message = f"Error processing feed for download {downloads_id}: {ex}"
@@ -86,6 +85,11 @@ class AbstractDownloadFeedHandler(DefaultStoreMixin, AbstractDownloadHandler, me
             else:
                 last_new_story_time_sql = ''
 
+            # PLB: update causes table lock with citus
+            # consider checking feeds table, and skipping if can't possibly update table
+            # or just check if download_time is older than some threshold
+            # (ie; when processing historical records)
+            # could also just unshard the feeds table!
             db.query(f"""
                 UPDATE feeds
                 SET {last_new_story_time_sql}
@@ -100,11 +104,14 @@ class AbstractDownloadFeedHandler(DefaultStoreMixin, AbstractDownloadHandler, me
             if len(added_story_ids) == 0:
                 content = '(redundant feed)'
 
-        # Reread the possibly updated download
-        download = db.find_by_id(table='downloads', object_id=downloads_id)
+        # PLB: disabled when processing historical feeds
+        # (could also always store first, and queue downloads_id for later handling)
+        if store:
+            # Reread the possibly updated download
+            download = db.find_by_id(table='downloads', object_id=downloads_id)
 
-        # Store the feed in any case
-        store_content(db=db, download=download, content=content)
+            # Store the feed (unless requested not to!)
+            store_content(db=db, download=download, content=content)
 
         log.info(f"Done processing feed download {downloads_id}")
 
