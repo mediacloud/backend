@@ -17,6 +17,7 @@ from mediawords.util.log import create_logger
 
 from crawler_fetcher.engine import handler_for_download
 from crawler_fetcher.fake_response import FakeResponse
+from crawler_fetcher.timer import Timer
 
 log = create_logger(__name__)
 
@@ -49,8 +50,10 @@ def _feed_parse_worker(db: DatabaseHandler, downloads_id: int) -> bool:
     # XXX maybe check downloads.extracted???
 
     log.info(f"Fetching download {downloads_id} download_time {download.get('download_time')}")
+    fetch_timer = Timer('fetch').start()
     # fetch original download from S3: MUST have downloads_id
     raw_download_content = fetch_content(db, download)
+    fetch_timer.stop()
 
     if raw_download_content == '(redundant feed)':
         log.info(f"{downloads_id}: redundant feed")
@@ -63,24 +66,23 @@ def _feed_parse_worker(db: DatabaseHandler, downloads_id: int) -> bool:
     log.debug(f"{downloads_id}: raw_download_content len {len(raw_download_content)}")
 
     log.info(f"Parsing download {downloads_id}...")
+    parse_timer = Timer('parse').start()
 
     # Currently need mock response to parse it...
     response = FakeResponse(content=raw_download_content)
     handler = handler_for_download(db=db, download=download)
 
-    # create all stories in a single transaction
-    db.begin()
-
     # NOTE! store=False; download is already on S3, so
-    # skip store_content and just run add_stories_from_feed.
-    # Maybe should have separate {store,parse}_download methods?
+    #   skip store_content and just run add_stories_from_feed.
+    # Maybe should have separate {store,parse}_download methods???
     handler.store_response(db=db, download=download, response=response, store=False)
 
-    # XXX maybe update downloads.extracted = 't'??
-    # (BUT that's slow with a citus sharded table)
-    db.commit()
-
     log.info(f"Done parsing download {downloads_id}.")
+    parse_timer.stop()
+
+    # XXX maybe update downloads.extracted = 't'??????
+    # (BUT that's slow with a citus sharded table)
+
     return True
 
 def feed_parse_worker(downloads_id: int):
