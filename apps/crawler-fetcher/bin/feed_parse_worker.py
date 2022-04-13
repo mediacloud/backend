@@ -48,7 +48,7 @@ def _feed_parse_worker(db: DatabaseHandler, downloads_id: int) -> bool:
 
     # XXX maybe check downloads.extracted???
 
-    log.info(f"Fetching download {downloads_id}...")
+    log.info(f"Fetching download {downloads_id} download_time {download.get('download_time')}")
     # fetch original download from S3: MUST have downloads_id
     raw_download_content = fetch_content(db, download)
 
