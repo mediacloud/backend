@@ -26,6 +26,9 @@ class DefaultStoreMixin(AbstractDownloadHandler, metaclass=abc.ABCMeta):
     _MAX_5XX_RETRIES = 10
     """Max. number of times to try a page after a 5xx error."""
 
+    _EXTRACT_AND_VECTOR_QUEUE = 'MediaWords::Job::ExtractAndVector'
+    """Queue for new stories."""
+
     @abc.abstractmethod
     def store_download(self, db: DatabaseHandler, download: dict, content: str, store: bool = True, queue: Optional[str] = None) -> List[int]:
         """
@@ -135,7 +138,7 @@ class DefaultStoreMixin(AbstractDownloadHandler, metaclass=abc.ABCMeta):
 
         for stories_id in story_ids_to_extract:
             log.debug(f"Adding story {stories_id} for download {downloads_id} to extraction queue...")
-            JobBroker(queue_name='MediaWords::Job::ExtractAndVector').add_to_queue(stories_id=stories_id)
+            JobBroker(queue_name=self._EXTRACT_AND_VECTOR_QUEUE).add_to_queue(stories_id=stories_id)
 
-        log.info(f"Handled download {downloads_id}...")
+        log.info(f"Handled download {downloads_id}: queued {len(story_ids_to_extract)} stories to {self._EXTRACT_AND_VECTOR_QUEUE}")
         log.debug(f"(URL of download {downloads_id} that was just handled: {download_url})")
