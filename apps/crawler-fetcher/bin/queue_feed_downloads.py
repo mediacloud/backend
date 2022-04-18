@@ -19,17 +19,26 @@ Usage: on production machine (database that is being imported to ), run:
 import csv
 import os
 import sys
+import time
 
 from mediawords.db import DatabaseHandler, connect_to_db
 from mediawords.util.log import create_logger
 
 from crawler_fetcher.queue import queue_to_feed_parse_worker
 
+# normally true, but set false if reprocessing a batch
+#SKIP_IF_EXISTS = True
+SKIP_IF_EXISTS = False
+CHECK_IF_EXISTS = True
+
 log = create_logger(__name__)
 
 def queue_feed_downloads(db: DatabaseHandler, csv_file: str, queue: str, time_prefix: str = '') -> None:
     log.info(f"Queueing downloads from {csv_file} to {queue}...")
 
+    feeds = set(db.query('select feeds_id from feeds').flat())
+
+    total = 0
     with open(csv_file, mode='r', encoding='utf-8') as f:
         try:
             # Guess dialect
@@ -43,6 +52,15 @@ def queue_feed_downloads(db: DatabaseHandler, csv_file: str, queue: str, time_pr
         f.seek(0)
 
         input_csv = csv.DictReader(f, dialect=dialect)
+
+        ids = []
+        def batch() -> None:
+            nonlocal ids
+            if ids:
+                db.commit()
+                for id in ids:
+                    queue_to_feed_parse_worker(queue, id)
+            ids = []
 
         for download in input_csv:
             download_time = download.get('download_time')
@@ -74,35 +92,39 @@ def queue_feed_downloads(db: DatabaseHandler, csv_file: str, queue: str, time_pr
             # PLB: off: autoindex not available if state = "success", so keeping downloads_id and path.
 
             # Not sure; maybe continue??
-            if db.find_by_id(table='downloads', object_id=id):
-                skipped("exists")
-                continue
+            if CHECK_IF_EXISTS and db.find_by_id(table='downloads', object_id=id):
+                if SKIP_IF_EXISTS:
+                    skipped("exists")
+                    continue
+            else:
+                if download['feeds_id'] not in feeds:
+                    skipped("badfeed")
+                    continue
 
-            # XXX PLB log current time (typ. not run as top process in container)?
-            log.info(f"Importing downloads_id {id} download_time {download_time}...")
+                try:
+                    if len(ids) == 0:
+                        db.begin()
+                    download = db.create(table='downloads', insert_hash=download)
+                except Exception as e:
+                    # here with 4n key constraints...
+                    db.rollback()
+                    skipped("create", e)
+                    continue
 
-            db.begin()
-            try:
-                download = db.create(table='downloads', insert_hash=download)
-            except Exception as e:
-                # here with 4n key constraints...
-                db.rollback()
-                skipped("create", e)
-                continue
+            ids.append(id)
+            total += 1
 
-            try:
-                queue_to_feed_parse_worker(queue, id)
-            except Exception as e:
-                db.rollback()
-                skipped("queue", e)
-            db.commit()
+            if len(ids) == 1000:
+                print(total, time.strftime("%F %T"), download_time)
+                batch()
 
+        batch()
     log.info(f"Done queuing downloads from {csv_file}")
 
 if __name__ == '__main__':
     def usage():
-        sys.stderr.write(f"Usage: {sys.argv[0]} [--create-queue] file_to_import_from.csv queue [time_prefix]\n")
-        os.exit(1)
+        sys.stderr.write(f"Usage: {sys.argv[0]} file_to_import_from.csv queue [time_prefix]\n")
+        sys.exit(1)
 
     argc = len(sys.argv)
     if len(sys.argv) < 2:
