@@ -52,6 +52,7 @@ def queue_feed_downloads(db: DatabaseHandler, csv_file: str, queue: str, time_pr
         f.seek(0)
 
         input_csv = csv.DictReader(f, dialect=dialect)
+        skipped_file = open(csv_file + '.skipped', 'a')
 
         ids = []
         def batch() -> None:
@@ -69,9 +70,9 @@ def queue_feed_downloads(db: DatabaseHandler, csv_file: str, queue: str, time_pr
                 continue
 
             def skipped(reason, exc=None):
-                # XXX save to file?
-                log.error(f"{reason}: {download}")
+                skipped_file.write(f"{reason} {download}\n")
                 if exc:
+                    log.error(f"{reason}: {download}")
                     log.error(exc)
 
             try:
@@ -106,11 +107,10 @@ def queue_feed_downloads(db: DatabaseHandler, csv_file: str, queue: str, time_pr
                         db.begin()
                     download = db.create(table='downloads', insert_hash=download)
                 except Exception as e:
-                    # here with 4n key constraints...
-                    db.rollback()
+                    # here with 4n key error, duplicate???
+                    # YIKES! likely killed transaction?????
                     skipped("create", e)
                     continue
-
             ids.append(id)
             total += 1
 
