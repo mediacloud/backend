@@ -57,6 +57,7 @@ class AbstractDownloadFeedHandler(DefaultStoreMixin, AbstractDownloadHandler, me
             story_ids_to_extract = self.return_stories_to_be_extracted_from_feed(
                 db=db, download=download, content=content,
             )
+            log.info(f"{downloads_id}: added {len(added_story_ids)} to_extract {len(story_ids_to_extract)}") # XXX TEMP at info
         except Exception as ex:
 
             error_message = f"Error processing feed for download {downloads_id}: {ex}"
