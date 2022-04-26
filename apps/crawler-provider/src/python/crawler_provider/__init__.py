@@ -203,7 +203,9 @@ def provide_download_ids(db: DatabaseHandler) -> List[int]:
         
         SELECT downloads_id
         FROM pending_downloads_per_host
-        WHERE rank = 1
+        -- PLB replaced "WHERE rank = 1" w/ "ORDER BY rank LIMIT 7500"
+        ORDER BY rank
+        LIMIT 7500
     
     """).flat()
 
