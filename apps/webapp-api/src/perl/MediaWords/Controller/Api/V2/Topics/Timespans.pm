@@ -88,7 +88,7 @@ SQL
             snapshots_id
         FROM timespans AS t
         where
-            topics_id = ? AND
+            topics_id = ?
             $snapshot_clause
             $focus_clause
             $timespan_clause
