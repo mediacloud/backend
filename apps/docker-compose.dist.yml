@@ -1813,7 +1813,8 @@ services:
             placement:
                 constraints:
                     # Must run on the host with Temporal Grafana data volume
-                    - node.labels.role-temporal-grafana == true
+                    # - node.labels.role-temporal-grafana == true
+                    - node.labels.role-monitoring == true
             # Worker count
             replicas: 1
             resources:
@@ -1909,7 +1910,8 @@ services:
             placement:
                 constraints:
                     # Must run on the host with Temporal Prometheus data volume
-                    - node.labels.role-temporal-prometheus == true
+                    # - node.labels.role-temporal-prometheus == true
+                    - node.labels.role-monitoring == true
             # Worker count
             replicas: 1
             resources:

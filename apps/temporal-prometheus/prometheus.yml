@@ -1,6 +1,6 @@
 global:
-  scrape_interval: 5s
-  scrape_timeout: 5s
+  scrape_interval: 15s
+  scrape_timeout: 30s
 
 scrape_configs:
 
@@ -20,3 +20,10 @@ scrape_configs:
       - 'temporal-server:9093'
       # worker
       - 'temporal-server:9094'
+
+  # rabbitmq monitoring from rabbitmq_prometheus plugin
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets:
+          - "localhost:15692"
+

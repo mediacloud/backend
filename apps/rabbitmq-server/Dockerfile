@@ -2,7 +2,7 @@
 # RabbitMQ server
 #
 
-FROM gcr.io/mcback/base:latest
+FROM gcr.io/mcback/base:release
 
 # Add RabbitMQ APT repository
 RUN \
