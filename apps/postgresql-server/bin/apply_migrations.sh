@@ -14,7 +14,8 @@ MIGRATIONS_DIR="/opt/postgresql-server/pgmigrate/migrations"
 TEMP_PORT=12345
 
 # In case the database is in recovery, wait for up to 1 hour for it to complete
-PGCTL_START_TIMEOUT=3600
+# PLB: increased to three hours
+PGCTL_START_TIMEOUT=10800
 
 if [ ! -d "${MIGRATIONS_DIR}" ]; then
     echo "Migrations directory ${MIGRATIONS_DIR} does not exist."

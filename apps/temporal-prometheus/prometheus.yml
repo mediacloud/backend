@@ -1,10 +1,20 @@
 global:
-  scrape_interval: 5s
-  scrape_timeout: 5s
+  scrape_interval: 15s
+  scrape_timeout: 30s
+
+rule_files:
+  - 'alert.rules'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - "alertmanager:9093"
 
 scrape_configs:
 
   - job_name: 'prometheus'
+    metrics_path: /metrics
     static_configs:
     - targets:
       - 'localhost:9090'
@@ -20,3 +30,11 @@ scrape_configs:
       - 'temporal-server:9093'
       # worker
       - 'temporal-server:9094'
+
+  # rabbitmq monitoring from rabbitmq_prometheus plugin
+  - job_name: 'rabbitmq'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - "rabbitmq-server:15692"
+

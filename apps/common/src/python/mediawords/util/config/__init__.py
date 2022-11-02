@@ -46,6 +46,16 @@ def env_value(name: str, required: bool = True, allow_empty_string: bool = False
 
     return value
 
+def env_bool(name: str, default: bool = False) -> bool:
+    """
+    Retrieve boolean from environment variable; should be 0 or 1.
+
+    :param name: Environment variable name.
+    :param default: default value, if no value found.
+    """
+
+    value = os.environ.get(name, default)
+    return bool(int(value))
 
 def file_with_env_value(name: str, allow_empty_string: bool = False, encoded_with_base64: bool = False) -> str:
     """

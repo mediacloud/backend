@@ -2,7 +2,7 @@
 # Prometheus for Temporal stats
 #
 
-FROM gcr.io/mcback/base:latest
+FROM gcr.io/mcback/base:release
 
 RUN \
     mkdir -p /opt/prometheus/ && \

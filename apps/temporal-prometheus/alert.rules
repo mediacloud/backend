@@ -1,0 +1,41 @@
+groups:
+- name: sample
+  rules: 
+
+  - alert: service-down
+    expr: up{job='prometheus'} == 0
+    for: "30s"
+    labels:
+      severity: page
+    annotations:
+      summary: "Service down"
+      description: "Sample service down"
+
+- name: rabbitmq_alerts
+  rules:
+
+  - alert: rabbitmq_down
+    expr: up{job='rabbitmq'} == 0
+    for: "30s"
+    labels:
+      severity: page
+    annotations:
+      summary: "Rabbitmq service down"
+
+  - alert: RabbitmqQueueFillingUp
+    expr: rabbitmq_queue_messages{queue="MediaWords::Job::ExtractAndVector"} > 10000
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Rabbitmq queue filling up"
+      description: "Queue is filling up"
+
+  - alert: RabbitmqTooManyMessagesInQueue
+    expr: rabbitmq_queue_messages_ready{queue="MediaWords::Job::ExtractAndVector"} > 40000
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Rabbitmq too many mesages in queue"
+      description: "Queue is filling up (> 20000 msgs)"
