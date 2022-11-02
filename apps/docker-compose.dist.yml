@@ -2239,7 +2239,33 @@ services:
                     # RAM limit
                     memory: "2G"
 
-
+    #
+    # Temporal Prometheus (Temporal's statistics store)
+    # -------------------------------------------------
+    #
+    temporal-alertmanager:
+        image: thepsalmist/temporal-alertmanager:release_monitoring_v2
+        init: true
+        depends_on:
+            - temporal-prometheus
+        networks:
+            - default
+        expose:
+            - "9093"
+        volumes:
+            - vol_temporal_alertmanager_data:/opt/alertmanager/data/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with Temporal Alertmanager data volume
+                    - node.labels.role-monitoring == true
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: "1G"
 #
 # Networks
 # ========
@@ -2546,3 +2572,11 @@ volumes:
             type: none
             o: bind
             device: /space/mediacloud/vol_temporal_grafana_data
+    
+    # Temporal Grafana data
+    vol_temporal_alertmanager_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_temporal_alertmanager_data
