@@ -4,6 +4,7 @@ Do GET / POST requests to Solr.
 
 import abc
 import time
+import json
 from typing import Union, Optional
 from urllib.parse import urlencode
 
@@ -26,6 +27,8 @@ __QUERY_HTTP_TIMEOUT = 15 * 60
 
 # Testing alias!!
 SOLR_COLLECTION = 'mediacloud2'
+MEDIACLOUD_32 = 'mediacloud'
+MEDIACLOUD_64 = 'mediacloud64'
 
 class _AbstractSolrRequestException(Exception, metaclass=abc.ABCMeta):
     """Abstract .solr.request exception."""
@@ -154,6 +157,54 @@ def __solr_error_message_from_response(response: Response) -> str:
     return error_message
 
 
+def merge_responses(dict1: dict,dict2: dict):
+    """
+    Merge solr responses from each of the collections to one
+
+    :param dict1: Response from mediacloud32 collection.
+    :param dict2: Response from mediacloud64 collection.
+
+    """
+    new_response = {}
+    responseHeader = dict1["responseHeader"]
+
+    new_response.update(responseHeader)
+
+    #response
+    response = dict1["response"]
+    num_found = response["numFound"] + dict2["response"]["numFound"]
+    start = response["start"] + dict2["response"]["start"]
+    if response["docs"] is not None:
+        docs = response["docs"].extend(dict2["response"]["docs"])
+    else:
+        docs = []
+
+    res_data = {"numFound":num_found,"start":start,"docs":docs}
+    response = {"response": res_data}
+
+    new_response.update(response)
+
+    #facets
+    facets = dict1["facets"]
+    count = facets["count"] + dict2["facets"]["count"]
+    if "categories" in facets:
+        if facets["categories"]["buckets"] is not None:
+            if "categories" in dict2["facets"]:
+                buckets = facets["categories"]["buckets"].extend(dict2["facets"]["categories"]["buckets"])
+            else:
+                buckets = facets["categories"]["buckets"]
+        else:
+            buckets = []
+        categories = {"buckets":buckets}
+    else:
+        categories = {}
+  
+    facets_data = {"count":count,"categories":categories}
+    facets = {"facets":facets_data}
+    new_response.update(facets)
+
+    return new_response
+
 def solr_request(path: str,
                  params: SolrParams = None,
                  content: Union[str, SolrParams] = None,
@@ -193,10 +244,8 @@ def solr_request(path: str,
     if not params:
         params = {}
 
-    abs_uri = furl(f"{solr_url}/{SOLR_COLLECTION}/{path}")
-    abs_uri = abs_uri.set(params)
-    abs_url = str(abs_uri)
-
+    collections = [MEDIACLOUD_32, MEDIACLOUD_64]
+ 
     ua = UserAgent()
     ua.set_timeout(__QUERY_HTTP_TIMEOUT)
     ua.set_max_size(None)
@@ -221,21 +270,38 @@ def solr_request(path: str,
 
         content_encoded = content.encode('utf-8', errors='replace')
 
-        request = Request(method='POST', url=abs_url)
-        request.set_header(name='Content-Type', value=content_type)
-        request.set_header(name='Content-Length', value=str(len(content_encoded)))
-        request.set_content(content_encoded)
+        results = []
+        for collection in collections:
+            abs_uri = furl(f"{solr_url}/{collection}/{path}")
+            abs_uri = abs_uri.set(params)
+            abs_url = str(abs_uri)
+            request = Request(method='POST', url=abs_url)
+            request.set_header(name='Content-Type', value=content_type)
+            request.set_header(name='Content-Length', value=str(len(content_encoded)))
+            request.set_content(content_encoded)
+            results.append(request)
+  
+    else:
+        request = Request(method='GET', url=abs_url)
+        log.debug(f"Sending Solr request: {request}")
+
+    responses = []
+    if len(results) > 1:
+        for r in results:
+            response = ua.request(r)
+            if response.is_success():
+                responses.append(response.decoded_content())
+            else:
+                error_message = __solr_error_message_from_response(response=response)
+                raise McSolrRequestQueryErrorException(f"Error fetching Solr response: {error_message}")
+        
+        response = merge_responses(json.loads(responses[0]),json.loads(responses[1]))
+        return json.dumps(response)
 
     else:
+        response = ua.request(request)
+        if not response.is_success():
+            error_message = __solr_error_message_from_response(response=response)
+            raise McSolrRequestQueryErrorException(f"Error fetching Solr response: {error_message}")
 
-        request = Request(method='GET', url=abs_url)
-
-    log.debug(f"Sending Solr request: {request}")
-
-    response = ua.request(request)
-
-    if not response.is_success():
-        error_message = __solr_error_message_from_response(response=response)
-        raise McSolrRequestQueryErrorException(f"Error fetching Solr response: {error_message}")
-
-    return response.decoded_content()
+        return response.decoded_content()
