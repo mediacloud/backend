@@ -283,6 +283,7 @@ def solr_request(path: str,
             request.set_header(name='Content-Type', value=content_type)
             request.set_header(name='Content-Length', value=str(len(content_encoded)))
             request.set_content(content_encoded)
+            results.append(request)
 
     else:
 
