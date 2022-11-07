@@ -301,7 +301,7 @@ def solr_request(path: str,
                 error_message = __solr_error_message_from_response(response=response)
                 raise McSolrRequestQueryErrorException(f"Error fetching Solr response: {error_message}")
 
-        response = merge_responses(json.loads(responses[0]),json.loads(responses[0]))
+        response = merge_responses(json.loads(responses[0]),json.loads(responses[1]))
         return json.dumps(response)
     
     else:
