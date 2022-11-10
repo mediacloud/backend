@@ -157,7 +157,7 @@ def __solr_error_message_from_response(response: Response) -> str:
     return error_message
 
 
-def merge_responses(dict1: dict,dict2: dict):
+def merge_responses(mc_32_bit_collection: dict,mc_64_bit_collection: dict):
     """
     Merge solr responses from each of the collections to one
 
@@ -166,44 +166,47 @@ def merge_responses(dict1: dict,dict2: dict):
 
     """
     new_response = {}
-    responseHeader = dict1["responseHeader"]
 
-    new_response.update(responseHeader)
+    new_response.update(mc_32_bit_collection.get("responseHeader", {}))
 
-    #response
-    response = dict1["response"]
-    num_found = response["numFound"] + dict2["response"]["numFound"]
-    start = response["start"] + dict2["response"]["start"]
-    if response["docs"] is not None:
-        docs = response["docs"].extend(dict2["response"]["docs"])
-    else:
-        docs = []
+    mc_32_bit_response = mc_32_bit_collection.get("response", {})
+    mc_64_bit_response = mc_64_bit_collection.get("response", {})
 
-    res_data = {"numFound":num_found,"start":start,"docs":docs}
-    response = {"response": res_data}
+    num_found = mc_32_bit_response.get("numFound", 0) + mc_64_bit_response.get("numFound", 0)
+    start_index = mc_32_bit_response.get("start", 0) + mc_64_bit_response.get("start", 0)
 
-    new_response.update(response)
+    docs = []
 
-    #facets
-    facets = dict1["facets"]
-    count = facets["count"] + dict2["facets"]["count"]
-    if "categories" in facets:
-        if facets["categories"]["buckets"] is not None:
-            if "categories" in dict2["facets"]:
-                buckets = facets["categories"]["buckets"].extend(dict2["facets"]["categories"]["buckets"])
-            else:
-                buckets = facets["categories"]["buckets"]
-        else:
-            buckets = []
-        categories = {"buckets":buckets}
-    else:
-        categories = {}
-  
-    facets_data = {"count":count,"categories":categories}
-    facets = {"facets":facets_data}
-    new_response.update(facets)
+    docs.extend(mc_32_bit_response.get("docs", [])).extend(mc_64_bit_response.get("docs", []))
+
+    new_response.update({
+        "response": {
+            "numFound": num_found,
+            "start": start_index,
+            "docs": docs,
+        }
+    })
+
+    # facets
+    mc_32_bit_facets = mc_32_bit_response.get("facets", {})
+    mc_64_bit_facets = mc_64_bit_response.get("facets", {})
+
+    count = mc_32_bit_facets.get("count", 0) + mc_64_bit_facets.get("count", 0)
+
+    categories = {}
+
+    if "categories" in mc_32_bit_facets:
+        if mc_32_bit_facets.get("categories", {}).get("buckets", []):
+            categories.update({"buckets": mc_32_bit_facets.get('categories', {}).get('buckets', []).extend(mc_64_bit_facets.get('categories', {}).get('buckets', []))})
+    new_response.update({
+        "facets": {
+            "count": count,
+            "categories": categories,
+        }
+    })
 
     return new_response
+
 
 def solr_request(path: str,
                  params: SolrParams = None,
