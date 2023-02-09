@@ -177,7 +177,8 @@ def merge_responses(mc_32_bit_collection: dict,mc_64_bit_collection: dict):
 
     docs = []
 
-    docs.extend(mc_32_bit_response.get("docs", [])).extend(mc_64_bit_response.get("docs", []))
+    docs.extend(mc_32_bit_response.get("docs", []))
+    docs.extend(mc_64_bit_response.get("docs", []))
 
     new_response.update({
         "response": {
@@ -188,22 +189,37 @@ def merge_responses(mc_32_bit_collection: dict,mc_64_bit_collection: dict):
     })
 
     # facets
-    mc_32_bit_facets = mc_32_bit_response.get("facets", {})
-    mc_64_bit_facets = mc_64_bit_response.get("facets", {})
+    if "facets" in mc_32_bit_collection:
+        mc_32_bit_facets = mc_32_bit_response.get("facets", {})
+        mc_64_bit_facets = mc_64_bit_response.get("facets", {})
 
-    count = mc_32_bit_facets.get("count", 0) + mc_64_bit_facets.get("count", 0)
+        count = mc_32_bit_facets.get("count", 0) + mc_64_bit_facets.get("count", 0)
+        x = mc_32_bit_facets.get("x", 0) + mc_64_bit_facets.get("x", 0)
 
-    categories = {}
+        categories = {}
 
-    if "categories" in mc_32_bit_facets:
-        if mc_32_bit_facets.get("categories", {}).get("buckets", []):
-            categories.update({"buckets": mc_32_bit_facets.get('categories', {}).get('buckets', []).extend(mc_64_bit_facets.get('categories', {}).get('buckets', []))})
-    new_response.update({
-        "facets": {
-            "count": count,
-            "categories": categories,
-        }
-    })
+        if "categories" in mc_32_bit_facets:
+            buckets = []
+            mc_32_buckets = mc_32_bit_facets.get("categories", {}).get("buckets", [])
+            mc_64_buckets = mc_64_bit_facets.get("categories", {}).get("buckets", [])
+            buckets.extend(mc_32_buckets)
+            buckets.extend(mc_64_buckets)
+
+            categories.update({"buckets":buckets})
+
+            new_response.update({
+                "facets": {
+                    "count": count,
+                    "categories": categories
+                }
+            })
+        else:
+            new_response.update({
+                "facets": {
+                    "count": count,
+                    "x": x
+                }
+            })
 
     return new_response
 
