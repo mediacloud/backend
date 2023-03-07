@@ -189,7 +189,7 @@ def merge_responses(mc_32_bit_collection: dict,mc_64_bit_collection: dict):
     })
 
     # facets
-    if "facets" in mc_32_bit_collection:
+    if "facets" in mc_32_bit_collection or "facets" in mc_64_bit_collection:
         mc_32_bit_facets = mc_32_bit_response.get("facets", {})
         mc_64_bit_facets = mc_64_bit_response.get("facets", {})
 
@@ -198,7 +198,7 @@ def merge_responses(mc_32_bit_collection: dict,mc_64_bit_collection: dict):
 
         categories = {}
 
-        if "categories" in mc_32_bit_facets:
+        if "categories" in mc_32_bit_facets or "categories" in mc_64_bit_facets:
             buckets = []
             mc_32_buckets = mc_32_bit_facets.get("categories", {}).get("buckets", [])
             mc_64_buckets = mc_64_bit_facets.get("categories", {}).get("buckets", [])
