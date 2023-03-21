@@ -4,6 +4,7 @@ import time
 
 from mediawords.db import connect_to_db
 from mediawords.job import JobBroker
+from mediawords.util.config import env_bool
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from extract_and_vector.dbi.stories.extractor_arguments import PyExtractorArguments
@@ -69,8 +70,10 @@ def run_extract_and_vector(stories_id: int, use_cache: bool = False, use_existin
 
     log.info("Extracting story {}...".format(stories_id))
 
+    no_dedup_sentences = env_bool('MC_NO_DEDUP_SENTENCES', True)
     try:
-        extractor_args = PyExtractorArguments(use_cache=use_cache, use_existing=use_existing)
+        extractor_args = PyExtractorArguments(use_cache=use_cache, use_existing=use_existing,
+                                              no_dedup_sentences=no_dedup_sentences)
         extract_and_process_story(db=db, story=story, extractor_args=extractor_args)
 
     except Exception as ex:
