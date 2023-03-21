@@ -202,9 +202,17 @@ def merge_responses(mc_32_bit_collection: dict,mc_64_bit_collection: dict):
             buckets = []
             mc_32_buckets = mc_32_bit_facets.get("categories", {}).get("buckets", [])
             mc_64_buckets = mc_64_bit_facets.get("categories", {}).get("buckets", [])
-            buckets.extend(mc_32_buckets)
-            buckets.extend(mc_64_buckets)
+            merged = {}
+            for item in mc_32_buckets + mc_64_buckets:
+                val = item['val']
+                if val in merged:
+                    merged[val]['count'] += item['count']
+                    merged[val]['x'] += item['x']
+                else:
+                    merged[val] = item.copy()
 
+            merged = list(merged.values())
+            buckets.extend(merged)
             categories.update({"buckets":buckets})
 
             new_response.update({
