@@ -41,5 +41,12 @@ for collection_path in /usr/src/solr/collections/*; do
     fi
 done
 
+ALIASES=/usr/src/solr/aliases.json
+if [ -f $ALIASES ]; then
+    /opt/solr/server/scripts/cloud-scripts/zkcli.sh \
+                -zkhost 127.0.0.1:2181 \
+                -cmd putfile /aliases.json $ALIASES
+fi
+
 # Stop after initial configuration
 pkill java

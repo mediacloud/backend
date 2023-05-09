@@ -196,7 +196,7 @@ class SyndicatedFeedItem(object):
         """
 
         enclosures = []
-        for enclosure in self.__parsed_feed_entry.enclosures:
+        for enclosure in self.__parsed_feed_entry.get('enclosures', []):
             enclosures.append(SyndicatedFeedItemEnclosure(parsed_feed_entry_enclosure=enclosure))
 
         return enclosures

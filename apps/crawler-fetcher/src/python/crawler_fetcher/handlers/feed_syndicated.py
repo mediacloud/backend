@@ -65,12 +65,13 @@ class DownloadFeedSyndicatedHandler(DefaultFetchMixin, AbstractDownloadFeedHandl
 
             enclosures = []
 
-            for enclosure in item.enclosures():
-                enclosures.append({
-                    'url': enclosure.url(),
-                    'mime_type': enclosure.mime_type(),
-                    'length': enclosure.length(),
-                })
+            if len(item.enclosures()) > 0:
+                for enclosure in item.enclosures():
+                    enclosures.append({
+                        'url': enclosure.url(),
+                        'mime_type': enclosure.mime_type(),
+                        'length': enclosure.length(),
+                    })
 
             story = {
                 'url': url,

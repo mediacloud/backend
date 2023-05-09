@@ -143,6 +143,8 @@ COPY bin/build_jieba_dict_cache.py /
 RUN \
     /build_jieba_dict_cache.py && \
     rm /build_jieba_dict_cache.py && \
+    chown mediacloud:mediacloud /var/tmp/jieba.cache && \
+    ls -l /var/tmp/jieba.cache && \
     true
 
 # Symlink Log::Log4perl configuration to where it's going to be found
