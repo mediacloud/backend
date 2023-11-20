@@ -274,13 +274,11 @@ class SMTPConfig(object):
     @staticmethod
     def use_starttls() -> bool:
         """Use STARTTLS? If you enable that, you probably want to change the port to 587."""
-        # FIXME remove altogether, not used
         return False
 
     @staticmethod
     def username() -> str:
         """Username."""
-        # FIXME remove, not used
         return ''
 
     @staticmethod
