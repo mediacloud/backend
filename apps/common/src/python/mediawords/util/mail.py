@@ -134,11 +134,22 @@ def send_email(message: Message) -> bool:
 
         else:
 
-            # Connect to SMTP
-            smtp = smtplib.SMTP(
-                host=CommonConfig.smtp().hostname(),
-                port=CommonConfig.smtp().port(),
-            )
+            # Connect to SMTP_SSL
+            if CommonConfig.smtp().use_starttls():
+                smtp = smtplib.SMTP_SSL(
+                    host=CommonConfig.smtp().hostname(),
+                    port=CommonConfig.smtp().port(),
+                )
+                smtp.login(
+                    user=CommonConfig.smtp().username(),
+                    password=CommonConfig.smtp().password(),
+                )
+            else:
+                # Connect to SMTP
+                smtp = smtplib.SMTP(
+                    host=CommonConfig.smtp().hostname(),
+                    port=CommonConfig.smtp().port(),
+                )
 
             # Send message
             refused_recipients = smtp.sendmail(mime_message['From'], mime_message['To'], mime_message.as_string())
